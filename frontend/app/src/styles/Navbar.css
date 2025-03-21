@@ -1,0 +1,394 @@
+/* ==== BARRE DE FOND FIXE ==== */
+.navbar-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #12141C;
+  z-index: 999;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.hamburger {
+  width: 30px;
+  height: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hamburger span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background: white;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: translateY(8.5px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: translateY(-8.5px) rotate(-45deg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .search {
+    width: 200px;
+  }
+  
+  .search:focus {
+    width: 250px;
+  }
+  
+  .nav-links button {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .add-album-button {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 10px;
+  }
+  
+  .navbar-left {
+    flex-grow: 1;
+  }
+  
+  .search-form {
+    flex-grow: 1;
+  }
+  
+  .search {
+    width: 100%;
+  }
+  
+  .search:focus {
+    width: 100%;
+  }
+  
+  .mobile-menu-toggle {
+    display: block;
+    margin-left: 10px;
+  }
+  
+  .nav-links {
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    background: #12141C;
+    flex-direction: column;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    z-index: 998;
+  }
+  
+  .nav-links.active {
+    max-height: 300px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .nav-links button {
+    width: 100%;
+    text-align: center;
+    margin: 5px 0;
+  }
+  
+  .add-album-button {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    height: 40px;
+  }
+  
+  .profile-pic {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .search {
+    padding: 8px 35px 8px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ==== CONTENEUR PRINCIPAL ==== */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 98%;
+  margin: 0 auto;
+  padding: 10px 20px;
+}
+
+/* === LEFT SECTION WITH LOGO AND SEARCH === */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Logo */
+.logo {
+  height: 60px;
+  width: auto;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+/* Search form */
+.search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search {
+  width: 300px;
+  padding: 10px 40px 10px 15px;
+  border-radius: 20px;
+  border: none;
+  background: #22232b;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search:focus {
+  outline: none;
+  background: #2c2f3a;
+  box-shadow: 0 0 0 2px rgba(50, 138, 241, 0.5);
+  width: 320px;
+}
+
+.search-button {
+  position: absolute;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.search-icon {
+  font-size: 16px;
+}
+
+/* === NAVIGATION LINKS === */
+.nav-links {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-links button {
+  background: #3b3e51;
+  color: white;
+  border-radius: 6px;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.nav-links button:hover {
+  background: #50546a;
+  transform: translateY(-2px);
+}
+
+.nav-links button.active {
+  background: #328AF1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Admin button */
+.admin {
+  background: #e63946 !important;
+}
+
+.admin:hover {
+  background: #d62c39 !important;
+}
+
+/* === RIGHT SECTION: USER ACTIONS === */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Add Album button */
+.add-album-button {
+  background: #328AF1;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.add-album-button:hover {
+  background: #2c79d6;
+  transform: translateY(-2px);
+}
+
+/* Login button */
+.login-button {
+  background: #3b3e51;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  background: #50546a;
+  transform: translateY(-2px);
+}
+
+/* Profile dropdown */
+.profile-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Style pour l'image de profil */
+.profile-pic {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.profile-pic:hover {
+  border-color: #328AF1;
+}
+
+/* Style pour l'image de profil carrée */
+.profile-pic.square {
+  border-radius: 8px; /* Coins légèrement arrondis plutôt que complètement carrés */
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.profile-pic.square:hover {
+  border-color: #328AF1;
+  transform: scale(1.05);
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #2c2f3a;
+  min-width: 220px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  z-index: 1000;
+  overflow: hidden;
+  transform: translateY(10px);
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.profile-dropdown:hover .dropdown-content {
+  display: block;
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dropdown-user-info {
+  padding: 15px;
+  border-bottom: 1px solid #3b3e51;
+  text-align: center;
+}
+
+.dropdown-user-info p {
+  margin: 0;
+  color: #aaa;
+  font-size: 0.8rem;
+}
+
+.dropdown-username {
+  color: white !important;
+  font-size: 1.1rem !important;
+  font-weight: bold;
+  margin-top: 5px !important;
+}
+
+.dropdown-content button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 15px;
+  border: none;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.dropdown-content button:hover {
+  background-color: #3b3e51;
+}
+
+.dropdown-content .logout-button {
+  border-top: 1px solid #3b3e51;
+  color: #e63946;
+}

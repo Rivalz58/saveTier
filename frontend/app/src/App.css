@@ -1,0 +1,24 @@
+/* Police Google en exemple */
+@import url('https://fonts.googleapis.com/css2?family=Palanquin+Dark:wght@400;700&display=swap');
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Palanquin Dark', sans-serif;
+  min-height: 100vh; /* S'assure que le body prend au moins toute la hauteur */
+  overflow-y: auto; /* Permet le défilement vertical */
+}
+
+/* Conteneur principal */
+.container {
+  max-width: 95%;
+  margin: 0 auto;
+  /* Pour laisser la place à la navbar fixe (qui fait ~60px de haut) */
+  padding-top: 80px;
+  padding-bottom: 40px; /* Ajout d'un padding en bas */
+  min-height: calc(100vh - 120px); /* Hauteur minimale pour s'assurer qu'on peut défiler */
+  position: relative; /* Ajoute un contexte de positionnement */
+  overflow: visible; /* Permet au contenu de déborder et de défiler */
+}

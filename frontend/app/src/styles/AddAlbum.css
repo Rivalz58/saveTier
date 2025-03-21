@@ -1,0 +1,444 @@
+.add-album-container {
+  padding-top: 90px;
+  max-width: 800px;
+  margin: 0 auto;
+  color: #fff;
+}
+
+.drop-zone {
+  border: 2px dashed #3b3e51;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.drop-zone.active {
+  border-color: #328AF1;
+  background-color: rgba(50, 138, 241, 0.1);
+}
+
+.drop-zone p {
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.file-input-label {
+  display: inline-block;
+  background: #328AF1;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.file-input-label:hover {
+  background: #2c79d6;
+}
+
+.image-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.preview-container {
+  position: relative;
+  height: 100px;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.remove-image {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e63946;
+  color: white;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-image:hover {
+  background: #cf2c39;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.cancel-btn {
+  background: #3b3e51;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background: #50546a;
+}
+
+.submit-btn {
+  background: #328AF1;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.submit-btn:hover {
+  background: #2c79d6;
+}
+
+.add-album-title {
+  color: #fff;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+.add-album-form {
+  background: #2c2f3a;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.form-group input[type="text"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  background: #3b3e51;
+  color: white;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+}
+
+/* Ajout à votre AddAlbum.css pour les catégories multiples */
+.categories-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.category-checkbox {
+  display: flex;
+  align-items: center;
+  background: #3b3e51;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.category-checkbox:hover {
+  background: #50546a;
+}
+
+.category-checkbox input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.category-checkbox label {
+  cursor: pointer;
+  font-weight: normal;
+  margin-bottom: 0;
+}
+
+.category-checkbox input[type="checkbox"]:checked + label {
+  color: #328AF1;
+  font-weight: bold;
+}
+
+/* Style pour afficher les badges de catégories dans une carte */
+.category-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.category-badge {
+  background: #328AF1;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+/* Style pour le conteneur des catégories sur la page détail */
+.album-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.album-category {
+  background: #3b3e51;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.album-category:hover {
+  background: #50546a;
+  transform: translateY(-2px);
+}
+
+/* Style pour les filtres par catégories multiples */
+.multi-category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.multi-category-filter {
+  background: #3b3e51;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.multi-category-filter:hover {
+  background: #50546a;
+}
+
+.multi-category-filter.active {
+  background: #328AF1;
+}
+
+.multi-category-filter .filter-count {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 0.7rem;
+  margin-left: 5px;
+}
+
+/* Ajoutez ces styles à votre AddAlbum.css pour le support de multi-sélection */
+
+.multi-select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  background: #3b3e51;
+  color: white;
+  font-size: 1rem;
+}
+
+.multi-select option {
+  padding: 8px;
+}
+
+.multi-select option:checked {
+  background: #328AF1;
+  color: white;
+}
+
+.category-selection-area {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+  background: #3b3e51;
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.category-option {
+  background: #22232b;
+  border: 1px solid #50546a;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.category-option:hover {
+  background: #50546a;
+  border-color: #328AF1;
+}
+
+.category-option.selected {
+  background: #328AF1;
+  border-color: #328AF1;
+  color: white;
+}
+
+.selected-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-top: 1px solid #50546a;
+  padding-top: 15px;
+  min-height: 30px;
+}
+
+.selected-category {
+  display: flex;
+  align-items: center;
+  background: #328AF1;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+}
+
+.remove-category {
+  margin-left: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  transition: background 0.2s ease;
+}
+
+.remove-category:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.no-categories {
+  color: #aaa;
+  font-style: italic;
+}
+
+/* Style pour Admin.tsx pour l'affichage des catégories */
+.category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: 300px;
+}
+
+.category-tag {
+  background: #328AF1;
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Style pour les filtres de catégories */
+.category-filter-container {
+  margin-bottom: 15px;
+}
+
+.filter-label {
+  margin-bottom: 10px;
+  display: block;
+  font-weight: bold;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-button {
+  background: #3b3e51;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s ease;
+}
+
+.filter-button:hover {
+  background: #50546a;
+}
+
+.filter-button.active {
+  background: #328AF1;
+}

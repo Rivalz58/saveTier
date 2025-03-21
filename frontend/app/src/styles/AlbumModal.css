@@ -1,0 +1,253 @@
+.album-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .album-modal-content {
+    background-color: #2c2f3a;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    width: 500px;
+    max-width: 90%;
+    padding: 0;
+    color: #fff;
+    animation: modalFadeIn 0.3s ease;
+  }
+  
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .album-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .album-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+  
+  .close-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  .album-modal-subtitle {
+    padding: 0 25px;
+    margin: 20px 0;
+    color: #ddd;
+    font-size: 1.1rem;
+  }
+  
+  .album-options {
+    display: flex;
+    justify-content: space-around;
+    padding: 0 25px;
+    margin-bottom: 25px;
+  }
+  
+  .album-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    background: #22232b;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 15px;
+  }
+  
+  .album-option:hover {
+    background: #3b3e51;
+    transform: translateY(-3px);
+  }
+  
+  .album-option.selected {
+    background: #328AF1;
+    box-shadow: 0 0 15px rgba(50, 138, 241, 0.5);
+  }
+  
+  .option-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+  }
+  
+  .tierlist-icon {
+    color: #328AF1;
+  }
+  
+  .tournoi-icon {
+    color: #e63946;
+  }
+  
+  .classement-icon {
+    color: #2a9d8f;
+  }
+  
+  .album-option.selected .option-icon {
+    color: white;
+  }
+  
+  .option-label {
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  
+  .name-input-container {
+    padding: 0 25px;
+    margin-bottom: 25px;
+  }
+  
+  .name-input-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #ddd;
+  }
+  
+  .name-input-container input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: none;
+    background: #3b3e51;
+    color: white;
+    font-size: 1rem;
+  }
+  
+  .name-input-container input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #328AF1;
+  }
+  
+  /* Message pour utilisateurs non connectés */
+  .login-message {
+    padding: 15px 25px;
+    margin-bottom: 15px;
+    background: #22232b;
+    border-radius: 8px;
+    margin: 0 25px 20px 25px;
+    text-align: center;
+  }
+  
+  .login-message p {
+    margin: 0 0 15px 0;
+    color: #ff9800;
+  }
+  
+  .login-button {
+    background: #328AF1;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .login-button:hover {
+    background: #2c79d6;
+    transform: translateY(-2px);
+  }
+  
+  .album-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    padding: 20px 25px;
+    background: #22232b;
+    border-radius: 0 0 12px 12px;
+  }
+  
+  .cancel-button, .create-button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .cancel-button {
+    background: #3b3e51;
+    color: white;
+  }
+  
+  .cancel-button:hover {
+    background: #50546a;
+  }
+  
+  .create-button {
+    background: #328AF1;
+    color: white;
+  }
+  
+  .create-button:hover {
+    background: #2c79d6;
+  }
+  
+  .create-button:disabled {
+    background: #3b3e51;
+    color: #aaa;
+    cursor: not-allowed;
+  }
+  
+  @media (max-width: 600px) {
+    .album-options {
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .album-option {
+      width: 100%;
+      flex-direction: row;
+      height: 60px;
+      justify-content: flex-start;
+      gap: 15px;
+    }
+    
+    .option-icon {
+      margin-bottom: 0;
+    }
+  }
