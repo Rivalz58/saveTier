@@ -478,3 +478,241 @@
   }
 }
 
+/* Styles pour les badges de rôle utilisateur */
+.user-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.user-role {
+  background-color: #328AF1;
+  color: white;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.remove-role-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.remove-role-btn:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.add-role-btn {
+  background-color: #3b3e51;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.add-role-btn:hover {
+  background-color: #50546a;
+}
+
+/* Styles pour le modal de rôle */
+.role-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #3b3e51;
+  background-color: #22232b;
+  color: white;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+/* Bouton d'édition */
+.admin-action-btn.edit {
+  background-color: #2a9d8f;
+}
+
+.admin-action-btn.edit:hover {
+  background-color: #21867a;
+}
+
+/* Bouton de statut */
+.admin-action-btn.status {
+  background-color: #ff9800;
+}
+
+.admin-action-btn.status:hover {
+  background-color: #f57c00;
+}
+
+/* Styles pour la sélection de statut */
+.status-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #3b3e51;
+  background-color: #22232b;
+  color: white;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+/* Styles pour l'input admin */
+.admin-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #3b3e51;
+  background-color: #22232b;
+  color: white;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+/* Styles pour l'onglet de catégories */
+.admin-tab.categories {
+  background-color: #2a9d8f;
+}
+
+.admin-tab.categories:hover,
+.admin-tab.categories.active {
+  background-color: #21867a;
+}
+
+/* Styles pour les boutons de confirmation modaux */
+.confirm-create {
+  background-color: #2a9d8f !important;
+}
+
+.confirm-create:hover {
+  background-color: #21867a !important;
+}
+
+.confirm-edit {
+  background-color: #328AF1 !important;
+}
+
+.confirm-edit:hover {
+  background-color: #2c79d6 !important;
+}
+
+.confirm-delete {
+  background-color: #e63946 !important;
+}
+
+.confirm-delete:hover {
+  background-color: #cf2c39 !important;
+}
+
+.confirm-status {
+  background-color: #ff9800 !important;
+}
+
+.confirm-status:hover {
+  background-color: #f57c00 !important;
+}
+
+.confirm-privacy {
+  background-color: #3b3e51 !important;
+}
+
+.confirm-privacy:hover {
+  background-color: #50546a !important;
+}
+
+.confirm-role {
+  background-color: #328AF1 !important;
+}
+
+.confirm-role:hover {
+  background-color: #2c79d6 !important;
+}
+
+/* Ajustements responsifs */
+@media (max-width: 768px) {
+  .user-roles {
+    flex-direction: column;
+  }
+  
+  .user-role {
+    justify-content: space-between;
+  }
+  
+  .admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Styles pour les catégories dans l'admin */
+.category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: 300px;
+}
+
+.category-tag {
+  background: #328AF1;
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Loading spinner */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #328AF1;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error message */
+.error-message {
+  text-align: center;
+  padding: 30px;
+  background: #2c2f3a;
+  border-radius: 10px;
+  margin: 20px 0;
+  color: #e63946;
+}

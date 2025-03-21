@@ -2,84 +2,37 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import "../styles/AllAlbum.css";
-
-// Import de l'image depuis le dossier assets
-import filmsImage from "../assets/films.jpg";
+import { getPublicTournaments } from "../services/tournament-api";
+import { getAlbumInfoForContent } from "../services/album-api-extended";
 
 interface TournoisProps {
   user: string | null;
 }
 
-type Tournoi = {
+type FormattedTournament = {
   id: string;
   name: string;
   image: string;
   creator: string;
   creatorId: string;
-  category: string;
+  categories: string[];
   createdAt: string;
-  isPublic: boolean;
-  participants: number;
+  participants: number; // Simuler les participations
 };
 
-type TournoiCategory = {
-  title: string;
-  tournois: Tournoi[];
-};
-
-// Données exemple des tournois
-const tournoiCategories: TournoiCategory[] = [
-  {
-    title: "Manga",
-    tournois: [
-      { id: "tournoi-001", name: "Personnages One Piece", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Manga", createdAt: "2024-02-15", isPublic: true, participants: 1256 },
-      { id: "tournoi-002", name: "Personnages Naruto", image: filmsImage, creator: "User2", creatorId: "user-002", category: "Manga", createdAt: "2024-01-20", isPublic: true, participants: 942 },
-      { id: "tournoi-003", name: "Meilleurs arcs de Bleach", image: filmsImage, creator: "User3", creatorId: "user-003", category: "Manga", createdAt: "2024-02-05", isPublic: true, participants: 620 },
-      { id: "tournoi-004", name: "Personnages My Hero Academia", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Manga", createdAt: "2024-03-10", isPublic: true, participants: 523 },
-    ],
-  },
-  {
-    title: "Films",
-    tournois: [
-      { id: "tournoi-005", name: "Films Marvel", image: filmsImage, creator: "User2", creatorId: "user-002", category: "Films", createdAt: "2024-02-10", isPublic: true, participants: 834 },
-      { id: "tournoi-006", name: "Films Disney", image: filmsImage, creator: "User3", creatorId: "user-003", category: "Films", createdAt: "2024-01-15", isPublic: true, participants: 723 },
-      { id: "tournoi-007", name: "Films DC", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Films", createdAt: "2024-03-05", isPublic: true, participants: 421 },
-    ],
-  },
-  {
-    title: "Jeux Vidéo",
-    tournois: [
-      { id: "tournoi-008", name: "Jeux Zelda", image: filmsImage, creator: "User3", creatorId: "user-003", category: "Jeux Vidéo", createdAt: "2024-01-25", isPublic: true, participants: 587 },
-      { id: "tournoi-009", name: "Jeux Pokémon", image: filmsImage, creator: "User2", creatorId: "user-002", category: "Jeux Vidéo", createdAt: "2024-02-20", isPublic: true, participants: 532 },
-      { id: "tournoi-010", name: "Jeux Final Fantasy", image: filmsImage, creator: "Admin", creatorId: "user-005", category: "Jeux Vidéo", createdAt: "2024-03-01", isPublic: true, participants: 476 },
-    ],
-  },
-  {
-    title: "Musique",
-    tournois: [
-      { id: "tournoi-011", name: "Albums Rock", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Musique", createdAt: "2024-01-10", isPublic: true, participants: 345 },
-      { id: "tournoi-012", name: "Albums Hip-Hop", image: filmsImage, creator: "User4", creatorId: "user-004", category: "Musique", createdAt: "2024-02-08", isPublic: true, participants: 302 },
-    ],
-  },
-];
-
-// Fonction pour obtenir tous les tournois, triés par popularité
-const getAllTournoisSortedByPopularity = (): Tournoi[] => {
-  const allTournois: Tournoi[] = [];
-  
-  tournoiCategories.forEach(category => {
-    allTournois.push(...category.tournois);
-  });
-  
-  return allTournois.sort((a, b) => b.participants - a.participants);
-};
-
-const Tournois: React.FC<TournoisProps> = () => {
+const Tournois: React.FC<TournoisProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
+  // États pour stocker les données formatées
+  const [allTournaments, setAllTournaments] = useState<FormattedTournament[]>([]);
+  const [tournamentCategories, setTournamentCategories] = useState<Map<string, FormattedTournament[]>>(new Map());
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+
   // Détecter si on arrive via un "Voir plus" spécifique à une catégorie
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -89,43 +42,131 @@ const Tournois: React.FC<TournoisProps> = () => {
     }
   }, [location]);
 
-  // Obtenir la liste de tous les tournois, soit par catégorie, soit tous triés par popularité
-  const getFilteredTournois = () => {
-    if (!selectedCategory) {
-      // Si aucune catégorie n'est sélectionnée, montrer tous les tournois par popularité
-      const allTournois = getAllTournoisSortedByPopularity();
-      return allTournois.filter(tournoi => 
-        tournoi.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Charger les données des tournois depuis l'API
+  useEffect(() => {
+    const loadTournaments = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Récupérer les tournois publics
+        const publicTournaments = await getPublicTournaments();
+        
+        // Formater les données et récupérer les infos d'album
+        const formattedTournaments: FormattedTournament[] = [];
+        const categoriesMap = new Map<string, FormattedTournament[]>();
+        const allCategories = new Set<string>();
+        
+        for (const tournament of publicTournaments) {
+          // Récupérer les catégories et l'image de l'album
+          const albumInfo = await getAlbumInfoForContent(tournament.album.id);
+          
+          // Créer un objet tournament formaté
+          const formattedTournament: FormattedTournament = {
+            id: tournament.id.toString(),
+            name: tournament.name,
+            image: albumInfo.imagePath,
+            creator: tournament.author.username,
+            creatorId: tournament.author.id.toString(),
+            categories: albumInfo.categories,
+            createdAt: tournament.createdAt,
+            // Simuler un nombre de participants
+            participants: Math.floor(Math.random() * 1000) + 100,
+          };
+          
+          formattedTournaments.push(formattedTournament);
+          
+          // Ajouter aux catégories
+          albumInfo.categories.forEach(category => {
+            allCategories.add(category);
+            
+            if (!categoriesMap.has(category)) {
+              categoriesMap.set(category, []);
+            }
+            categoriesMap.get(category)?.push(formattedTournament);
+          });
+        }
+        
+        // Trier les tournois par participants dans chaque catégorie
+        categoriesMap.forEach((tournaments, category) => {
+          categoriesMap.set(category, tournaments.sort((a, b) => b.participants - a.participants));
+        });
+        
+        // Mettre à jour les états
+        setAllTournaments(formattedTournaments.sort((a, b) => b.participants - a.participants));
+        setTournamentCategories(categoriesMap);
+        setAvailableCategories(Array.from(allCategories));
+        
+      } catch (err) {
+        console.error("Erreur lors du chargement des tournois:", err);
+        setError("Impossible de charger les tournois. Veuillez réessayer plus tard.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadTournaments();
+  }, []);
+
+  // Filtrer les tournois en fonction de la recherche et de la catégorie
+  const getFilteredTournaments = (): FormattedTournament[] => {
+    const searchLower = searchQuery.toLowerCase();
+    
+    // Filtrer par texte de recherche
+    let filtered = allTournaments.filter(tournament => 
+      tournament.name.toLowerCase().includes(searchLower) || 
+      tournament.creator.toLowerCase().includes(searchLower)
+    );
+    
+    // Filtrer par catégorie si une est sélectionnée
+    if (selectedCategory) {
+      filtered = filtered.filter(tournament => 
+        tournament.categories.includes(selectedCategory)
       );
-    } else {
-      // Sinon, filtrer par catégorie sélectionnée
-      const categoryData = tournoiCategories.find(cat => cat.title === selectedCategory);
-      if (!categoryData) return [];
-      
-      return categoryData.tournois
-        .filter(tournoi => tournoi.name.toLowerCase().includes(searchQuery.toLowerCase()))
-        .sort((a, b) => b.participants - a.participants); // Toujours trier par popularité
     }
+    
+    return filtered;
   };
 
-  // Liste filtrée de tournois
-  const filteredTournois = getFilteredTournois();
-  
-  // Générer la liste de toutes les catégories disponibles
-  const categoryTitles = tournoiCategories.map(category => category.title);
+  // Récupérer les tournois filtrés
+  const filteredTournaments = getFilteredTournaments();
 
   // Gérer le clic sur un tournoi
-  const handleTournoiClick = (tournoi: Tournoi) => {
+  const handleTournamentClick = (tournament: FormattedTournament) => {
     // Rediriger vers la page de détail du tournoi
-    navigate(`/tournois/${tournoi.id}`);
+    navigate(`/tournois/${tournament.id}`);
   };
 
   // Gérer la création d'un nouveau tournoi - rediriger vers les albums
-  const handleCreateTournoi = () => {
+  const handleCreateTournament = () => {
     // Rediriger vers la page des albums pour choisir un album
-    // Même les utilisateurs non connectés peuvent y accéder
     navigate("/allalbum");
   };
+
+  // Affichage pendant le chargement
+  if (isLoading) {
+    return (
+      <div className="all-album-container">
+        <h1 className="all-album-title">Tous les Tournois</h1>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Chargement des tournois...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage en cas d'erreur
+  if (error) {
+    return (
+      <div className="all-album-container">
+        <h1 className="all-album-title">Tous les Tournois</h1>
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Réessayer</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="all-album-container">
@@ -150,7 +191,7 @@ const Tournois: React.FC<TournoisProps> = () => {
             Plus Populaires
           </button>
           
-          {categoryTitles.map((title, index) => (
+          {availableCategories.map((title, index) => (
             <button
               key={index}
               className={`category-filter ${selectedCategory === title ? 'active' : ''}`}
@@ -162,47 +203,32 @@ const Tournois: React.FC<TournoisProps> = () => {
         </div>
       </div>
       
-      {filteredTournois.length === 0 ? (
+      {filteredTournaments.length === 0 ? (
         <div className="no-results">
           <p>Aucun tournoi ne correspond à votre recherche</p>
         </div>
       ) : (
         <div className="all-albums-section">
-          {!selectedCategory ? (
-            // Vue "Plus Populaires"
-            <div>
-              <h2 className="category-title">Tournois les plus populaires</h2>
-              <div className="all-albums-grid">
-                {filteredTournois.map((tournoi, index) => (
-                  <div 
-                    key={index} 
-                    className="album-card-container"
-                    onClick={() => handleTournoiClick(tournoi)}
-                  >
-                    <div className="album-usage-count">{tournoi.participants} participants</div>
-                    <CategoryCard name={tournoi.name} image={tournoi.image} />
-                  </div>
-                ))}
-              </div>
+          <div>
+            <h2 className="category-title">{selectedCategory || "Tournois les plus populaires"}</h2>
+            <div className="all-albums-grid">
+              {filteredTournaments.map((tournament, index) => (
+                <div 
+                  key={index} 
+                  className="album-card-container"
+                  onClick={() => handleTournamentClick(tournament)}
+                >
+                  <div className="album-usage-count">{tournament.participants} participants</div>
+                  <CategoryCard 
+                    name={tournament.name} 
+                    image={tournament.image} 
+                    categories={tournament.categories}
+                    authorName={tournament.creator}
+                  />
+                </div>
+              ))}
             </div>
-          ) : (
-            // Vue par catégorie
-            <div>
-              <h2 className="category-title">{selectedCategory}</h2>
-              <div className="all-albums-grid">
-                {filteredTournois.map((tournoi, index) => (
-                  <div 
-                    key={index} 
-                    className="album-card-container"
-                    onClick={() => handleTournoiClick(tournoi)}
-                  >
-                    <div className="album-usage-count">{tournoi.participants} participants</div>
-                    <CategoryCard name={tournoi.name} image={tournoi.image} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
       
@@ -210,7 +236,7 @@ const Tournois: React.FC<TournoisProps> = () => {
         <p>Vous souhaitez créer votre propre Tournoi ?</p>
         <button 
           className="create-album-btn"
-          onClick={handleCreateTournoi}
+          onClick={handleCreateTournament}
         >
           Créer un nouveau Tournoi
         </button>

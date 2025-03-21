@@ -57,22 +57,18 @@ export const getCurrentUser = async () => {
 // Fonction pour vérifier si l'utilisateur est admin
 export const checkIsAdmin = async (): Promise<boolean> => {
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get("http://127.0.0.1:8080/api/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    // Définir un type pour un rôle
-    interface Role {
-      id: number;
-      libelle: string;
+    const response = await api.get("/me");
+    
+    // Vérifier si la réponse contient les données utilisateur
+    if (response.data && response.data.user && response.data.user.roles) {
+      const roles = response.data.user.roles;
+      // Rechercher un rôle "Admin" (insensible à la casse)
+      return roles.some((role: { id: number; libelle: string }) => 
+        role.libelle.toLowerCase() === "admin"
+      );
     }
-    const roles: Role[] = response.data?.user?.roles || [];
-    console.log("User roles:", roles);
-    const isAdmin = roles.some((role: Role) => role.libelle.toLowerCase() === "admin");
-    console.log("isAdmin =", isAdmin);
-    return isAdmin;
+    
+    return false;
   } catch (error) {
     console.error("Check admin error:", error);
     return false;
@@ -96,7 +92,5 @@ export const isTokenValid = () => {
   const token = localStorage.getItem("token");
   return !!token;
 };
-
-
 
 export default api;

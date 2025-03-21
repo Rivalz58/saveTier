@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
-import { login } from "../services/api";
+import { login, checkIsAdmin } from "../services/api";
 
 interface LoginProps {
-  setUser: (user: string | null) => void;
+  setUser: (user: string) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ setUser }) => {
@@ -28,7 +28,11 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
         // Stocker le token dans localStorage
         localStorage.setItem('token', response.token);
         
-        // Définir l'utilisateur (nous utilisons le nametag en attendant de récupérer le username)
+        // Vérifier si l'utilisateur est admin
+        const isAdmin = await checkIsAdmin();
+        console.log("User logged in, admin status:", isAdmin);
+        
+        // Définir l'utilisateur avec son nametag
         setUser(nametag);
         
         // Rediriger vers la page d'accueil

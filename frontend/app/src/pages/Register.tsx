@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
-import { register, login } from "../services/api";
+import { register, login, checkIsAdmin } from "../services/api";
 
 interface RegisterProps {
-  setUser: (user: string | null) => void;
+  setUser: (user: string) => void;
 }
 
 const Register: React.FC<RegisterProps> = ({ setUser }) => {
@@ -47,6 +47,9 @@ const Register: React.FC<RegisterProps> = ({ setUser }) => {
           if (loginResponse && loginResponse.status === "success") {
             // Stocker le token dans localStorage
             localStorage.setItem('token', loginResponse.token);
+            
+            // Vérifier si l'utilisateur est admin (peu probable pour un nouvel utilisateur)
+            await checkIsAdmin();
             
             // Définir l'utilisateur
             setUser(username);

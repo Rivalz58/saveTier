@@ -4,12 +4,12 @@ import {
   Routes,
   Route,
   useLocation,
-  useNavigate,
+  useNavigate
 } from "react-router-dom";
 
 import "./App.css";
 import "./styles/theme.css";
-import { getCurrentUser, revokeToken } from "./services/api";
+import { getCurrentUser, revokeToken, checkIsAdmin } from "./services/api";
 import Navbar from "./components/Navbar";
 import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
@@ -25,55 +25,79 @@ import SetupItemSelection from "./pages/SetupItemSelection";
 
 const App: React.FC = () => {
   const [user, setUser] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Modifié pour ne pas bloquer l'interface
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
+  // Fonction pour mettre à jour le statut d'un utilisateur sans afficher le chargement
+  const checkAndUpdateUserStatus = async (showLoading = false) => {
     const token = localStorage.getItem("token");
+    
+    // Afficher le chargement uniquement si demandé
+    if (showLoading) {
+      setIsLoading(true);
+    }
+    
     if (token) {
-      const fetchUser = async () => {
-        try {
-          const response = await getCurrentUser();
-          if (response && response.user) {
-            const currentUser = response.user;
-            setUser(currentUser.username);
-            if (currentUser.roles && Array.isArray(currentUser.roles)) {
-              // Si l'utilisateur a exactement un rôle "User", il n'est pas admin
-              if (
-                currentUser.roles.length === 1 &&
-                currentUser.roles[0].libelle.toLowerCase() === "user"
-              ) {
-                setIsAdmin(false);
-              } else if (
-                currentUser.roles.some(
-                  (role: { libelle: string }) => role.libelle.toLowerCase() === "admin"
-                )
-              ) {
-                setIsAdmin(true);
-              } else {
-                setIsAdmin(false);
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Erreur lors de la récupération de l'utilisateur:", error);
+      try {
+        // Récupérer les informations utilisateur
+        const response = await getCurrentUser();
+        if (response && response.user) {
+          setUser(response.user.username);
+          
+          // Vérifier directement si l'utilisateur est admin
+          const adminStatus = await checkIsAdmin();
+          console.log("Admin status:", adminStatus);
+          setIsAdmin(adminStatus);
+        } else {
+          // Si pas de réponse correcte, réinitialiser les états
+          setUser(null);
+          setIsAdmin(false);
           localStorage.removeItem("token");
-        } finally {
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de l'utilisateur:", error);
+        setUser(null);
+        setIsAdmin(false);
+        localStorage.removeItem("token");
+      } finally {
+        if (showLoading) {
           setIsLoading(false);
         }
-      };
-      fetchUser();
+        setIsInitialized(true);
+      }
     } else {
-      setIsLoading(false);
+      // Si pas de token, réinitialiser les états
+      setUser(null);
+      setIsAdmin(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
+      setIsInitialized(true);
     }
+  };
+
+  // Vérifier le statut de l'utilisateur au chargement initial
+  useEffect(() => {
+    // Lors du chargement initial, nous voulons afficher le chargement
+    checkAndUpdateUserStatus(true);
   }, []);
 
+  // Fonction pour se connecter à un utilisateur
+  const handleLogin = async (username: string) => {
+    setUser(username);
+    // Mettre à jour le statut admin après la connexion
+    await checkAndUpdateUserStatus();
+  };
+
+  // Fonction pour se déconnecter
   const handleLogout = async () => {
     try {
       await revokeToken();
     } catch (error) {
       console.error("Erreur lors de la révocation:", error);
     } finally {
+      // Réinitialiser tous les états
       localStorage.removeItem("token");
       setUser(null);
       setIsAdmin(false);
@@ -85,24 +109,42 @@ const App: React.FC = () => {
     document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
-  if (isLoading) {
+  // Afficher le chargement uniquement lors de l'initialisation de l'application
+  if (isLoading && !isInitialized) {
     return <div>Chargement...</div>;
   }
 
   return (
     <Router>
-      <MainLayout user={user} setUser={setUser} onLogout={handleLogout} isAdmin={isAdmin} />
+      <MainLayout 
+        user={user} 
+        setUser={handleLogin} 
+        onLogout={handleLogout} 
+        isAdmin={isAdmin} 
+        refreshUserStatus={checkAndUpdateUserStatus}
+      />
     </Router>
   );
 };
 
-const MainLayout: React.FC<{
+interface MainLayoutProps {
   user: string | null;
-  setUser: (u: string | null) => void;
+  setUser: (username: string) => void;
   onLogout: () => void;
   isAdmin: boolean;
-}> = ({ user, setUser, onLogout, isAdmin }) => {
+  refreshUserStatus: (showLoading?: boolean) => Promise<void>;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ 
+  user, 
+  setUser, 
+  onLogout, 
+  isAdmin,
+  refreshUserStatus
+}) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  
   const hideNavbarPaths = [
     "/login",
     "/register",
@@ -110,13 +152,39 @@ const MainLayout: React.FC<{
     "/tournois/create/editor",
     "/classements/create/editor",
   ];
+  
   const shouldHideNavbar = hideNavbarPaths.some((path) =>
     location.pathname.startsWith(path)
   );
 
+  // Rafraîchir le statut utilisateur lors du changement de route pour pages spécifiques
+  // mais sans afficher le chargement
+  useEffect(() => {
+    if (location.pathname === "/admin") {
+      refreshUserStatus(false);
+    }
+  }, [location.pathname, refreshUserStatus]);
+
+  // Rediriger si l'utilisateur n'est pas connecté ou n'est pas admin
+  useEffect(() => {
+    if (location.pathname === "/admin" && !isAdmin && user !== null) {
+      navigate("/");
+    }
+    
+    if (location.pathname === "/profile" && !user) {
+      navigate("/login");
+    }
+  }, [location.pathname, isAdmin, user, navigate]);
+
   return (
     <div className="container">
-      {!shouldHideNavbar && <Navbar user={user} onLogout={onLogout} isAdmin={isAdmin} />}
+      {!shouldHideNavbar && (
+        <Navbar 
+          user={user} 
+          onLogout={onLogout} 
+          isAdmin={isAdmin} 
+        />
+      )}
       <Routes>
         <Route path="/" element={<Homepage user={user} />} />
         <Route path="/login" element={<Login setUser={setUser} />} />

@@ -3,19 +3,7 @@ import { useNavigate } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import AlbumModal from "../components/AlbumModal";
 import "../styles/Homepage.css";
-import { getPopularAlbums, getAlbumsByCategory, Album } from "../services/album-api";
-
-// Type pour les items formatés pour l'affichage
-type CategoryItem = {
-  id: string;
-  name: string;
-  image: string;
-  categories: string[];
-  authorName: string;
-  // Propriétés pour les futures statistiques
-  views?: number;
-  uses?: number;
-};
+import { getPopularAlbumsByCategory, getAlbumsByPopularity, AlbumUsageStats } from "../services/album-api-popularity";
 
 interface HomepageProps {
   user: string | null;
@@ -25,58 +13,43 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
   const navigate = useNavigate();
   // État pour gérer la modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState<CategoryItem | null>(null);
+  const [selectedAlbum, setSelectedAlbum] = useState<AlbumUsageStats | null>(null);
   
   // États pour stocker les données d'albums
-  const [popularAlbums, setPopularAlbums] = useState<CategoryItem[]>([]);
-  const [categorySections, setCategorySections] = useState<{title: string, categories: CategoryItem[]}[]>([]);
+  const [popularAlbums, setPopularAlbums] = useState<AlbumUsageStats[]>([]);
+  const [categorySections, setCategorySections] = useState<{title: string, albums: AlbumUsageStats[]}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Fonction pour convertir un album de l'API en CategoryItem
-  const albumToCategoryItem = (album: Album): CategoryItem => {
-    return {
-      id: album.id.toString(),
-      name: album.name,
-      // Utilise la première image de l'album, ou une image par défaut si aucune n'est disponible
-      image: album.image && album.image.length > 0 ? album.image[0].path_image : '/default-image.jpg',
-      // Extrait les noms des catégories
-      categories: album.categories.map(cat => cat.name),
-      authorName: album.author.username,
-      // Ajouter les futures statistiques quand elles seront disponibles
-      views: album.stats?.views,
-      uses: album.stats?.uses
-    };
-  };
 
   // Chargement des données au montage du composant
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         
-        // Récupérer les albums les plus populaires (triés par vues dans le futur)
-        const popularAlbumsData = await getPopularAlbums(5);
-        setPopularAlbums(popularAlbumsData.map(albumToCategoryItem));
+        // Récupérer les albums les plus populaires (triés par nombre d'utilisations)
+        const popularAlbumsData = await getAlbumsByPopularity(5);
+        setPopularAlbums(popularAlbumsData);
         
-        // Récupérer tous les albums par catégorie
-        const albumsByCategory = await getAlbumsByCategory();
-        
-        // Créer les sections de catégories (limité à 7 albums par catégorie)
-        const sections = Array.from(albumsByCategory.entries())
-          .map(([title, albums]) => {
-            // À l'avenir, on pourrait trier ici par popularité à l'intérieur de chaque catégorie
-            // Pour l'instant, on garde l'ordre par défaut
-            return {
+        try {
+          // Récupérer tous les albums par catégorie, triés par popularité
+          const albumsByCategory = await getPopularAlbumsByCategory();
+          
+          // Créer les sections de catégories
+          const sections = Array.from(albumsByCategory.entries())
+            .map(([title, albums]) => ({
               title,
-              categories: albums
-                .map(albumToCategoryItem)
-                .slice(0, 7) // Limiter à 7 albums par catégorie
-            };
-          })
-          .filter(section => section.categories.length > 0); // Filtrer les catégories vides
+              albums
+            }))
+            .filter(section => section.albums.length > 0); // Filtrer les catégories vides
+          
+          setCategorySections(sections);
+        } catch (categoryError) {
+          console.error("Erreur lors de la récupération des albums par catégorie:", categoryError);
+          // Ne pas bloquer l'affichage des albums populaires si les catégories échouent
+        }
         
-        setCategorySections(sections);
         setIsLoading(false);
       } catch (err) {
         console.error("Erreur lors de la récupération des albums:", err);
@@ -98,7 +71,7 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
   };
 
   // Gestionnaire de clic sur un album
-  const handleAlbumClick = (album: CategoryItem) => {
+  const handleAlbumClick = (album: AlbumUsageStats) => {
     setSelectedAlbum(album);
     setModalOpen(true);
   };
@@ -143,11 +116,15 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
       {popularAlbums.length > 0 ? (
         <div className="categories">
           {popularAlbums.map((album, index) => (
-            <div key={index} onClick={() => handleAlbumClick(album)} className="category-container">
+            <div key={`popular-${album.id}-${index}`} onClick={() => handleAlbumClick(album)} className="category-container">
+              <div className="album-usage-count">
+                {album.totalUsageCount} {album.totalUsageCount === 1 ? 'utilisation' : 'utilisations'}
+              </div>
               <CategoryCard 
                 name={album.name} 
-                image={album.image} 
+                image={album.imagePath} 
                 categories={album.categories}
+                authorName={album.authorName}
               />
             </div>
           ))}
@@ -158,18 +135,22 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
 
       {/* Sections de catégories */}
       {categorySections.map((section, index) => (
-        <div key={index}>
+        <div key={`section-${section.title}-${index}`}>
           <div className="section-header">
             <h3 className="section-title">{section.title}</h3>
             <button onClick={() => navigateToCategory(section.title)} className="view-more">Voir Plus</button>
           </div>
           <div className="categories">
-            {section.categories.map((album, idx) => (
-              <div key={idx} onClick={() => handleAlbumClick(album)} className="category-container">
+            {section.albums.map((album, idx) => (
+              <div key={`category-${album.id}-${idx}`} onClick={() => handleAlbumClick(album)} className="category-container">
+                <div className="album-usage-count">
+                  {album.totalUsageCount} {album.totalUsageCount === 1 ? 'utilisation' : 'utilisations'}
+                </div>
                 <CategoryCard 
                   name={album.name} 
-                  image={album.image} 
+                  image={album.imagePath} 
                   categories={album.categories}
+                  authorName={album.authorName}
                 />
               </div>
             ))}
@@ -177,13 +158,20 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
         </div>
       ))}
 
+      {/* Afficher un message si aucune catégorie n'est disponible */}
+      {popularAlbums.length > 0 && categorySections.length === 0 && (
+        <div className="no-categories-message">
+          <p>Aucune catégorie d'album n'est disponible pour le moment.</p>
+        </div>
+      )}
+
       {/* Modal pour créer tierlist/tournoi/classement */}
       {selectedAlbum && (
         <AlbumModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           albumName={selectedAlbum.name}
-          albumId={selectedAlbum.id}
+          albumId={selectedAlbum.id.toString()}
           isUserLoggedIn={user !== null}
           categories={selectedAlbum.categories}
         />

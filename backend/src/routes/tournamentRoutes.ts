@@ -10,10 +10,10 @@ export async function tournamentRoutes(fastify: FastifyInstance) {
     //     "/user/:param/tournament",
     //     tournamentController.getAllTournamentsToUser,
     // );
-    // fastify.get(
-    //     "/album/:id/tournament",
-    //     tournamentController.getAllTournamentsToAlbum,
-    // );
+    fastify.get(
+        "/album/:id/tournament",
+        tournamentController.getAllTournamentsToAlbum,
+    );
     fastify.get("/tournament/:id", tournamentController.getTournament);
 
     fastify.post(

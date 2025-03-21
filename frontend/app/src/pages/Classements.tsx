@@ -2,86 +2,37 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import "../styles/AllAlbum.css";
-
-// Import de l'image depuis le dossier assets
-import filmsImage from "../assets/films.jpg";
+import { getPublicRankings } from "../services/ranking-api";
+import { getAlbumInfoForContent } from "../services/album-api-extended";
 
 interface ClassementsProps {
   user: string | null;
 }
 
-type Classement = {
+type FormattedRanking = {
   id: string;
   name: string;
   image: string;
   creator: string;
   creatorId: string;
-  category: string;
+  categories: string[];
   createdAt: string;
-  isPublic: boolean;
-  votes: number;
+  votes: number; // Simuler les votes
 };
 
-type ClassementCategory = {
-  title: string;
-  classements: Classement[];
-};
-
-// Données exemple des classements
-const classementCategories: ClassementCategory[] = [
-  {
-    title: "Manga",
-    classements: [
-      { id: "classement-001", name: "Meilleurs personnages One Piece", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Manga", createdAt: "2024-02-15", isPublic: true, votes: 2156 },
-      { id: "classement-002", name: "Meilleurs personnages Naruto", image: filmsImage, creator: "User2", creatorId: "user-002", category: "Manga", createdAt: "2024-01-20", isPublic: true, votes: 1842 },
-      { id: "classement-003", name: "Meilleurs arcs de Bleach", image: filmsImage, creator: "User3", creatorId: "user-003", category: "Manga", createdAt: "2024-02-05", isPublic: true, votes: 1320 },
-      { id: "classement-004", name: "Top 10 scènes My Hero Academia", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Manga", createdAt: "2024-03-10", isPublic: true, votes: 923 },
-    ],
-  },
-  {
-    title: "Films",
-    classements: [
-      { id: "classement-005", name: "Meilleurs films Marvel", image: filmsImage, creator: "User2", creatorId: "user-002", category: "Films", createdAt: "2024-02-10", isPublic: true, votes: 1734 },
-      { id: "classement-006", name: "Top 10 films Disney", image: filmsImage, creator: "User3", creatorId: "user-003", category: "Films", createdAt: "2024-01-15", isPublic: true, votes: 1523 },
-      { id: "classement-007", name: "Classement des films DC", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Films", createdAt: "2024-03-05", isPublic: true, votes: 921 },
-    ],
-  },
-  {
-    title: "Jeux Vidéo",
-    classements: [
-      { id: "classement-008", name: "Top jeux Zelda", image: filmsImage, creator: "User3", creatorId: "user-003", category: "Jeux Vidéo", createdAt: "2024-01-25", isPublic: true, votes: 1287 },
-      { id: "classement-009", name: "Meilleures générations Pokémon", image: filmsImage, creator: "User2", creatorId: "user-002", category: "Jeux Vidéo", createdAt: "2024-02-20", isPublic: true, votes: 1132 },
-      { id: "classement-010", name: "Classement Final Fantasy", image: filmsImage, creator: "Admin", creatorId: "user-005", category: "Jeux Vidéo", createdAt: "2024-03-01", isPublic: true, votes: 976 },
-    ],
-  },
-  {
-    title: "Musique",
-    classements: [
-      { id: "classement-011", name: "Meilleurs albums Rock", image: filmsImage, creator: "User1", creatorId: "user-001", category: "Musique", createdAt: "2024-01-10", isPublic: true, votes: 845 },
-      { id: "classement-012", name: "Top albums Hip-Hop", image: filmsImage, creator: "User4", creatorId: "user-004", category: "Musique", createdAt: "2024-02-08", isPublic: true, votes: 702 },
-      { id: "classement-013", name: "Meilleures chansons K-Pop", image: filmsImage, creator: "User2", creatorId: "user-002", category: "Musique", createdAt: "2024-03-12", isPublic: true, votes: 645 },
-    ],
-  },
-];
-
-// Fonction pour obtenir tous les classements, triés par popularité
-const getAllClassementsSortedByPopularity = (): Classement[] => {
-  const allClassements: Classement[] = [];
-  
-  classementCategories.forEach(category => {
-    allClassements.push(...category.classements);
-  });
-  
-  return allClassements.sort((a, b) => b.votes - a.votes);
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Classements: React.FC<ClassementsProps> = () => {
+const Classements: React.FC<ClassementsProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
+  // États pour stocker les données formatées
+  const [allRankings, setAllRankings] = useState<FormattedRanking[]>([]);
+  const [rankingCategories, setRankingCategories] = useState<Map<string, FormattedRanking[]>>(new Map());
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+
   // Détecter si on arrive via un "Voir plus" spécifique à une catégorie
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -91,43 +42,131 @@ const Classements: React.FC<ClassementsProps> = () => {
     }
   }, [location]);
 
-  // Obtenir la liste de tous les classements, soit par catégorie, soit tous triés par popularité
-  const getFilteredClassements = () => {
-    if (!selectedCategory) {
-      // Si aucune catégorie n'est sélectionnée, montrer tous les classements par popularité
-      const allClassements = getAllClassementsSortedByPopularity();
-      return allClassements.filter(classement => 
-        classement.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Charger les données des classements depuis l'API
+  useEffect(() => {
+    const loadRankings = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Récupérer les classements publics
+        const publicRankings = await getPublicRankings();
+        
+        // Formater les données et récupérer les infos d'album
+        const formattedRankings: FormattedRanking[] = [];
+        const categoriesMap = new Map<string, FormattedRanking[]>();
+        const allCategories = new Set<string>();
+        
+        for (const ranking of publicRankings) {
+          // Récupérer les catégories et l'image de l'album
+          const albumInfo = await getAlbumInfoForContent(ranking.album.id);
+          
+          // Créer un objet ranking formaté
+          const formattedRanking: FormattedRanking = {
+            id: ranking.id.toString(),
+            name: ranking.name,
+            image: albumInfo.imagePath,
+            creator: ranking.author.username,
+            creatorId: ranking.author.id.toString(),
+            categories: albumInfo.categories,
+            createdAt: ranking.createdAt,
+            // Simuler un nombre de votes
+            votes: Math.floor(Math.random() * 1000) + 100,
+          };
+          
+          formattedRankings.push(formattedRanking);
+          
+          // Ajouter aux catégories
+          albumInfo.categories.forEach(category => {
+            allCategories.add(category);
+            
+            if (!categoriesMap.has(category)) {
+              categoriesMap.set(category, []);
+            }
+            categoriesMap.get(category)?.push(formattedRanking);
+          });
+        }
+        
+        // Trier les classements par votes dans chaque catégorie
+        categoriesMap.forEach((rankings, category) => {
+          categoriesMap.set(category, rankings.sort((a, b) => b.votes - a.votes));
+        });
+        
+        // Mettre à jour les états
+        setAllRankings(formattedRankings.sort((a, b) => b.votes - a.votes));
+        setRankingCategories(categoriesMap);
+        setAvailableCategories(Array.from(allCategories));
+        
+      } catch (err) {
+        console.error("Erreur lors du chargement des classements:", err);
+        setError("Impossible de charger les classements. Veuillez réessayer plus tard.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadRankings();
+  }, []);
+
+  // Filtrer les classements en fonction de la recherche et de la catégorie
+  const getFilteredRankings = (): FormattedRanking[] => {
+    const searchLower = searchQuery.toLowerCase();
+    
+    // Filtrer par texte de recherche
+    let filtered = allRankings.filter(ranking => 
+      ranking.name.toLowerCase().includes(searchLower) || 
+      ranking.creator.toLowerCase().includes(searchLower)
+    );
+    
+    // Filtrer par catégorie si une est sélectionnée
+    if (selectedCategory) {
+      filtered = filtered.filter(ranking => 
+        ranking.categories.includes(selectedCategory)
       );
-    } else {
-      // Sinon, filtrer par catégorie sélectionnée
-      const categoryData = classementCategories.find(cat => cat.title === selectedCategory);
-      if (!categoryData) return [];
-      
-      return categoryData.classements
-        .filter(classement => classement.name.toLowerCase().includes(searchQuery.toLowerCase()))
-        .sort((a, b) => b.votes - a.votes); // Toujours trier par popularité
     }
+    
+    return filtered;
   };
 
-  // Liste filtrée de classements
-  const filteredClassements = getFilteredClassements();
-  
-  // Générer la liste de toutes les catégories disponibles
-  const categoryTitles = classementCategories.map(category => category.title);
+  // Récupérer les classements filtrés
+  const filteredRankings = getFilteredRankings();
 
   // Gérer le clic sur un classement
-  const handleClassementClick = (classement: Classement) => {
+  const handleRankingClick = (ranking: FormattedRanking) => {
     // Rediriger vers la page de détail du classement
-    navigate(`/classements/${classement.id}`);
+    navigate(`/classements/${ranking.id}`);
   };
 
   // Gérer la création d'un nouveau classement - rediriger vers les albums
-  const handleCreateClassement = () => {
+  const handleCreateRanking = () => {
     // Rediriger vers la page des albums pour choisir un album
-    // Même les utilisateurs non connectés peuvent y accéder
     navigate("/allalbum");
   };
+
+  // Affichage pendant le chargement
+  if (isLoading) {
+    return (
+      <div className="all-album-container">
+        <h1 className="all-album-title">Tous les Classements</h1>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Chargement des classements...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage en cas d'erreur
+  if (error) {
+    return (
+      <div className="all-album-container">
+        <h1 className="all-album-title">Tous les Classements</h1>
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Réessayer</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="all-album-container">
@@ -152,7 +191,7 @@ const Classements: React.FC<ClassementsProps> = () => {
             Plus Populaires
           </button>
           
-          {categoryTitles.map((title, index) => (
+          {availableCategories.map((title, index) => (
             <button
               key={index}
               className={`category-filter ${selectedCategory === title ? 'active' : ''}`}
@@ -164,47 +203,32 @@ const Classements: React.FC<ClassementsProps> = () => {
         </div>
       </div>
       
-      {filteredClassements.length === 0 ? (
+      {filteredRankings.length === 0 ? (
         <div className="no-results">
           <p>Aucun classement ne correspond à votre recherche</p>
         </div>
       ) : (
         <div className="all-albums-section">
-          {!selectedCategory ? (
-            // Vue "Plus Populaires"
-            <div>
-              <h2 className="category-title">Classements les plus populaires</h2>
-              <div className="all-albums-grid">
-                {filteredClassements.map((classement, index) => (
-                  <div 
-                    key={index} 
-                    className="album-card-container"
-                    onClick={() => handleClassementClick(classement)}
-                  >
-                    <div className="album-usage-count">{classement.votes} votes</div>
-                    <CategoryCard name={classement.name} image={classement.image} />
-                  </div>
-                ))}
-              </div>
+          <div>
+            <h2 className="category-title">{selectedCategory || "Classements les plus populaires"}</h2>
+            <div className="all-albums-grid">
+              {filteredRankings.map((ranking, index) => (
+                <div 
+                  key={index} 
+                  className="album-card-container"
+                  onClick={() => handleRankingClick(ranking)}
+                >
+                  <div className="album-usage-count">{ranking.votes} votes</div>
+                  <CategoryCard 
+                    name={ranking.name} 
+                    image={ranking.image}
+                    categories={ranking.categories}
+                    authorName={ranking.creator}
+                  />
+                </div>
+              ))}
             </div>
-          ) : (
-            // Vue par catégorie
-            <div>
-              <h2 className="category-title">{selectedCategory}</h2>
-              <div className="all-albums-grid">
-                {filteredClassements.map((classement, index) => (
-                  <div 
-                    key={index} 
-                    className="album-card-container"
-                    onClick={() => handleClassementClick(classement)}
-                  >
-                    <div className="album-usage-count">{classement.votes} votes</div>
-                    <CategoryCard name={classement.name} image={classement.image} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
       
@@ -212,7 +236,7 @@ const Classements: React.FC<ClassementsProps> = () => {
         <p>Vous souhaitez créer votre propre Classement ?</p>
         <button 
           className="create-album-btn"
-          onClick={handleCreateClassement}
+          onClick={handleCreateRanking}
         >
           Créer un nouveau Classement
         </button>

@@ -2,86 +2,42 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import "../styles/AllAlbum.css";
-
-// Import de l'image depuis le dossier assets
-import filmsImage from "../assets/films.jpg";
+import { getPublicTierlists } from "../services/tierlist-api";
+import { getAlbumInfoForContent } from "../services/album-api-extended";
 
 interface TierlistsProps {
   user: string | null;
 }
 
-type Tierlist = {
+type FormattedTierlist = {
   id: string;
   name: string;
   image: string;
   creator: string;
   creatorId: string;
-  categories: string[]; // Modifié pour supporter plusieurs catégories
+  categories: string[];
   createdAt: string;
-  isPublic: boolean;
-  likes: number;
+  likes: number; // Simulation de popularité
 };
 
 type TierlistCategory = {
   title: string;
-  tierlists: Tierlist[];
+  tierlists: FormattedTierlist[];
 };
 
-// Données exemple des tierlists avec catégories multiples
-const tierlistCategories: TierlistCategory[] = [
-  {
-    title: "Manga",
-    tierlists: [
-      { id: "tierlist-001", name: "Personnages One Piece", image: filmsImage, creator: "User1", creatorId: "user-001", categories: ["Manga", "Animation"], createdAt: "2024-02-15", isPublic: true, likes: 856 },
-      { id: "tierlist-002", name: "Personnages Naruto", image: filmsImage, creator: "User2", creatorId: "user-002", categories: ["Manga"], createdAt: "2024-01-20", isPublic: true, likes: 742 },
-      { id: "tierlist-003", name: "Meilleures arcs de Bleach", image: filmsImage, creator: "User3", creatorId: "user-003", categories: ["Manga", "Animation"], createdAt: "2024-02-05", isPublic: true, likes: 520 },
-      { id: "tierlist-004", name: "Personnages My Hero Academia", image: filmsImage, creator: "User1", creatorId: "user-001", categories: ["Manga", "Animation"], createdAt: "2024-03-10", isPublic: true, likes: 423 },
-      { id: "tierlist-005", name: "Arcs Dragon Ball Z", image: filmsImage, creator: "Admin", creatorId: "user-005", categories: ["Manga", "Animation"], createdAt: "2024-01-05", isPublic: true, likes: 398 },
-    ],
-  },
-  {
-    title: "Films",
-    tierlists: [
-      { id: "tierlist-006", name: "Films Marvel", image: filmsImage, creator: "User2", creatorId: "user-002", categories: ["Films", "Autres"], createdAt: "2024-02-10", isPublic: true, likes: 634 },
-      { id: "tierlist-007", name: "Films Disney", image: filmsImage, creator: "User3", creatorId: "user-003", categories: ["Films", "Animation"], createdAt: "2024-01-15", isPublic: true, likes: 523 },
-      { id: "tierlist-008", name: "Films DC", image: filmsImage, creator: "User1", creatorId: "user-001", categories: ["Films", "Autres"], createdAt: "2024-03-05", isPublic: true, likes: 321 },
-      { id: "tierlist-009", name: "Films d'action", image: filmsImage, creator: "User4", creatorId: "user-004", categories: ["Films"], createdAt: "2024-02-25", isPublic: true, likes: 267 },
-    ],
-  },
-  {
-    title: "Jeux Vidéo",
-    tierlists: [
-      { id: "tierlist-010", name: "Jeux Zelda", image: filmsImage, creator: "User3", creatorId: "user-003", categories: ["Jeux Vidéo"], createdAt: "2024-01-25", isPublic: true, likes: 487 },
-      { id: "tierlist-011", name: "Jeux Pokémon", image: filmsImage, creator: "User2", creatorId: "user-002", categories: ["Jeux Vidéo", "Animation"], createdAt: "2024-02-20", isPublic: true, likes: 432 },
-      { id: "tierlist-012", name: "Jeux Final Fantasy", image: filmsImage, creator: "Admin", creatorId: "user-005", categories: ["Jeux Vidéo", "Manga"], createdAt: "2024-03-01", isPublic: true, likes: 376 },
-    ],
-  },
-  {
-    title: "Musique",
-    tierlists: [
-      { id: "tierlist-013", name: "Albums Rock", image: filmsImage, creator: "User1", creatorId: "user-001", categories: ["Musique"], createdAt: "2024-01-10", isPublic: true, likes: 345 },
-      { id: "tierlist-014", name: "Albums Hip-Hop", image: filmsImage, creator: "User4", creatorId: "user-004", categories: ["Musique"], createdAt: "2024-02-08", isPublic: true, likes: 302 },
-    ],
-  },
-];
-
-// Fonction pour obtenir toutes les tierlists, triées par popularité
-const getAllTierlistsSortedByPopularity = (): Tierlist[] => {
-  const allTierlists: Tierlist[] = [];
-  
-  tierlistCategories.forEach(category => {
-    allTierlists.push(...category.tierlists);
-  });
-  
-  return allTierlists.sort((a, b) => b.likes - a.likes);
-};
-
-const Tierlists: React.FC<TierlistsProps> = () => {
+const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
+  // États pour stocker les données formatées
+  const [allTierlists, setAllTierlists] = useState<FormattedTierlist[]>([]);
+  const [tierlistCategories, setTierlistCategories] = useState<Map<string, FormattedTierlist[]>>(new Map());
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+
   // Détecter si on arrive via un "Voir plus" spécifique à une catégorie
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -91,31 +47,96 @@ const Tierlists: React.FC<TierlistsProps> = () => {
     }
   }, [location]);
 
-  // Obtenir la liste de tous les tierlists, soit par catégorie, soit tous triés par popularité
-  const getFilteredTierlists = () => {
-    if (!selectedCategory) {
-      // Si aucune catégorie n'est sélectionnée, montrer tous les tierlists par popularité
-      const allTierlists = getAllTierlistsSortedByPopularity();
-      return allTierlists.filter(tierlist => 
-        tierlist.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Charger les données des tierlists depuis l'API
+  useEffect(() => {
+    const loadTierlists = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Récupérer les tierlists publiques
+        const publicTierlists = await getPublicTierlists();
+        
+        // Formater les données et récupérer les infos d'album
+        const formattedTierlists: FormattedTierlist[] = [];
+        const categoriesMap = new Map<string, FormattedTierlist[]>();
+        const allCategories = new Set<string>();
+        
+        for (const tierlist of publicTierlists) {
+          // Récupérer les catégories et l'image de l'album
+          const albumInfo = await getAlbumInfoForContent(tierlist.album.id);
+          
+          // Créer un objet tierlist formaté
+          const formattedTierlist: FormattedTierlist = {
+            id: tierlist.id.toString(),
+            name: tierlist.name,
+            image: albumInfo.imagePath,
+            creator: tierlist.author.username,
+            creatorId: tierlist.author.id.toString(),
+            categories: albumInfo.categories,
+            createdAt: tierlist.createdAt,
+            // Simuler un nombre de likes basé sur la date (plus récent = plus populaire pour le moment)
+            likes: Math.floor(Math.random() * 1000) + 100,
+          };
+          
+          formattedTierlists.push(formattedTierlist);
+          
+          // Ajouter aux catégories
+          albumInfo.categories.forEach(category => {
+            allCategories.add(category);
+            
+            if (!categoriesMap.has(category)) {
+              categoriesMap.set(category, []);
+            }
+            categoriesMap.get(category)?.push(formattedTierlist);
+          });
+        }
+        
+        // Trier les tierlists par likes dans chaque catégorie
+        categoriesMap.forEach((tierlists, category) => {
+          categoriesMap.set(category, tierlists.sort((a, b) => b.likes - a.likes));
+        });
+        
+        // Mettre à jour les états
+        setAllTierlists(formattedTierlists.sort((a, b) => b.likes - a.likes));
+        setTierlistCategories(categoriesMap);
+        setAvailableCategories(Array.from(allCategories));
+        
+      } catch (err) {
+        console.error("Erreur lors du chargement des tierlists:", err);
+        setError("Impossible de charger les tierlists. Veuillez réessayer plus tard.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadTierlists();
+  }, []);
+
+  // Filtrer les tierlists en fonction de la recherche et de la catégorie
+  const getFilteredTierlists = (): FormattedTierlist[] => {
+    const searchLower = searchQuery.toLowerCase();
+    
+    // Filtrer par texte de recherche
+    let filtered = allTierlists.filter(tierlist => 
+      tierlist.name.toLowerCase().includes(searchLower) || 
+      tierlist.creator.toLowerCase().includes(searchLower)
+    );
+    
+    // Filtrer par catégorie si une est sélectionnée
+    if (selectedCategory) {
+      filtered = filtered.filter(tierlist => 
+        tierlist.categories.includes(selectedCategory)
       );
-    } else {
-      // Sinon, filtrer par catégorie sélectionnée (un tierlist est affiché s'il contient la catégorie sélectionnée)
-      const allTierlists = getAllTierlistsSortedByPopularity();
-      return allTierlists
-        .filter(tierlist => tierlist.categories.includes(selectedCategory))
-        .filter(tierlist => tierlist.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
+    
+    return filtered;
   };
 
-  // Liste filtrée de tierlists
+  // Récupérer les tierlists filtrées
   const filteredTierlists = getFilteredTierlists();
-  
-  // Générer la liste de toutes les catégories disponibles
-  const categoryTitles = tierlistCategories.map(category => category.title);
 
   // Gérer le clic sur une tierlist
-  const handleTierlistClick = (tierlist: Tierlist) => {
+  const handleTierlistClick = (tierlist: FormattedTierlist) => {
     // Rediriger vers la page de détail de la tierlist
     navigate(`/tierlists/${tierlist.id}`);
   };
@@ -123,9 +144,34 @@ const Tierlists: React.FC<TierlistsProps> = () => {
   // Gérer la création d'une nouvelle tierlist - rediriger vers les albums
   const handleCreateTierlist = () => {
     // Rediriger vers la page des albums pour choisir un album
-    // Même les utilisateurs non connectés peuvent y accéder
     navigate("/allalbum");
   };
+
+  // Affichage pendant le chargement
+  if (isLoading) {
+    return (
+      <div className="all-album-container">
+        <h1 className="all-album-title">Toutes les Tierlists</h1>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Chargement des tierlists...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage en cas d'erreur
+  if (error) {
+    return (
+      <div className="all-album-container">
+        <h1 className="all-album-title">Toutes les Tierlists</h1>
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Réessayer</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="all-album-container">
@@ -150,7 +196,7 @@ const Tierlists: React.FC<TierlistsProps> = () => {
             Plus Populaires
           </button>
           
-          {categoryTitles.map((title, index) => (
+          {availableCategories.map((title, index) => (
             <button
               key={index}
               className={`category-filter ${selectedCategory === title ? 'active' : ''}`}
@@ -168,41 +214,26 @@ const Tierlists: React.FC<TierlistsProps> = () => {
         </div>
       ) : (
         <div className="all-albums-section">
-          {!selectedCategory ? (
-            // Vue "Plus Populaires"
-            <div>
-              <h2 className="category-title">Tierlists les plus populaires</h2>
-              <div className="all-albums-grid">
-                {filteredTierlists.map((tierlist, index) => (
-                  <div 
-                    key={index} 
-                    className="album-card-container"
-                    onClick={() => handleTierlistClick(tierlist)}
-                  >
-                    <div className="album-usage-count">{tierlist.likes} likes</div>
-                    <CategoryCard name={tierlist.name} image={tierlist.image} />
-                  </div>
-                ))}
-              </div>
+          <div>
+            <h2 className="category-title">{selectedCategory || "Tierlists les plus populaires"}</h2>
+            <div className="all-albums-grid">
+              {filteredTierlists.map((tierlist, index) => (
+                <div 
+                  key={index} 
+                  className="album-card-container"
+                  onClick={() => handleTierlistClick(tierlist)}
+                >
+                  <div className="album-usage-count">{tierlist.likes} likes</div>
+                  <CategoryCard 
+                    name={tierlist.name} 
+                    image={tierlist.image} 
+                    categories={tierlist.categories}
+                    authorName={tierlist.creator}
+                  />
+                </div>
+              ))}
             </div>
-          ) : (
-            // Vue par catégorie
-            <div>
-              <h2 className="category-title">{selectedCategory}</h2>
-              <div className="all-albums-grid">
-                {filteredTierlists.map((tierlist, index) => (
-                  <div 
-                    key={index} 
-                    className="album-card-container"
-                    onClick={() => handleTierlistClick(tierlist)}
-                  >
-                    <div className="album-usage-count">{tierlist.likes} likes</div>
-                    <CategoryCard name={tierlist.name} image={tierlist.image} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
       

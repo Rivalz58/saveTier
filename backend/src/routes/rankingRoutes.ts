@@ -7,7 +7,7 @@ import z from "zod";
 export async function rankingRoutes(fastify: FastifyInstance) {
     fastify.get("/ranking", rankingController.getAllRankings);
     // fastify.get("/user/:param/ranking", rankingController.getAllRankingsToUser);
-    // fastify.get("/album/:id/ranking", rankingController.getAllRankingsToAlbum);
+    fastify.get("/album/:id/ranking", rankingController.getAllRankingsToAlbum);
     fastify.get("/ranking/:id", rankingController.getRanking);
 
     fastify.post(

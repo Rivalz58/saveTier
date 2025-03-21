@@ -10,10 +10,10 @@ export async function tierlistRoutes(fastify: FastifyInstance) {
     //     "/user/:param/tierlist",
     //     tierlistController.getAllTierlistsToUser,
     // );
-    // fastify.get(
-    //     "/album/:id/tierlist",
-    //     tierlistController.getAllTierlistsToAlbum,
-    // );
+    fastify.get(
+        "/album/:id/tierlist",
+        tierlistController.getAllTierlistsToAlbum,
+    );
     fastify.get("/tierlist/:id", tierlistController.getTierlist);
 
     fastify.post(
