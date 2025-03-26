@@ -1,5 +1,5 @@
 .all-album-container {
-  padding-top: 5px;
+  padding-top: 140px !important; /* Force l'espacement pour ce conteneur */
   max-width: 1400px;
   margin: 0 auto;
   color: #fff;
@@ -8,9 +8,11 @@
 
 .all-album-title {
   color: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   font-size: 1.8rem;
   text-align: center;
+  margin-top: 10px;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* Search and filters */
@@ -30,6 +32,7 @@
   background: #22232b;
   color: white;
   font-size: 1rem;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .album-search:focus {
@@ -44,7 +47,23 @@
   gap: 10px;
   margin-top: 15px;
   overflow-x: auto;
-  padding-bottom: 5px;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+}
+
+/* Masquer la scrollbar sur Webkit (Chrome, Safari) */
+.category-filters::-webkit-scrollbar {
+  height: 4px;
+}
+
+.category-filters::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.category-filters::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
 }
 
 .category-filter {
@@ -57,6 +76,7 @@
   font-size: 0.9rem;
   transition: all 0.3s ease;
   white-space: nowrap;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 .category-filter:hover {
@@ -111,6 +131,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Titres de catégorie */
+.category-title {
+  font-size: 1.5rem;
+  margin: 15px 0;
+  color: #fff;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 /* Bouton charger plus */
@@ -133,6 +162,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .load-more-button:hover {
@@ -193,6 +223,7 @@
 .no-results p {
   font-size: 1.1rem;
   color: #aaa;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* Error message */
@@ -214,6 +245,7 @@
   margin-top: 10px;
   cursor: pointer;
   font-weight: bold;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* Create album prompt */
@@ -230,6 +262,7 @@
 .create-album-prompt p {
   margin-bottom: 15px;
   font-size: 1.1rem;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .create-album-btn {
@@ -242,6 +275,7 @@
   font-weight: bold;
   font-size: 1rem;
   transition: background 0.3s ease;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
 }
 
 .create-album-btn:hover {
@@ -256,6 +290,10 @@
 }
 
 @media (max-width: 768px) {
+  .all-album-container {
+    padding-top: 120px !important;
+  }
+  
   .all-albums-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
@@ -269,11 +307,19 @@
     font-size: 0.65rem;
     padding: 2px 6px;
   }
+  
+  .all-album-title {
+    font-size: 1.6rem;
+  }
+  
+  .category-title {
+    font-size: 1.3rem;
+  }
 }
 
 @media (max-width: 480px) {
   .all-albums-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
   }
   
@@ -290,20 +336,8 @@
     padding: 8px 15px;
     font-size: 0.9rem;
   }
-}
-
-/* Lazy load animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  
+  .category-title {
+    font-size: 1.2rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.album-card-container {
-  animation: fadeIn 0.3s ease-in-out;
 }

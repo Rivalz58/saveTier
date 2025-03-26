@@ -1,24 +1,136 @@
-/* Police Google en exemple */
-@import url('https://fonts.googleapis.com/css2?family=Palanquin+Dark:wght@400;700&display=swap');
+/* Import Google Fonts properly with multiple weights */
+@import url('https://fonts.googleapis.com/css2?family=Palanquin+Dark:wght@400;500;600;700&display=swap');
 
 html, body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: 'Palanquin Dark', sans-serif;
-  min-height: 100vh; /* S'assure que le body prend au moins toute la hauteur */
-  overflow-y: auto; /* Permet le défilement vertical */
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 16px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Conteneur principal */
+/* Ensure consistent font rendering across browsers */
+* {
+  box-sizing: border-box;
+}
+
+/* Forcer la même police partout */
+body, h1, h2, h3, h4, h5, h6, p, span, div, button, input, textarea, select, option, a, label {
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* Heading styles */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  margin-top: 0;
+}
+
+/* Container for app content */
 .container {
   max-width: 95%;
   margin: 0 auto;
-  /* Pour laisser la place à la navbar fixe (qui fait ~60px de haut) */
-  padding-top: 80px;
-  padding-bottom: 40px; /* Ajout d'un padding en bas */
-  min-height: calc(100vh - 120px); /* Hauteur minimale pour s'assurer qu'on peut défiler */
-  position: relative; /* Ajoute un contexte de positionnement */
-  overflow: visible; /* Permet au contenu de déborder et de défiler */
+  padding-top: 140px; /* Augmenté pour un meilleur espacement avec la navbar */
+  padding-bottom: 40px;
+  min-height: calc(100vh - 140px);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Pages spécifiques - ajustement de l'espacement */
+.all-album-container,
+.admin-container,
+.profile-container,
+.add-album-container,
+.setup-container {
+  padding-top: 140px !important; /* Force l'espacement pour ces conteneurs spécifiques */
+}
+
+/* Fix common font display issues in Firefox */
+@-moz-document url-prefix() {
+  body {
+    font-weight: normal;
+  }
+}
+
+/* Fix font sizing on mobile */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  .container {
+    padding-top: 120px;
+    max-width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  .all-album-container,
+  .admin-container,
+  .profile-container,
+  .add-album-container,
+  .setup-container {
+    padding-top: 120px !important;
+  }
+}
+
+/* Chargement de l'application */
+.loading-app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #181a23;
+  z-index: 9999;
+  color: white;
+}
+
+.loading-app .loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  border-top-color: #328AF1;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+.loading-app p {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pour tous les titres et textes */
+.all-album-title,
+.admin-title,
+.profile-username,
+.page-title,
+.section-title,
+.category-filter,
+button,
+.login-button,
+.add-album-button,
+.create-album-btn,
+.category-card h3,
+.admin-action-btn,
+.nav-links button {
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
 }

@@ -13,6 +13,7 @@ interface AdminProps {
   isAdmin: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Admin: React.FC<AdminProps> = ({ user, isAdmin }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>("users");

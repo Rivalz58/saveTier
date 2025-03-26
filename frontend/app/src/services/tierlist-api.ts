@@ -39,7 +39,7 @@ export interface Tierlist {
   updatedAt: string;
   author: TierlistAuthor;
   album: TierlistAlbum;
-  tierlistLine: any[]; // Ajuster selon les données réelles
+  tierlistLine: unknown[]; // Ajuster selon les données réelles
 }
 
 export interface TierlistsResponse {

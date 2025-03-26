@@ -32,6 +32,7 @@ export const getAlbumUsageStats = async (albumId: number): Promise<AlbumUsageSta
     try {
       const tierlistsResponse = await api.get(`/album/${albumId}/tierlist`);
       tierlistCount = (tierlistsResponse.data.data || []).length;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       console.log(`Impossible de charger les tierlists pour l'album ${albumId}, utilisation de 0 comme valeur par défaut`);
       // Laisser le compteur à 0 par défaut
@@ -41,6 +42,7 @@ export const getAlbumUsageStats = async (albumId: number): Promise<AlbumUsageSta
     try {
       const tournamentsResponse = await api.get(`/album/${albumId}/tournament`);
       tournamentCount = (tournamentsResponse.data.data || []).length;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       console.log(`Impossible de charger les tournois pour l'album ${albumId}, utilisation de 0 comme valeur par défaut`);
       // Laisser le compteur à 0 par défaut
@@ -50,6 +52,7 @@ export const getAlbumUsageStats = async (albumId: number): Promise<AlbumUsageSta
     try {
       const rankingsResponse = await api.get(`/album/${albumId}/ranking`);
       rankingCount = (rankingsResponse.data.data || []).length;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       console.log(`Impossible de charger les classements pour l'album ${albumId}, utilisation de 0 comme valeur par défaut`);
       // Laisser le compteur à 0 par défaut

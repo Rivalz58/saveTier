@@ -76,7 +76,7 @@ export const checkIsAdmin = async (): Promise<boolean> => {
 };
 
 // Fonction pour révoquer le token (déconnexion)
-export const revokeToken = async (): Promise<any> => {
+export const revokeToken = async (): Promise<unknown> => {
   try {
     const response = await api.post("/revocation", null);
     console.log("Token revoked successfully");

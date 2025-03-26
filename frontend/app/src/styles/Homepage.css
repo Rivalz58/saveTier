@@ -1,19 +1,20 @@
 .section-header {
-  position: relative;        /* Pour le ::before absolu */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 30px;
-  margin-bottom: 10px;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  padding-left: 5px;
 }
 
 /* Le trait gris */
 .section-header::before {
   content: "";
   position: absolute;
-  top: 50%;                  /* milieu vertical du header */
-  left: 0;                   /* part de la gauche */
-  right: 100px;               /* s'arrête à 80px du bord droit */
+  top: 50%;
+  left: 0;
+  right: 100px;
   height: 2px;
   background: rgba(255, 255, 255, 0.4);
   transform: translateY(-50%);
@@ -22,19 +23,34 @@
 
 /* Titre */
 .section-title {
-  position: relative;      /* pour passer au-dessus du trait */
+  position: relative;
   z-index: 1;
   font-size: 1.5rem;
   color: #fff;
   text-transform: uppercase;
   margin: 0;
-  padding: 0 10px;         /* petite marge horizontale */
-  background: #181a23;     /* masque le trait en arrière-plan */
+  padding: 0 15px 0 0;
+  background-color: #181a23; /* Couleur de fond identique au fond du site */
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-weight: 700;
+}
+
+/* S'assurer que le fond couvre complètement la ligne */
+.section-title:before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: #181a23;
+  z-index: -1;
+  padding-right: 15px;
 }
 
 /* Bouton "Voir Plus" */
 .view-more {
-  position: relative;      /* pour passer au-dessus du trait si besoin */
+  position: relative;
   z-index: 1;
   background: #3b3e51;
   color: #fff;
@@ -45,6 +61,7 @@
   font-size: 0.9rem;
   font-weight: bold;
   transition: background 0.3s ease-in-out;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .view-more:hover {
@@ -54,29 +71,133 @@
 /* Grille pour afficher les catégories */
 .categories {
   display: grid;
-  grid-template-columns: repeat(6, 180px);
+  grid-template-columns: repeat(6, minmax(150px, 180px));
   gap: 20px;
-  overflow-x: auto; /* Permet un scroll horizontal */
+  overflow-x: auto;
   padding-bottom: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   padding-top: 5px;
   margin-top: 10px;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+}
+
+/* Masquer la scrollbar sur Webkit (Chrome, Safari) */
+.categories::-webkit-scrollbar {
+  height: 4px;
+}
+
+.categories::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.categories::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
 }
 
 .album-populaire-header {
   display: flex;
   align-items: center;
   gap: 15px;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+/* Conteneur principal */
+.albums-populaires, .voiture {
   margin-top: 30px;
-  margin-bottom: 10px;
 }
 
 /* Container pour les CategoryCard cliquables */
 .category-container {
   cursor: pointer;
   transition: transform 0.3s ease;
+  min-width: 150px;
 }
 
 .category-container:hover {
   transform: translateY(-5px);
+}
+
+/* Titre des sections */
+.album-populaire-header h2,
+.section-header h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  padding-right: 10px;
+  text-transform: uppercase;
+  color: white;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-weight: 700;
+}
+
+/* Adaptations responsive */
+@media (max-width: 1024px) {
+  .categories {
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .categories {
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    gap: 15px;
+    padding: 5px;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+  
+  .section-header::before {
+    right: 80px;
+  }
+  
+  .album-populaire-header {
+    margin-top: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .categories {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+  }
+  
+  .section-header::before {
+    right: 70px;
+  }
+  
+  .view-more {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .album-populaire-header {
+    margin-top: 25px;
+  }
+}
+
+/* Styles pour les titres spécifiques */
+.page-title {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.6rem;
+  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* Style pour les sections de catégories */
+.voiture, .albums-populaires {
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+}
+
+/* Style ALBUMS POPULAIRES */
+.all-album-title {
+  margin-top: 40px;
 }

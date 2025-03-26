@@ -2,7 +2,7 @@
   background-color: #2c2f3a;
   border-radius: 10px;
   width: 100%;
-  height: 270px;
+  height: 220px; /* Réduit de 270px à 220px pour s'adapter mieux aux écrans */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -23,6 +23,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
 .category-card h3 {
@@ -37,6 +38,7 @@
   text-align: center;
   font-size: 0.95rem;
   border-radius: 0 0 10px 10px;
+  z-index: 5; /* Assurez-vous qu'il est au-dessus des autres éléments */
 }
 
 /* Badges de catégories */
@@ -86,7 +88,6 @@
 /* Animation lors du survol */
 .category-card:hover img {
   transform: scale(1.05);
-  transition: transform 0.5s ease;
 }
 
 /* Styles pour les futures statistiques */
@@ -129,13 +130,23 @@
 /* Responsive */
 @media (max-width: 768px) {
   .category-card {
-    height: 240px;
+    height: 180px;
+  }
+  
+  .card-category-badge {
+    font-size: 0.55rem;
+    padding: 1px 5px;
   }
 }
 
 @media (max-width: 480px) {
   .category-card {
-    height: 200px;
+    height: 160px;
+  }
+  
+  .category-card h3 {
+    font-size: 0.85rem;
+    padding: 8px;
   }
   
   .card-category-badge {
@@ -147,4 +158,11 @@
     font-size: 0.6rem;
     padding: 2px 5px;
   }
+}
+
+/* Style spécifique pour les cartes dans les grilles */
+.album-card-container .category-card,
+.content-card .category-card {
+  height: 100%; /* S'adapte à la hauteur du conteneur parent */
+  min-height: 180px;
 }

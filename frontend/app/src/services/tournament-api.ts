@@ -40,7 +40,7 @@ export interface Tournament {
   updatedAt: string;
   author: TournamentAuthor;
   album: TournamentAlbum;
-  tournamentImage: any[]; // Ajuster selon les données réelles
+  tournamentImage: unknown[]; // Ajuster selon les données réelles
 }
 
 export interface TournamentsResponse {

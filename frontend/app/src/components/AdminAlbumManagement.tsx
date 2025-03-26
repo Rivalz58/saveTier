@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import '../styles/Admin.css';
@@ -238,9 +239,9 @@ const AdminAlbumManagement: React.FC = () => {
           case 'alphabetical':
             return a.name.localeCompare(b.name);
           case 'popular':
-            const aUsage = usageStats[a.id]?.total || 0;
+            { const aUsage = usageStats[a.id]?.total || 0;
             const bUsage = usageStats[b.id]?.total || 0;
-            return bUsage - aUsage;
+            return bUsage - aUsage; }
           default:
             return 0;
         }

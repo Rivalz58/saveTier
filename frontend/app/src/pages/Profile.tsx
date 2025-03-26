@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "react-modal";
 import "../styles/Profile.css";
 import profil from "../assets/ProfileUser.jpg";
-import filmsImage from "../assets/films.jpg";
 import CategoryCard from "../components/CategoryCard";
 import AlbumModal from "../components/AlbumModal";
+import api, { revokeToken, isTokenValid, getCurrentUser } from "../services/api";
 
 Modal.setAppElement("#root");
 
@@ -19,97 +20,321 @@ interface ContentItem {
   name: string;
   image: string;
   isPublic: boolean;
+  categories?: string[];
 }
 
 interface AlbumItem extends ContentItem {
   usageCount: number;
 }
 
-const mockAlbums: AlbumItem[] = [
-  { id: "album-001", name: "Films Français", image: filmsImage, usageCount: 210, isPublic: true },
-  { id: "album-002", name: "Anime favoris", image: filmsImage, usageCount: 180, isPublic: false },
-  { id: "album-003", name: "Personnages Naruto", image: filmsImage, usageCount: 150, isPublic: true },
-];
-
-const mockTierlists: ContentItem[] = [
-  { id: "tierlist-001", name: "Top 10 Personnages Naruto", image: filmsImage, isPublic: true },
-  { id: "tierlist-002", name: "Tierlist One Piece", image: filmsImage, isPublic: false },
-];
-
-const mockTournois: ContentItem[] = [
-  { id: "tournoi-001", name: "Tournoi Naruto", image: filmsImage, isPublic: true },
-  { id: "tournoi-002", name: "Tournoi Disney", image: filmsImage, isPublic: true },
-];
-
-const mockClassements: ContentItem[] = [
-  { id: "classement-001", name: "Classement acteurs", image: filmsImage, isPublic: false },
-  { id: "classement-002", name: "Classement animes", image: filmsImage, isPublic: true },
-];
-
-const userStats = {
-  memberSince: "15 janvier 2024"
-};
-
 const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
   const navigate = useNavigate();
   const [username, setUsername] = useState(user || "");
+  const [userID, setUserID] = useState<string | null>(null);
   const [isNameModalOpen, setNameModalOpen] = useState(false);
   const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
   const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
   const [newUsername, setNewUsername] = useState(username);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   
-  const [albums, setAlbums] = useState(mockAlbums);
-  const [tierlists, setTierlists] = useState(mockTierlists);
-  const [tournois, setTournois] = useState(mockTournois);
-  const [classements, setClassements] = useState(mockClassements);
+  const [albums, setAlbums] = useState<AlbumItem[]>([]);
+  const [tierlists, setTierlists] = useState<ContentItem[]>([]);
+  const [tournois, setTournois] = useState<ContentItem[]>([]);
+  const [classements, setClassements] = useState<ContentItem[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<AlbumItem | null>(null);
+  const [memberSince, setMemberSince] = useState<string>("26 mars 2025");
 
+  // Rediriger si non connecté
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
-  // Fonction appelée lorsque l'utilisateur confirme la déconnexion
-  const confirmLogout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    setLogoutModalOpen(false);
-    navigate("/login");
-  };
+  // Récupérer les informations de l'utilisateur
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await getCurrentUser();
+        if (response && response.user) {
+          setUsername(response.user.username || user);
+          setUserID(response.user.id.toString());
+          
+          // Formater la date d'inscription
+          const registerDate = new Date(response.user.createdAt);
+          setMemberSince(registerDate.toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          }));
+        }
+      } catch (err) {
+        console.warn("Impossible de récupérer les informations utilisateur:", err);
+      }
+    };
+    
+    fetchUserInfo();
+  }, [user]);
 
-  const saveUsername = () => {
-    setUsername(newUsername);
-    setNameModalOpen(false);
-  };
+  // Charger les données de contenu de l'utilisateur
+  useEffect(() => {
+    const fetchUserContent = async () => {
+      if (!user || !userID) return;
+      
+      setLoading(true);
+      setError(false);
+      
+      try {
+        // 1. Récupérer les albums (tous, puis filtrer ceux de l'utilisateur)
+        try {
+          const albumsResponse = await api.get("/album");
+          if (albumsResponse.data && albumsResponse.data.data) {
+            // Filtrer seulement les albums de l'utilisateur actuel
+            const userAlbums = albumsResponse.data.data
+              .filter((album: any) => album.author && album.author.id.toString() === userID)
+              .map((album: any) => ({
+                id: album.id.toString(),
+                name: album.name,
+                image: album.image && album.image.length > 0 ? album.image[0].path_image : '/default-image.jpg',
+                isPublic: album.status === 'public',
+                usageCount: Math.floor(Math.random() * 100) + 10, // Simuler un nombre d'utilisations
+                categories: album.categories.map((cat: any) => cat.name)
+              }));
+            
+            setAlbums(userAlbums);
+          }
+        } catch (err) {
+          console.warn("Erreur lors de la récupération des albums:", err);
+          // Ne pas utiliser de données par défaut, laisser le tableau vide
+        }
+        
+        // 2. Récupérer les tierlists (tous, puis filtrer ceux de l'utilisateur)
+        try {
+          const tierlistsResponse = await api.get("/tierlist");
+          if (tierlistsResponse.data && tierlistsResponse.data.data) {
+            // Filtrer seulement les tierlists de l'utilisateur actuel
+            const userTierlists = tierlistsResponse.data.data
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .filter((tierlist: any) => tierlist.author && tierlist.author.id.toString() === userID)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .map((tierlist: any) => ({
+                id: tierlist.id.toString(),
+                name: tierlist.name,
+                image: tierlist.album && tierlist.album.image && tierlist.album.image.length > 0 
+                  ? tierlist.album.image[0].path_image : '/default-image.jpg',
+                isPublic: !tierlist.private,
+                categories: tierlist.album && tierlist.album.categories 
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  ? tierlist.album.categories.map((cat: any) => cat.name) 
+                  : []
+              }));
+            
+            setTierlists(userTierlists);
+          }
+        } catch (err) {
+          console.warn("Erreur lors de la récupération des tierlists:", err);
+          // Laisser le tableau vide
+        }
+        
+        // 3. Récupérer les tournois (tous, puis filtrer ceux de l'utilisateur)
+        try {
+          const tournoisResponse = await api.get("/tournament");
+          if (tournoisResponse.data && tournoisResponse.data.data) {
+            // Filtrer seulement les tournois de l'utilisateur actuel
+            const userTournois = tournoisResponse.data.data
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .filter((tournoi: any) => tournoi.author && tournoi.author.id.toString() === userID)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .map((tournoi: any) => ({
+                id: tournoi.id.toString(),
+                name: tournoi.name,
+                image: tournoi.album && tournoi.album.image && tournoi.album.image.length > 0 
+                  ? tournoi.album.image[0].path_image : '/default-image.jpg',
+                isPublic: !tournoi.private,
+                categories: tournoi.album && tournoi.album.categories 
+                  ? tournoi.album.categories.map((cat: any) => cat.name) 
+                  : []
+              }));
+            
+            setTournois(userTournois);
+          }
+        } catch (err) {
+          console.warn("Erreur lors de la récupération des tournois:", err);
+          // Laisser le tableau vide
+        }
+        
+        // 4. Récupérer les classements (tous, puis filtrer ceux de l'utilisateur)
+        try {
+          const classementsResponse = await api.get("/ranking");
+          if (classementsResponse.data && classementsResponse.data.data) {
+            // Filtrer seulement les classements de l'utilisateur actuel
+            const userClassements = classementsResponse.data.data
+              .filter((classement: any) => classement.author && classement.author.id.toString() === userID)
+              .map((classement: any) => ({
+                id: classement.id.toString(),
+                name: classement.name,
+                image: classement.album && classement.album.image && classement.album.image.length > 0 
+                  ? classement.album.image[0].path_image : '/default-image.jpg',
+                isPublic: !classement.private,
+                categories: classement.album && classement.album.categories 
+                  ? classement.album.categories.map((cat: any) => cat.name) 
+                  : []
+              }));
+            
+            setClassements(userClassements);
+          }
+        } catch (err) {
+          console.warn("Erreur lors de la récupération des classements:", err);
+          // Laisser le tableau vide
+        }
+        
+      } catch (err) {
+        console.error("Erreur lors de la récupération du contenu:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserContent();
+  }, [user, userID]);
 
-  const changePassword = () => {
-    if (currentPassword && newPassword) {
-      alert("Votre mot de passe a été modifié.");
-      setPasswordModalOpen(false);
-      setCurrentPassword("");
-      setNewPassword("");
-    } else {
-      alert("Veuillez remplir tous les champs.");
+  // Déconnexion et révocation du token
+  const confirmLogout = async () => {
+    try {
+      // Tenter de révoquer le token via l'API
+      if (isTokenValid()) {
+        await revokeToken();
+      }
+    } catch (err) {
+      console.error("Erreur lors de la révocation du token:", err);
+    } finally {
+      // Toujours supprimer le token et rediriger, même en cas d'échec de l'API
+      localStorage.removeItem("token");
+      setUser(null);
+      setLogoutModalOpen(false);
+      navigate("/login");
     }
   };
 
-  const toggleItemPrivacy = (id: string, type: "album" | "tierlist" | "tournoi" | "classement") => {
-    switch (type) {
-      case "album":
-        setAlbums(albums.map(album => album.id === id ? { ...album, isPublic: !album.isPublic } : album));
-        break;
-      case "tierlist":
-        setTierlists(tierlists.map(tierlist => tierlist.id === id ? { ...tierlist, isPublic: !tierlist.isPublic } : tierlist));
-        break;
-      case "tournoi":
-        setTournois(tournois.map(tournoi => tournoi.id === id ? { ...tournoi, isPublic: !tournoi.isPublic } : tournoi));
-        break;
-      case "classement":
-        setClassements(classements.map(classement => classement.id === id ? { ...classement, isPublic: !classement.isPublic } : classement));
-        break;
+  // Sauvegarder le nouveau pseudo
+  const saveUsername = async () => {
+    if (!newUsername.trim() || newUsername === username) {
+      setNameModalOpen(false);
+      return;
+    }
+    
+    try {
+      // Appel à l'API pour mettre à jour le nom d'utilisateur
+      await api.put("/me", { username: newUsername });
+      setUsername(newUsername);
+      setNameModalOpen(false);
+      alert("Votre pseudo a été modifié avec succès.");
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour du pseudo:", err);
+      alert("Une erreur est survenue lors de la modification du pseudo.");
+    }
+  };
+
+  // Changer le mot de passe
+  const changePassword = async () => {
+    // Réinitialiser le message d'erreur
+    setPasswordError("");
+    
+    // Valider les mots de passe
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Veuillez remplir tous les champs.");
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Les nouveaux mots de passe ne correspondent pas.");
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      setPasswordError("Le nouveau mot de passe doit contenir au moins 8 caractères.");
+      return;
+    }
+    
+    try {
+      // Appel à l'API pour changer le mot de passe
+      await api.put("/new-password", {
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+      
+      alert("Votre mot de passe a été modifié avec succès.");
+      setPasswordModalOpen(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      
+      // Déconnecter l'utilisateur après changement de mot de passe pour la sécurité
+      setTimeout(() => {
+        localStorage.removeItem("token");
+        setUser(null);
+        navigate("/login");
+      }, 2000);
+    } catch (err) {
+      console.error("Erreur lors du changement de mot de passe:", err);
+      setPasswordError("Erreur: Mot de passe actuel incorrect ou problème de connexion.");
+    }
+  };
+
+  // Modifier la visibilité d'un élément
+  const toggleItemPrivacy = async (id: string, type: "album" | "tierlist" | "tournoi" | "classement") => {
+    try {
+      // Convertir le type interne aux endpoints API
+      const endpoint = type === "tierlist" ? "/tierlist/" : 
+                       type === "tournoi" ? "/tournament/" :
+                       type === "classement" ? "/ranking/" : "/album/";
+      
+      // Déterminer l'élément actuel et son état de visibilité
+      let currentItem;
+      switch (type) {
+        case "album":
+          currentItem = albums.find(item => item.id === id);
+          if (currentItem) {
+            // Pour les albums, le statut est "public" ou "private"
+            await api.put(`${endpoint}${id}`, { status: currentItem.isPublic ? 'private' : 'public' });
+            setAlbums(albums.map(album => album.id === id ? { ...album, isPublic: !album.isPublic } : album));
+          }
+          break;
+        case "tierlist":
+          currentItem = tierlists.find(item => item.id === id);
+          if (currentItem) {
+            // Pour les tierlists, tournois et classements, c'est une propriété "private" (booléen)
+            await api.put(`${endpoint}${id}`, { private: !currentItem.isPublic });
+            setTierlists(tierlists.map(item => item.id === id ? { ...item, isPublic: !item.isPublic } : item));
+          }
+          break;
+        case "tournoi":
+          currentItem = tournois.find(item => item.id === id);
+          if (currentItem) {
+            await api.put(`${endpoint}${id}`, { private: !currentItem.isPublic });
+            setTournois(tournois.map(item => item.id === id ? { ...item, isPublic: !item.isPublic } : item));
+          }
+          break;
+        case "classement":
+          currentItem = classements.find(item => item.id === id);
+          if (currentItem) {
+            await api.put(`${endpoint}${id}`, { private: !currentItem.isPublic });
+            setClassements(classements.map(item => item.id === id ? { ...item, isPublic: !item.isPublic } : item));
+          }
+          break;
+      }
+    } catch (err) {
+      console.error(`Erreur lors de la modification de la visibilité pour ${type}:`, err);
+      alert("Une erreur est survenue lors de la modification de la visibilité.");
     }
   };
 
@@ -119,10 +344,32 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
   };
 
   const handleItemClick = (item: ContentItem, type: string) => {
-    alert(`${type} "${item.name}" sélectionné!`);
+    // Rediriger vers la page appropriée selon le type
+    switch (type) {
+      case "Tierlist":
+        navigate(`/tierlists/${item.id}`);
+        break;
+      case "Tournoi":
+        navigate(`/tournois/${item.id}`);
+        break;
+      case "Classement":
+        navigate(`/classements/${item.id}`);
+        break;
+    }
   };
 
   if (!user) return null;
+
+  if (loading) {
+    return (
+      <div className="profile-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Chargement de votre profil...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-container">
@@ -132,7 +379,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         </div>
         <div className="profile-info">
           <h2 className="profile-username">{username}</h2>
-          <p className="profile-member-since">Membre depuis {userStats.memberSince}</p>
+          <p className="profile-member-since">Membre depuis {memberSince}</p>
           <div className="profile-actions">
             <button className="profile-btn edit" onClick={() => setNameModalOpen(true)}>
               Modifier le pseudo
@@ -146,6 +393,13 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
           </div>
         </div>
       </div>
+      
+      {error && (
+        <div className="error-message">
+          Impossible de charger vos données. Veuillez réessayer plus tard.
+          <button onClick={() => window.location.reload()}>Réessayer</button>
+        </div>
+      )}
       
       <div className="profile-content">
         {/* Albums */}
@@ -170,7 +424,11 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
                   </div>
                   <div className="usage-badge">{album.usageCount}</div>
                   <div onClick={() => handleAlbumClick(album)}>
-                    <CategoryCard name={album.name} image={album.image} />
+                    <CategoryCard 
+                      name={album.name} 
+                      image={album.image} 
+                      categories={album.categories}
+                    />
                   </div>
                 </div>
               ))}
@@ -206,7 +464,11 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
                     </label>
                   </div>
                   <div onClick={() => handleItemClick(tierlist, "Tierlist")}>
-                    <CategoryCard name={tierlist.name} image={tierlist.image} />
+                    <CategoryCard 
+                      name={tierlist.name} 
+                      image={tierlist.image} 
+                      categories={tierlist.categories}
+                    />
                   </div>
                 </div>
               ))}
@@ -242,7 +504,11 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
                     </label>
                   </div>
                   <div onClick={() => handleItemClick(tournoi, "Tournoi")}>
-                    <CategoryCard name={tournoi.name} image={tournoi.image} />
+                    <CategoryCard 
+                      name={tournoi.name} 
+                      image={tournoi.image} 
+                      categories={tournoi.categories}
+                    />
                   </div>
                 </div>
               ))}
@@ -278,7 +544,11 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
                     </label>
                   </div>
                   <div onClick={() => handleItemClick(classement, "Classement")}>
-                    <CategoryCard name={classement.name} image={classement.image} />
+                    <CategoryCard 
+                      name={classement.name} 
+                      image={classement.image} 
+                      categories={classement.categories}
+                    />
                   </div>
                 </div>
               ))}
@@ -294,6 +564,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         </div>
       </div>
 
+      {/* Modal pour changer le pseudo */}
       <Modal
         isOpen={isNameModalOpen}
         onRequestClose={() => setNameModalOpen(false)}
@@ -317,6 +588,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         </div>
       </Modal>
 
+      {/* Modal pour changer le mot de passe */}
       <Modal
         isOpen={isPasswordModalOpen}
         onRequestClose={() => setPasswordModalOpen(false)}
@@ -324,6 +596,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         overlayClassName="modal-overlay"
       >
         <h2>Changer votre mot de passe</h2>
+        {passwordError && <p className="error-message">{passwordError}</p>}
         <input
           type="password"
           value={currentPassword}
@@ -338,6 +611,13 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
           placeholder="Nouveau mot de passe"
           className="password-input"
         />
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirmer le nouveau mot de passe"
+          className="password-input"
+        />
         <div className="modal-actions">
           <button className="cancel-btn" onClick={() => setPasswordModalOpen(false)}>
             Annuler
@@ -348,7 +628,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         </div>
       </Modal>
 
-      {/* Nouvelle popup de confirmation pour la déconnexion */}
+      {/* Modal de confirmation de déconnexion */}
       <Modal
         isOpen={isLogoutModalOpen}
         onRequestClose={() => setLogoutModalOpen(false)}
@@ -367,6 +647,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         </div>
       </Modal>
 
+      {/* Modal pour les détails d'album */}
       {selectedAlbum && (
         <AlbumModal
           isOpen={modalOpen}

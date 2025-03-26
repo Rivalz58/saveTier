@@ -39,7 +39,7 @@ export interface Ranking {
   updatedAt: string;
   author: RankingAuthor;
   album: RankingAlbum;
-  rankingImage: any[]; // Ajuster selon les données réelles
+  rankingImage: unknown[]; // Ajuster selon les données réelles
 }
 
 export interface RankingsResponse {
