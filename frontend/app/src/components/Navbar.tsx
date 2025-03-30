@@ -12,15 +12,17 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout, isAdmin }) => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+  
   const location = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLogout = () => {
     onLogout();
-    navigate("/");
+    // Forcer un rechargement complet de l'application
+    window.location.href = '/';
   };
-
+  
   return (
     <div className="navbar-bg">
       <div className="navbar">

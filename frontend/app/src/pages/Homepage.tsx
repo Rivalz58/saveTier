@@ -103,10 +103,6 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
 
   return (
     <div className="homepage">
-      <h2 className="page-title">
-        {user ? `Bienvenue, ${user} !` : "Bienvenue sur TierHub ! Connectez-vous pour plus de fonctionnalités."}
-      </h2>
-      
       {/* Section Albums Populaires */}
       <div className="album-populaire-header">
         <h2 className="section-title">Albums Populaires</h2>

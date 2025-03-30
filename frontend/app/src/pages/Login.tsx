@@ -70,11 +70,6 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
           required
           disabled={isLoading}
         />
-        <div className="form-links">
-          <a href="/forgot-password" className="forgot-password-link">
-            Mot de passe oublié ?
-          </a>
-        </div>
         <button type="submit" disabled={isLoading}>
           {isLoading ? "Connexion en cours..." : "Se connecter"}
         </button>
