@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Navbar.css";
 import logo from "../assets/Logo.png";
 import profilePic from "../assets/profile.png";
 import ThemeToggle from "./ThemeToggle";
+import { isTokenValid } from "../services/api";
 
 interface NavbarProps {
   user: string | null;
@@ -12,10 +13,40 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout, isAdmin }) => {
-    const navigate = useNavigate();
-  
+  const navigate = useNavigate();
   const location = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isTokenExpired, setIsTokenExpired] = useState(false);
+
+  // Vérifier si le token est toujours valide
+  useEffect(() => {
+    const checkTokenValidity = () => {
+      const tokenValid = isTokenValid();
+      if (!tokenValid && user) {
+        setIsTokenExpired(true);
+      } else {
+        setIsTokenExpired(false);
+      }
+    };
+
+    // Vérification initiale
+    checkTokenValidity();
+
+    // Vérification périodique (toutes les minutes)
+    const tokenCheckInterval = setInterval(checkTokenValidity, 60 * 1000);
+
+    return () => {
+      clearInterval(tokenCheckInterval);
+    };
+  }, [user]);
+
+  // Si le token est expiré, déconnecter l'utilisateur
+  useEffect(() => {
+    if (isTokenExpired && user) {
+      console.log("Token expiré détecté dans Navbar, déconnexion...");
+      handleLogout();
+    }
+  }, [isTokenExpired, user]);
 
   const handleLogout = () => {
     onLogout();
@@ -57,7 +88,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, isAdmin }) => {
           >
             Albums
           </button>
-          {isAdmin && (
+          {isAdmin && user && (
             <button
               className={`admin ${location.pathname === "/admin" ? "active" : ""}`}
               onClick={() => navigate("/admin")}

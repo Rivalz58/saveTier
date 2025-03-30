@@ -5,9 +5,10 @@ import { register, login, checkIsAdmin } from "../services/api";
 
 interface RegisterProps {
   setUser: (user: string) => void;
+  updateUserStatus?: () => Promise<void>; // Nouvelle prop pour mettre à jour le statut admin
 }
 
-const Register: React.FC<RegisterProps> = ({ setUser }) => {
+const Register: React.FC<RegisterProps> = ({ setUser, updateUserStatus }) => {
   const [username, setUsername] = useState("");
   const [nametag, setNametag] = useState("");
   const [email, setEmail] = useState("");
@@ -48,11 +49,16 @@ const Register: React.FC<RegisterProps> = ({ setUser }) => {
             // Stocker le token dans localStorage
             localStorage.setItem('token', loginResponse.token);
             
-            // Vérifier si l'utilisateur est admin (peu probable pour un nouvel utilisateur)
-            await checkIsAdmin();
-            
             // Définir l'utilisateur
             setUser(username);
+            
+            // Mettre à jour le statut admin si la fonction est disponible
+            if (updateUserStatus) {
+              await updateUserStatus();
+            } else {
+              // Fallback si updateUserStatus n'est pas fourni
+              await checkIsAdmin();
+            }
             
             // Rediriger vers la page d'accueil
             setTimeout(() => {

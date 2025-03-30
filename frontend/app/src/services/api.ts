@@ -16,6 +16,32 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Intercepteur pour gérer les erreurs d'authentification
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Si l'erreur est due à une expiration de token ou à une authentification invalide
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      console.log("Session expirée ou authentification invalide");
+      // Supprimer le token du localStorage
+      localStorage.removeItem("token");
+      
+      // Créer un événement personnalisé pour signaler l'expiration du token
+      const event = new CustomEvent("tokenExpired");
+      window.dispatchEvent(event);
+      
+      // Si nous ne sommes pas déjà sur la page de connexion, rediriger
+      if (!window.location.pathname.includes("/login")) {
+        alert("Votre session a expiré. Veuillez vous reconnecter.");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Fonction de connexion
 export const login = async (nametag: string, password: string) => {
   try {
@@ -87,10 +113,43 @@ export const revokeToken = async (): Promise<unknown> => {
   }
 };
 
-// Fonction utilitaire pour vérifier la validité du token
-export const isTokenValid = () => {
+// Fonction améliorée pour vérifier la validité du token
+export const isTokenValid = (): boolean => {
   const token = localStorage.getItem("token");
-  return !!token;
+  if (!token) {
+    return false;
+  }
+  
+  try {
+    // Si vous utilisez des JWT, vous pouvez également vérifier l'expiration
+    // en décodant le token (sans vérifier la signature)
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return false;
+    
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    
+    const payload = JSON.parse(jsonPayload);
+    
+    // Vérifier si le token a expiré
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      console.log("Token expiré selon la date d'expiration");
+      localStorage.removeItem("token"); // Supprimer le token expiré
+      return false;
+    }
+    
+    return true;
+  } catch (e) {
+    // Si une erreur se produit lors du décodage, considérer le token comme valide
+    // et laisser les requêtes API déterminer sa validité réelle
+    console.warn("Impossible de décoder le token JWT", e);
+    return true;
+  }
 };
 
 export default api;

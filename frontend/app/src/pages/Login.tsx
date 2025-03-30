@@ -5,9 +5,10 @@ import { login, checkIsAdmin } from "../services/api";
 
 interface LoginProps {
   setUser: (user: string) => void;
+  updateUserStatus?: () => Promise<void>; // Nouvelle prop pour mettre à jour le statut admin
 }
 
-const Login: React.FC<LoginProps> = ({ setUser }) => {
+const Login: React.FC<LoginProps> = ({ setUser, updateUserStatus }) => {
   const [nametag, setNametag] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,12 +29,17 @@ const Login: React.FC<LoginProps> = ({ setUser }) => {
         // Stocker le token dans localStorage
         localStorage.setItem('token', response.token);
         
-        // Vérifier si l'utilisateur est admin
-        const isAdmin = await checkIsAdmin();
-        console.log("User logged in, admin status:", isAdmin);
-        
         // Définir l'utilisateur avec son nametag
         setUser(nametag);
+        
+        // Mettre à jour le statut admin si la fonction est disponible
+        if (updateUserStatus) {
+          await updateUserStatus();
+        } else {
+          // Fallback si updateUserStatus n'est pas fourni
+          const isAdmin = await checkIsAdmin();
+          console.log("User logged in, admin status:", isAdmin);
+        }
         
         // Rediriger vers la page d'accueil
         navigate("/");
