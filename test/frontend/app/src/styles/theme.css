@@ -1,0 +1,457 @@
+/* Variables pour le thème clair/sombre */
+:root {
+    /* Valeurs par défaut (thème sombre) */
+    --bg-color: #181a23;
+    --bg-secondary: #22232b;
+    --bg-tertiary: #2c2f3a;
+    --bg-card: #2c2f3a;
+    --bg-input: #3b3e51;
+    --bg-navbar: #12141C;
+    --text-color: #ffffff;
+    --text-secondary: #aaaaaa;
+    --text-on-primary: #ffffff;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    --primary-color: #328AF1;
+    --primary-hover: #2c79d6;
+    --error-color: #e63946;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+}
+  
+/* Thème clair (couleurs ajustées pour meilleur contraste) */
+[data-theme="light"] {
+    /* Couleurs de fond plus sombres pour meilleur contraste */
+    --bg-color: #e0e3ec;
+    --bg-secondary: #c5cad8; 
+    --bg-tertiary: #b0b6c9;
+    --bg-card: #c5cad8;
+    --bg-input: #b0b6c9;
+    --bg-navbar: #2a3042;
+    
+    /* Texte plus sombre pour meilleur contraste */
+    --text-color: #1a1f30;
+    --text-secondary: #404761;
+    
+    /* Autres variables */
+    --text-on-primary: #ffffff;
+    --border-color: rgba(26, 31, 48, 0.2);
+    --hover-bg: rgba(26, 31, 48, 0.1);
+    --primary-color: #1e5598;
+    --primary-hover: #154176;
+    --shadow-color: rgba(26, 31, 48, 0.15);
+}
+  
+/* Application des variables à tous les éléments principaux */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+  
+/* Navbar spécifique (reste sombre en mode clair pour contraste) */
+.navbar-bg {
+    background-color: var(--bg-navbar);
+    transition: background-color 0.3s ease;
+}
+  
+.navbar {
+    color: white;
+}
+  
+/* Table bg override */
+.admin-table th {
+    background-color: var(--bg-secondary);
+}
+  
+.admin-table tr:hover {
+    background-color: var(--hover-bg);
+}
+  
+/* Card backgrounds */
+.content-card, 
+.admin-table-container, 
+.modal-content,
+.add-album-form,
+.empty-section,
+.no-results,
+.create-album-prompt,
+.admin-tabs {
+    background-color: var(--bg-tertiary);
+    transition: background-color 0.3s ease;
+}
+  
+/* Input backgrounds */
+input, 
+select, 
+textarea,
+.album-search,
+.admin-search,
+.admin-filter-select {
+    background-color: var(--bg-input);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+  
+/* Boutons de navigation (garder visibles en thème clair) */
+.nav-links button {
+    color: white; /* Toujours blanc pour contraste */
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent */
+}
+  
+.nav-links button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+  
+.nav-links button.active {
+    background-color: var(--primary-color);
+}
+  
+/* Autres boutons */
+.category-filter,
+.login-button,
+.cancel-btn {
+    background-color: var(--bg-input);
+    color: var(--text-color);
+}
+  
+.category-filter:hover,
+.login-button:hover,
+.cancel-btn:hover {
+    background-color: var(--hover-bg);
+}
+  
+/* Primary buttons */
+.submit-btn,
+.create-album-btn,
+.confirm-btn,
+.add-album-button,
+.category-filter.active {
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
+}
+  
+.submit-btn:hover,
+.create-album-btn:hover,
+.confirm-btn:hover,
+.add-album-button:hover,
+.category-filter.active:hover {
+    background-color: var(--primary-hover);
+}
+  
+/* Special buttons */
+.profile-btn.logout, 
+.admin-action-btn.delete {
+    background-color: var(--error-color);
+}
+  
+.admin-action-btn.quarantine {
+    background-color: var(--warning-color);
+}
+  
+/* Status badges (garder le texte blanc pour meilleur contraste) */
+.status-badge.active,
+.status-badge.public {
+    background-color: var(--success-color);
+    color: white;
+}
+  
+.status-badge.quarantined {
+    background-color: var(--warning-color);
+    color: white;
+}
+  
+.status-badge.private {
+    background-color: #9e9e9e;
+    color: white;
+}
+  
+/* Box shadows */
+.admin-tabs,
+.admin-table-container,
+.modal-content,
+.profile-header,
+.create-album-prompt {
+    box-shadow: 0 4px 10px var(--shadow-color);
+}
+  
+/* Text colors */
+.profile-username,
+.all-album-title,
+.admin-title,
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color);
+}
+  
+.profile-member-since,
+.section-header p,
+.empty-section p,
+.no-results p,
+.text-secondary {
+    color: var(--text-secondary);
+}
+  
+/* Text within cards/buttons keeps good contrast */
+.album-usage-count,
+.nav-actions .add-album-button,
+.create-btn,
+.admin-action-btn {
+    color: white;
+}
+  
+/* Border colors */
+.admin-table th, 
+.admin-table td,
+.section-header::before {
+    border-color: var(--border-color);
+}
+  
+/* Section headers */
+.section-title,
+.section-header h3 {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+  
+/* Maintenir le fond sombre pour certains éléments spécifiques en thème clair */
+[data-theme="light"] .admin {
+    background-color: #e63946 !important;
+}
+  
+/* Assurer que les boutons d'action gardent leurs couleurs distinctes */
+[data-theme="light"] .admin-action-btn,
+[data-theme="light"] .profile-btn {
+    color: white;
+}
+  
+/* S'assurer que les titres des cartes sont visibles en mode clair */
+.category-card {
+    position: relative;
+}
+  
+.category-card h3 {
+    background-color: rgba(44, 47, 58, 0.85); /* Fond semi-transparent sombre */
+    color: white !important; /* Force le texte en blanc */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 10px;
+    font-size: 0.9rem;
+    text-align: center;
+    border-radius: 0 0 10px 10px;
+    z-index: 5; /* S'assurer qu'il est au-dessus des autres éléments */
+}
+  
+/* Spécifiquement pour le mode clair */
+[data-theme="light"] .category-card h3 {
+    background-color: rgba(44, 47, 58, 0.85); /* Même couleur que le mode sombre */
+    color: white !important;
+}
+  
+/* S'assurer que toutes les cartes ont un style cohérent dans les deux thèmes */
+.album-card-container,
+.content-card,
+.category-container,
+.admin-album-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+  
+/* Fonds de carte qui s'adaptent au thème */
+.category-card {
+    background-color: var(--bg-tertiary);
+    box-shadow: 0 4px 10px var(--shadow-color);
+}
+  
+/* Badges et compteurs avec fond plus contrasté */
+.album-usage-count,
+.usage-badge {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+}
+  
+/* Amélioration de la visibilité des sections */
+.section-header h3,
+.section-title,
+.album-populaire-header h2 {
+    background-color: var(--bg-color);
+    padding: 0 10px;
+    z-index: 5;
+    position: relative;
+}
+  
+/* Ajout d'un fond aux boutons "Voir plus" pour qu'ils soient toujours visibles */
+.view-more {
+    background-color: var(--bg-input);
+    color: var(--text-color);
+    z-index: 5;
+    position: relative;
+    border-radius: 6px;
+    padding: 8px 15px;
+}
+  
+.view-more:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+  
+/* Amélioration des contrastes pour les textes d'en-tête */
+.all-album-title,
+.admin-title,
+.add-album-title,
+.page-title {
+    color: var(--text-color);
+    margin-bottom: 25px;
+    text-shadow: 0 1px 3px var(--shadow-color);
+}
+  
+/* Assurer que le texte dans les cartes reste lisible */
+.content-card .category-card h3,
+.album-card-container .category-card h3,
+.category-container .category-card h3 {
+    background-color: rgba(44, 47, 58, 0.85);
+    color: white;
+    z-index: 2;
+}
+  
+/* Spécifiquement pour les tables admin en mode clair */
+[data-theme="light"] .admin-table th {
+    background-color: #8a93b1;
+    color: #ffffff;
+}
+  
+[data-theme="light"] .admin-table tr {
+    background-color: #d1d6e3;
+}
+  
+[data-theme="light"] .admin-table tr:hover {
+    background-color: #c0c6d8;
+}
+  
+[data-theme="light"] .admin-table td {
+    color: #1a1f30;
+}
+  
+/* Amélioration spécifique pour les ID en mode clair */
+[data-theme="light"] .id-cell {
+    color: #404761;
+}
+  
+/* Assurer que les éléments cliquables sont clairement visibles */
+[data-theme="light"] .admin-action-btn {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+  
+/* Améliorer les badges de statut */
+[data-theme="light"] .status-badge {
+    font-weight: bold;
+}
+  
+/* Améliorer les en-têtes de table pour meilleur contraste */
+[data-theme="light"] .admin-table th {
+    border-bottom: 2px solid rgba(26, 31, 48, 0.3);
+}
+  
+/* Champs de recherche */
+[data-theme="light"] .admin-search {
+    background-color: #ffffff;
+    border: 1px solid #8a93b1;
+    color: #1a1f30;
+}
+  
+[data-theme="light"] .admin-search:focus {
+    box-shadow: 0 0 0 2px rgba(30, 85, 152, 0.4);
+}
+  
+/* Sélecteurs de filtres */
+[data-theme="light"] .admin-filter-select {
+    background-color: #ffffff;
+    border: 1px solid #8a93b1;
+    color: #1a1f30;
+    /* Changer l'icône de flèche pour qu'elle soit visible sur fond clair */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231a1f30'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+}
+  
+[data-theme="light"] .admin-filter-select:focus {
+    box-shadow: 0 0 0 2px rgba(30, 85, 152, 0.4);
+}
+  
+/* Conteneur principal de l'admin */
+[data-theme="light"] .admin-table-container {
+    box-shadow: 0 4px 10px rgba(26, 31, 48, 0.1);
+    border: 1px solid rgba(26, 31, 48, 0.1);
+}
+  
+/* Titre d'admin */
+[data-theme="light"] .admin-title {
+    color: #1a1f30;
+}
+  
+/* Styles spécifiques pour les tabs */
+[data-theme="light"] .admin-tabs {
+    border: 1px solid rgba(26, 31, 48, 0.1);
+}
+  
+[data-theme="light"] .admin-tab {
+    color: #1a1f30;
+}
+  
+/* Pour les textes "Aucun résultat" */
+[data-theme="light"] .no-results p {
+    color: #404761;
+}
+  
+/* Améliorer la distinction dans les tableaux */
+[data-theme="light"] .admin-table tr:nth-child(even) {
+    background-color: #d9dee9;
+}
+  
+[data-theme="light"] .admin-table tr:nth-child(odd) {
+    background-color: #e5e9f2;
+}
+  
+/* Bordures de tableau plus visibles */
+[data-theme="light"] .admin-table td,
+[data-theme="light"] .admin-table th {
+    border-bottom: 1px solid #8a93b1;
+}
+
+/* Correction spécifique pour les titres et sections */
+.section-header::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 100px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+[data-theme="light"] .section-header::before {
+    background: rgba(26, 31, 48, 0.4);
+}
+
+.section-title {
+    background: var(--bg-color);
+    position: relative;
+    z-index: 1;
+}
+
+/* Correction pour s'assurer que les boutons de navigation sont visibles */
+.admin-content {
+    overflow: visible !important;
+}
+
+/* Correction du z-index pour la navbar */
+.navbar-bg {
+    z-index: 1000;
+}
+
+.nav-links {
+    z-index: 999;
+}

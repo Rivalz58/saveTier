@@ -1,0 +1,355 @@
+.add-album-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  padding-top: 7%; /* Augmentez cette valeur pour laisser de l'espace pour la navbar */
+}
+
+.add-album-title {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--text-color);
+}
+
+.add-album-form {
+  background-color: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(50, 138, 241, 0.3);
+}
+
+/* Styles pour la sélection de catégories */
+.category-selection-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.category-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.category-option {
+  background-color: var(--bg-tertiary);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.category-option:hover {
+  background-color: var(--hover-color);
+}
+
+.category-option.selected {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.selected-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem;
+  min-height: 60px;
+  background-color: var(--bg-tertiary);
+  border-radius: 4px;
+  align-items: center;
+}
+
+.selected-category {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.no-categories {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Styles pour la zone de glisser-déposer des images */
+.drop-zone {
+  border: 2px dashed var(--border-color);
+  padding: 2rem;
+  text-align: center;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  transition: all 0.3s;
+  background-color: var(--bg-tertiary);
+}
+
+.drop-zone.active {
+  border-color: var(--primary-color);
+  background-color: rgba(50, 138, 241, 0.1);
+}
+
+.drop-zone p {
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.file-input-label {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+  transition: background-color 0.2s;
+}
+
+.file-input-label:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Message de validation des erreurs */
+.validation-errors {
+  background-color: #fff3f3;
+  border-left: 4px solid #ff3b3b;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border-radius: 4px;
+  color: #d32f2f;
+}
+
+.validation-errors h3 {
+  margin-top: 0;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.validation-errors ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+/* Styles pour l'affichage des aperçus d'images */
+.image-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.preview-container {
+  position: relative;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--bg-tertiary);
+  transition: transform 0.2s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Conteneur du nom d'image */
+.image-name-container {
+  padding: 0.5rem;
+  flex-grow: 1;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  min-height: 40px; /* Hauteur minimale pour éviter les sauts */
+  display: flex;
+  align-items: center;
+}
+
+.image-name {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  word-break: break-word;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.image-name:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.image-name-input {
+  width: 100%;
+  padding: 0.3rem;
+  border: 1px solid var(--primary-color);
+  border-radius: 3px;
+  font-size: 0.9rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  height: 30px; /* Hauteur fixe pour éviter les sauts */
+}
+
+/* Boutons pour gérer les images */
+.remove-image,
+.edit-image-name {
+  position: absolute;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.remove-image {
+  top: 5px;
+  right: 5px;
+  background-color: rgba(255, 0, 0, 0.7);
+}
+
+.remove-image:hover {
+  background-color: rgba(255, 0, 0, 0.9);
+}
+
+.edit-image-name {
+  top: 5px;
+  left: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+}
+
+.edit-image-name:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Boutons d'action (au-dessus de la galerie) */
+.form-actions-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  position: sticky;
+  top: 80px; /* Ajustez selon la hauteur de votre navbar */
+  z-index: 10;
+}
+
+.images-count {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancel-btn,
+.submit-btn {
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn {
+  background-color: var(--cancel-btn-bg, #f3f4f6);
+  color: var(--cancel-btn-text, #374151);
+}
+
+.cancel-btn:hover {
+  background-color: var(--cancel-btn-hover, #e5e7eb);
+}
+
+.submit-btn {
+  background-color: var(--primary-color, #328AF1);
+  color: white;
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-dark, #2872c8);
+}
+
+/* Adaptations pour le mode sombre */
+[data-theme="dark"] .validation-errors {
+  background-color: rgba(255, 59, 59, 0.1);
+  color: #ff6b6b;
+}
+
+/* Adaptations responsives */
+@media (max-width: 768px) {
+  .add-album-container {
+    padding: 1rem;
+  }
+  
+  .add-album-form {
+    padding: 1rem;
+  }
+  
+  .image-previews {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .form-actions-top {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .form-actions-top .action-buttons {
+    width: 100%;
+  }
+  
+  .cancel-btn,
+  .submit-btn {
+    width: 100%;
+  }
+}
