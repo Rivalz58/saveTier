@@ -5,7 +5,7 @@ import MUser from "./userModel.js";
 class MRevocation extends Model {
     public id!: number;
     public id_user!: number;
-    public date!: Date;
+    public revocation_date!: Date;
 }
 
 MRevocation.init(
@@ -23,7 +23,7 @@ MRevocation.init(
                 key: "id",
             },
         },
-        date: {
+        revocation_date: {
             type: DataTypes.DATE,
             allowNull: false,
         },

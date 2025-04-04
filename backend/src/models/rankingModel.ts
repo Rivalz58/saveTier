@@ -10,6 +10,8 @@ class MRanking extends Model {
     public private!: boolean;
     public id_album!: number;
     public id_user!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MRanking.init(
@@ -53,6 +55,7 @@ MRanking.init(
         sequelize,
         modelName: "MRanking",
         tableName: "ranking",
+        timestamps: true,
     },
 );
 

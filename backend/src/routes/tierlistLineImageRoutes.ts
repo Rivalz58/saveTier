@@ -7,15 +7,52 @@ import z from "zod";
 export async function tierlistLineImageRoutes(fastify: FastifyInstance) {
     fastify.get(
         "/tierlist/line/image",
-        { onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])] },
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(
+                            tierlistLineImageSchemas.SOutputTierlistLineImage,
+                        ),
+                    }),
+                },
+            },
+            onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])],
+        },
         tierlistLineImageController.getAllImages,
     );
+
     // fastify.get(
     //     "/tierlist/line/:id/image",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(tierlistLineImageSchemas.SOutputTierlistLineImage),
+    //                 }),
+    //             },
+    //         },
+    //     },
     //     tierlistLineImageController.getAllImagesToLine,
     // );
+
     fastify.get(
         "/tierlist/line/image/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: tierlistLineImageSchemas.SOutputTierlistLineImage,
+                    }),
+                },
+            },
+        },
         tierlistLineImageController.getImage,
     );
 
@@ -31,7 +68,7 @@ export async function tierlistLineImageRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["User"])]
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         tierlistLineImageController.addImage,
     );

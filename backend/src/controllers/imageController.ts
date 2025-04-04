@@ -6,6 +6,7 @@ import {
     SInputImage,
     SPartialImage,
 } from "../schemas/imageSchemas.js";
+import { MultipartFile } from "@fastify/multipart";
 import { handleError } from "../errors/errorHandler.js";
 import { BadRequestError } from "../errors/AppError.js";
 
@@ -65,8 +66,33 @@ export async function getImage(
 
 export async function addImage(req: FastifyRequest, rep: FastifyReply) {
     try {
-        const data: InputImage = SInputImage.parse(req.body);
-        const result = await imageService.create(data);
+        const parts = req.parts();
+        let fileBuffer: Buffer | null = null;
+        let fileData: MultipartFile | null = null;
+        const formData: Record<string, any> = {};
+
+        for await (const part of parts) {
+            if (part.type === "file") {
+                fileData = part;
+                fileBuffer = await part.toBuffer();
+            } else {
+                formData[part.fieldname] = part.value;
+            }
+        }
+
+        if (!fileBuffer || !fileData) {
+            throw new BadRequestError("No image file provided");
+        }
+
+        const data: InputImage = SInputImage.parse({
+            name: formData.name,
+            description: formData.description,
+            url: formData.url,
+            id_album: parseInt(formData.id_album),
+            file: fileBuffer,
+        });
+
+        const result = await imageService.create(data, fileData);
 
         return rep.status(201).send({
             status: "success",

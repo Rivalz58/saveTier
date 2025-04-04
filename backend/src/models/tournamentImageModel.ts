@@ -11,6 +11,8 @@ class MTournamentImage extends Model {
     public disable!: boolean;
     public id_image!: number;
     public id_tournament!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MTournamentImage.init(
@@ -59,6 +61,7 @@ MTournamentImage.init(
         sequelize,
         modelName: "MTournamentImage",
         tableName: "tournament_image",
+        timestamps: true,
     },
 );
 

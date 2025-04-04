@@ -5,12 +5,53 @@ import { isAllowed, isAuthenticate } from "../middlewares/auth.js";
 import z from "zod";
 
 export async function categoryRoutes(fastify: FastifyInstance) {
-    fastify.get("/category", categoryController.getAllCategories);
+    fastify.get(
+        "/category",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(categorySchemas.SOutputCategory),
+                    }),
+                },
+            },
+        },
+        categoryController.getAllCategories,
+    );
+
     // fastify.get(
     //     "/album/:id/category",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(categorySchemas.SOutputCategory),
+    //                 }),
+    //             },
+    //         },
+    //     },
     //     categoryController.getAllAlbumCategories,
     // );
-    fastify.get("/category/:param", categoryController.getCategory);
+
+    fastify.get(
+        "/category/:param",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: categorySchemas.SOutputCategory,
+                    }),
+                },
+            },
+        },
+        categoryController.getCategory,
+    );
 
     fastify.post(
         "/category",

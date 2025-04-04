@@ -40,9 +40,14 @@ export class CategoryService {
 
         const categories: MCategory[] = [];
         for (const categoryId of categoriesId) {
-            const result = await this.findById(
+            const result = await MCategory.findByPk(
                 categoryId.dataValues.id_category,
             );
+            if (!result) {
+                throw new NotFoundError(
+                    `Category with ID ${categoryId.dataValues.id_category} not found`,
+                );
+            }
             categories.push(result);
         }
 

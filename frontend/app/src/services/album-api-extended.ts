@@ -26,7 +26,7 @@ export interface AlbumAuthor {
   nametag: string;
   email: string;
   status: string;
-  last_connexion: string;
+  last_connection: string;
   createdAt: string;
   updatedAt: string;
 }

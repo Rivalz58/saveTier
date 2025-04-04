@@ -64,12 +64,12 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
       
       try {
         const response = await getCurrentUser();
-        if (response && response.user) {
-          setUsername(response.user.username || user);
-          setUserID(response.user.id.toString());
+        if (response && response.data) {
+          setUsername(response.data.username || user);
+          setUserID(response.data.id.toString());
           
           // Formater la date d'inscription
-          const registerDate = new Date(response.user.createdAt);
+          const registerDate = new Date(response.data.createdAt);
           setMemberSince(registerDate.toLocaleDateString('fr-FR', {
             day: 'numeric',
             month: 'long',

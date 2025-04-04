@@ -13,7 +13,7 @@ export class RankingService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -22,7 +22,7 @@ export class RankingService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -60,7 +60,7 @@ export class RankingService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -69,7 +69,7 @@ export class RankingService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -111,7 +111,7 @@ export class RankingService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -120,7 +120,7 @@ export class RankingService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -153,7 +153,7 @@ export class RankingService {
     async findAllToUserNametag(userNametag: string) {
         const userExists = await MUser.findOne({
             where: { nametag: userNametag },
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] },
         });
         if (!userExists) {
             throw new NotFoundError(
@@ -167,7 +167,7 @@ export class RankingService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -176,7 +176,7 @@ export class RankingService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -212,7 +212,7 @@ export class RankingService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -221,7 +221,7 @@ export class RankingService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },

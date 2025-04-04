@@ -1,4 +1,5 @@
 import z from "zod";
+import { SOutputImage } from "./imageSchemas.js";
 
 export const SRankingImageCore = z.object({
     points: z.number().nonnegative().default(0),
@@ -13,21 +14,18 @@ export const SInputRankingImage = SRankingImageCore.extend({
 
 export const SPartialRankingImage = SRankingImageCore.partial();
 
-export const SRankingImage = z.object({
-    id: z.number().positive(),
-    points: z.number().nonnegative().default(0),
-    viewed: z.number().nonnegative().default(0),
-    disable: z.boolean().default(false),
-    id_image: z.number().positive(),
-    id_ranking: z.number().positive(),
-});
+export const SOutputRankingImage: z.ZodType<any> = z.lazy(() =>
+    z.object({
+        id: z.number().positive(),
+        points: z.number().nonnegative().default(0),
+        viewed: z.number().nonnegative().default(0),
+        disable: z.boolean(),
+        createdAt: z.date().optional(),
+        updatedAt: z.date().optional(),
+        image: SOutputImage.optional(),
+    }),
+);
 
-export const SOutputRankingImage = SRankingImage.extend({
-    createAt: z.date().optional(),
-    updateAt: z.date().optional(),
-});
-
-export type RankingImage = z.infer<typeof SRankingImage>;
 export type PartialRankingImage = z.infer<typeof SPartialRankingImage>;
 export type InputRankingImage = z.infer<typeof SInputRankingImage>;
 export type OutputRankingImage = z.infer<typeof SOutputRankingImage>;

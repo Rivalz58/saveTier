@@ -1,4 +1,5 @@
 import z from "zod";
+import { SOutputImage } from "./imageSchemas.js";
 
 export const STierlistLineImageCore = z.object({
     placement: z.number().nonnegative().default(0),
@@ -12,20 +13,17 @@ export const SInputTierlistLineImage = STierlistLineImageCore.extend({
 
 export const SPartialTierlistLineImage = STierlistLineImageCore.partial();
 
-export const STierlistLineImage = z.object({
-    id: z.number().positive(),
-    placement: z.number().nonnegative().default(0),
-    disable: z.boolean().default(false),
-    id_tierlist_line: z.number().positive(),
-    id_image: z.number().positive(),
-});
+export const SOutputTierlistLineImage: z.ZodType<any> = z.lazy(() =>
+    z.object({
+        id: z.number().positive(),
+        placement: z.number().nonnegative().default(0),
+        disable: z.boolean(),
+        createdAt: z.date().optional(),
+        updatedAt: z.date().optional(),
+        image: SOutputImage.optional(),
+    }),
+);
 
-export const SOutputTierlistLineImage = STierlistLineImage.extend({
-    createAt: z.date().optional(),
-    updateAt: z.date().optional(),
-});
-
-export type TierlistLineImage = z.infer<typeof STierlistLineImage>;
 export type PartialTierlistLineImage = z.infer<
     typeof SPartialTierlistLineImage
 >;

@@ -14,7 +14,7 @@ export class TierlistService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -23,7 +23,7 @@ export class TierlistService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -68,8 +68,8 @@ export class TierlistService {
             include: [
                 {
                     model: MUser,
-                    as: "user",
-                    attributes: { exclude: ["password"] },
+                    as: "author",
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -78,7 +78,7 @@ export class TierlistService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -127,8 +127,8 @@ export class TierlistService {
             include: [
                 {
                     model: MUser,
-                    as: "user",
-                    attributes: { exclude: ["password"] },
+                    as: "author",
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -137,7 +137,7 @@ export class TierlistService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -178,11 +178,22 @@ export class TierlistService {
 
     async findAllToUserNametag(userNametag: string) {
         const userExists = await MUser.findOne({
+            where: { nametag: userNametag },
+            attributes: { exclude: ["password", "email"] },
+        });
+        if (!userExists) {
+            throw new NotFoundError(
+                `User with Nametag ${userNametag} not found`,
+            );
+        }
+
+        const tierlists = await MTierlist.findAll({
+            where: { id_user: userExists.id },
             include: [
                 {
                     model: MUser,
-                    as: "user",
-                    attributes: { exclude: ["password"] },
+                    as: "author",
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -191,7 +202,7 @@ export class TierlistService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -220,15 +231,6 @@ export class TierlistService {
             ],
             attributes: { exclude: ["id_user", "id_album"] },
         });
-        if (!userExists) {
-            throw new NotFoundError(
-                `User with Nametag ${userNametag} not found`,
-            );
-        }
-
-        const tierlists = await MTierlist.findAll({
-            where: { id_user: userExists.id },
-        });
 
         if (!tierlists.length) {
             throw new NotFoundError(
@@ -244,8 +246,8 @@ export class TierlistService {
             include: [
                 {
                     model: MUser,
-                    as: "user",
-                    attributes: { exclude: ["password"] },
+                    as: "author",
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -254,7 +256,7 @@ export class TierlistService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },

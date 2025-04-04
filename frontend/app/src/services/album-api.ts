@@ -1,5 +1,5 @@
 import api from './api';
-
+import axios from "axios";
 // Types pour les données d'albums
 export interface AlbumImage {
   id: number;
@@ -26,7 +26,7 @@ export interface AlbumAuthor {
   nametag: string;
   email: string;
   status: string;
-  last_connexion: string;
+  last_connection: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -152,3 +152,22 @@ export const getAllCategoryNames = async (): Promise<string[]> => {
     return [];
   }
 };
+
+// Créer un album et renvoyer son ID
+export async function createAlbum(data: {
+  name: string;
+  categories: string[];
+  description: string;
+}): Promise<string> {
+  // Appel à votre backend
+  // Par exemple: POST /api/albums
+  // Le backend renvoie { _id: "<id_de_l_album>" }.
+  const response = await axios.post("/api/albums", data);
+  return response.data._id; 
+}
+
+// Uploader une image vers un album
+export async function uploadImage(albumId: string, payload: FormData): Promise<void> {
+  // Par exemple: POST /api/albums/:albumId/images
+  await axios.post(`/api/albums/${albumId}/images`, payload);
+}

@@ -7,6 +7,8 @@ class MAlbum extends Model {
     public name!: string;
     public status!: string;
     public id_user!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MAlbum.init(
@@ -37,6 +39,7 @@ MAlbum.init(
         sequelize,
         modelName: "MAlbum",
         tableName: "album",
+        timestamps: true,
     },
 );
 

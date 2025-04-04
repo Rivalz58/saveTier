@@ -5,16 +5,69 @@ import { isAllowed, isAuthenticate } from "../middlewares/auth.js";
 import z from "zod";
 
 export async function tierlistRoutes(fastify: FastifyInstance) {
-    fastify.get("/tierlist", tierlistController.getAllTierlists);
+    fastify.get(
+        "/tierlist",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(tierlistSchemas.SOutputTierlist),
+                    }),
+                },
+            },
+        },
+        tierlistController.getAllTierlists,
+    );
+
     // fastify.get(
     //     "/user/:param/tierlist",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(tierlistSchemas.SOutputTierlist),
+    //                 }),
+    //             },
+    //         },
+    //     },
     //     tierlistController.getAllTierlistsToUser,
     // );
+
+    // fastify.get(
+    //     "/album/:id/tierlist",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(tierlistSchemas.SOutputTierlist),
+    //                 }),
+    //             },
+    //         },
+    //     },
+    //     tierlistController.getAllTierlistsToAlbum,
+    // );
+
     fastify.get(
-        "/album/:id/tierlist",
-        tierlistController.getAllTierlistsToAlbum,
+        "/tierlist/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: tierlistSchemas.SOutputTierlist,
+                    }),
+                },
+            },
+        },
+        tierlistController.getTierlist,
     );
-    fastify.get("/tierlist/:id", tierlistController.getTierlist);
 
     fastify.post(
         "/tierlist",
@@ -28,7 +81,7 @@ export async function tierlistRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["User"])]
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         tierlistController.addTierlist,
     );

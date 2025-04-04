@@ -10,6 +10,8 @@ class MRankingImage extends Model {
     public disable!: boolean;
     public id_image!: number;
     public id_ranking!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MRankingImage.init(
@@ -55,6 +57,7 @@ MRankingImage.init(
         sequelize,
         modelName: "MRankingImage",
         tableName: "ranking_image",
+        timestamps: true,
     },
 );
 

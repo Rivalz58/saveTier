@@ -7,11 +7,52 @@ import z from "zod";
 export async function imageRoutes(fastify: FastifyInstance) {
     fastify.get(
         "/image",
-        { onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])] },
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(imageSchemas.SOutputImage),
+                    }),
+                },
+            },
+            onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])],
+        },
         imageController.getAllImages,
     );
-    // fastify.get("/album/:id/image", imageController.getAllImagesToAlbum);
-    fastify.get("/image/:id", imageController.getImage);
+
+    // fastify.get(
+    //     "/album/:id/image",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(imageSchemas.SOutputImage),
+    //                 }),
+    //             },
+    //         },
+    //     },
+    //     imageController.getAllImagesToAlbum,
+    // );
+
+    fastify.get(
+        "/image/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: imageSchemas.SOutputImage,
+                    }),
+                },
+            },
+        },
+        imageController.getImage,
+    );
 
     fastify.post(
         "/image",
@@ -25,7 +66,7 @@ export async function imageRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["User"])]
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         imageController.addImage,
     );

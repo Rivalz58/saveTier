@@ -9,6 +9,8 @@ class MTierlistLineImage extends Model {
     public disable!: boolean;
     public id_image!: number;
     public id_tierlist_line!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MTierlistLineImage.init(
@@ -48,6 +50,7 @@ MTierlistLineImage.init(
         sequelize,
         modelName: "MTierlistLineImage",
         tableName: "tierlist_line_image",
+        timestamps: true,
     },
 );
 

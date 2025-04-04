@@ -1,4 +1,5 @@
 import z from "zod";
+import { SOutputTierlistLineImage } from "./tierlistLineImageSchemas.js";
 
 export const STierlistLineCore = z.object({
     label: z
@@ -15,23 +16,22 @@ export const SInputTierlistLine = STierlistLineCore.extend({
 
 export const SPartialTierlistLine = STierlistLineCore.partial();
 
-export const STierlistLine = z.object({
-    id: z.number().positive(),
-    label: z
-        .string()
-        .max(32, "Lable must be at most 32 characters long")
-        .optional(),
-    placement: z.number().nonnegative().default(0),
-    color: z.string().max(6),
-    id_tierlist: z.number().positive(),
-});
+export const SOutputTierlistLine: z.ZodType<any> = z.lazy(() =>
+    z.object({
+        id: z.number().positive(),
+        label: z
+            .string()
+            .max(32, "Lable must be at most 32 characters long")
+            .optional()
+            .nullable(),
+        placement: z.number().nonnegative(),
+        color: z.string().max(6),
+        createdAt: z.date().optional(),
+        updatedAt: z.date().optional(),
+        tierlistLineImage: z.array(SOutputTierlistLineImage).optional(),
+    }),
+);
 
-export const SOutputTierlistLine = STierlistLine.extend({
-    createAt: z.date().optional(),
-    updateAt: z.date().optional(),
-});
-
-export type TierlistLine = z.infer<typeof STierlistLine>;
 export type PartialTierlistLine = z.infer<typeof SPartialTierlistLine>;
 export type InputTierlistLine = z.infer<typeof SInputTierlistLine>;
 export type OutputTierlistLine = z.infer<typeof SOutputTierlistLine>;

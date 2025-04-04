@@ -8,12 +8,9 @@ class MUser extends Model {
     public email!: string;
     public password!: string;
     public status!: string;
-    public last_connexion!: Date;
-
-    public toSafeJSON() {
-        const { id, password, ...safeAttributes } = this.toJSON();
-        return safeAttributes;
-    }
+    public last_connection!: Date;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MUser.init(
@@ -48,7 +45,7 @@ MUser.init(
             type: DataTypes.STRING(16),
             allowNull: false,
         },
-        last_connexion: {
+        last_connection: {
             type: DataTypes.DATE,
             allowNull: false,
         },
@@ -57,6 +54,7 @@ MUser.init(
         sequelize,
         modelName: "MUser",
         tableName: "user",
+        timestamps: true,
     },
 );
 

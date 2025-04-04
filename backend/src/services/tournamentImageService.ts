@@ -20,7 +20,6 @@ export class TournamentImageService {
                 {
                     model: MTournamentOponent,
                     as: "tournamentOponent",
-                    attributes: { exclude: ["id_tournament_image"] },
                 },
             ],
             attributes: { exclude: ["id_tournament", "id_image"] },
@@ -50,7 +49,6 @@ export class TournamentImageService {
                 {
                     model: MTournamentOponent,
                     as: "tournamentOponent",
-                    attributes: { exclude: ["id_tournament_image"] },
                 },
             ],
             attributes: { exclude: ["id_tournament", "id_image"] },
@@ -76,7 +74,6 @@ export class TournamentImageService {
                 {
                     model: MTournamentOponent,
                     as: "tournamentOponent",
-                    attributes: { exclude: ["id_tournament_image"] },
                 },
             ],
             attributes: { exclude: ["id_tournament", "id_image"] },

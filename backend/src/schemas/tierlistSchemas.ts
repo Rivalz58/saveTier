@@ -1,4 +1,7 @@
 import z from "zod";
+import { SOutputTierlistLine } from "./tierlistLineSchemas.js";
+import { SOutputUser } from "./userSchemas.js";
+import { SOutputAlbum } from "./albumSchemas.js";
 
 export const STierlistCore = z.object({
     name: z
@@ -18,27 +21,27 @@ export const SInputTierlist = STierlistCore.extend({
 
 export const SPartialTierlist = STierlistCore.partial();
 
-export const STierlist = z.object({
-    id: z.number().positive(),
-    name: z
-        .string()
-        .min(3, "Name must be at least 3 characters long")
-        .max(64, "Name must be at most 64 characters long"),
-    description: z
-        .string()
-        .max(512, "Description must be a maximum 512 characters")
-        .optional(),
-    private: z.boolean().default(true),
-    id_album: z.number().positive(),
-    id_user: z.number().positive(),
-});
+export const SOutputTierlist: z.ZodType<any> = z.lazy(() =>
+    z.object({
+        id: z.number().positive(),
+        name: z
+            .string()
+            .min(3, "Name must be at least 3 characters long")
+            .max(64, "Name must be at most 64 characters long"),
+        description: z
+            .string()
+            .max(512, "Description must be a maximum 512 characters")
+            .optional()
+            .nullable(),
+        private: z.boolean(),
+        createdAt: z.date().optional(),
+        updatedAt: z.date().optional(),
+        author: SOutputUser.optional(),
+        album: SOutputAlbum.optional(),
+        tierlistLine: z.array(SOutputTierlistLine).optional(),
+    }),
+);
 
-export const SOutputTierlist = STierlist.extend({
-    createAt: z.date().optional(),
-    updateAt: z.date().optional(),
-});
-
-export type Tierlist = z.infer<typeof STierlist>;
 export type PartialTierlist = z.infer<typeof SPartialTierlist>;
 export type InputTierlist = z.infer<typeof SInputTierlist>;
 export type OutputTierlist = z.infer<typeof SOutputTierlist>;

@@ -12,11 +12,12 @@ export class AlbumService {
                 {
                     model: MCategory,
                     as: "categories",
+                    through: { attributes: [] },
                 },
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MImage,
@@ -43,11 +44,12 @@ export class AlbumService {
                 {
                     model: MCategory,
                     as: "categories",
+                    through: { attributes: [] },
                 },
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MImage,
@@ -68,7 +70,7 @@ export class AlbumService {
     async findAllToUserNametag(nametag: string) {
         const userExists = await MUser.findOne({
             where: { nametag: nametag },
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] },
         });
         if (!userExists) {
             throw new NotFoundError(`User with Nametag ${nametag} not found`);
@@ -79,11 +81,12 @@ export class AlbumService {
                 {
                     model: MCategory,
                     as: "categories",
+                    through: { attributes: [] },
                 },
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MImage,
@@ -97,7 +100,6 @@ export class AlbumService {
         if (!albums.length) {
             throw new NotFoundError(`No albums found for user ${nametag}`);
         }
-
         return albums;
     }
 
@@ -107,11 +109,12 @@ export class AlbumService {
                 {
                     model: MCategory,
                     as: "categories",
+                    through: { attributes: [] },
                 },
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MImage,

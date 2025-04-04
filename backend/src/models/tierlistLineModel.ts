@@ -8,6 +8,8 @@ class MTierlistLine extends Model {
     public placement!: number;
     public color!: string;
     public id_tierlist!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MTierlistLine.init(
@@ -42,6 +44,7 @@ MTierlistLine.init(
         sequelize,
         modelName: "MTierlistLine",
         tableName: "tierlist_line",
+        timestamps: true,
     },
 );
 

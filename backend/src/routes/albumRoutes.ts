@@ -5,9 +5,53 @@ import { isAllowed, isAuthenticate } from "../middlewares/auth.js";
 import z from "zod";
 
 export async function albumRoutes(fastify: FastifyInstance) {
-    fastify.get("/album", albumController.getAllAlbums);
-    // fastify.get("/user/:param/album", albumController.getAllAlbumsToUser);
-    fastify.get("/album/:id", albumController.getAlbum);
+    fastify.get(
+        "/album",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(albumSchemas.SOutputAlbum),
+                    }),
+                },
+            },
+        },
+        albumController.getAllAlbums,
+    );
+
+    // fastify.get(
+    //     "/user/:param/album",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: albumSchemas.SOutputAlbum,
+    //                 }),
+    //             },
+    //         },
+    //     },
+    //     albumController.getAllAlbumsToUser,
+    // );
+
+    fastify.get(
+        "/album/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: albumSchemas.SOutputAlbum,
+                    }),
+                },
+            },
+        },
+        albumController.getAlbum,
+    );
 
     fastify.post(
         "/album",

@@ -32,3 +32,9 @@ export class AuthorizationError extends AppError {
         super(403, "error", message);
     }
 }
+
+export class SendingEmailError extends AppError {
+    constructor(message: string) {
+        super(400, "error", message);
+    }
+}

@@ -47,7 +47,7 @@ export async function seedDatabase(sequelize: Sequelize) {
                 email: "victor@example.com",
                 password: await hashPassword("Secure@123"),
                 status: "active",
-                last_connexion: new Date(),
+                last_connection: new Date(),
             },
             {
                 username: "Rose",
@@ -55,7 +55,7 @@ export async function seedDatabase(sequelize: Sequelize) {
                 email: "rose@example.com",
                 password: await hashPassword("Secure@123"),
                 status: "active",
-                last_connexion: new Date(),
+                last_connection: new Date(),
             },
             {
                 username: "Flavien",
@@ -63,7 +63,7 @@ export async function seedDatabase(sequelize: Sequelize) {
                 email: "flavien@example.com",
                 password: await hashPassword("Secure@123"),
                 status: "active",
-                last_connexion: new Date(),
+                last_connection: new Date(),
             },
         ]);
 

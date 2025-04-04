@@ -24,7 +24,7 @@ interface UserInfo {
   nametag: string;
   email: string;
   status: string;
-  last_connexion: string;
+  last_connection: string;
   createdAt: string;
   updatedAt: string;
   roles: Array<{id: number, libelle: string}>;
@@ -36,7 +36,7 @@ interface UserInfo {
 export const getUserInfo = async (): Promise<UserInfo> => {
   try {
     const response = await api.get("/me");
-    return response.data.user;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching user info:", error);
     throw error;

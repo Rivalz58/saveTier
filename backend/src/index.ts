@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import fastifyMultipart from "@fastify/multipart";
 import sequelize from "./config/database.js";
 import {
     serializerCompiler,
@@ -42,6 +43,13 @@ web_server.register(cors, {
     methods: isDevelopment ? ["*"] : ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     preflightContinue: false,
+});
+
+// Add Fastify multipart
+web_server.register(fastifyMultipart, {
+    limits: {
+        fileSize: 10485760, // 10MB par exemple
+    },
 });
 
 // Custom error handler for the Fastify server

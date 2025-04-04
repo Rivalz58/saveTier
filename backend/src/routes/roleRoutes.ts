@@ -7,17 +7,52 @@ import z from "zod";
 export async function roleRoutes(fastify: FastifyInstance) {
     fastify.get(
         "/role",
-        { onRequest: [isAuthenticate, isAllowed(["Admin"])] },
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(roleSchemas.SOutputRole),
+                    }),
+                },
+            },
+            onRequest: [isAuthenticate, isAllowed(["Admin"])],
+        },
         roleController.getAllRoles,
     );
+
     // fastify.get(
     //     "/user/:param/role",
-    //     { onRequest: [isAuthenticate, isAllowed(["Admin"])] },
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(roleSchemas.SOutputRole),
+    //                 }),
+    //             },
+    //         },
+    //         onRequest: [isAuthenticate, isAllowed(["Admin"])],
+    //     },
     //     roleController.getAllUserRoles,
     // );
+
     fastify.get(
         "/role/:param",
-        { onRequest: [isAuthenticate, isAllowed(["Admin"])] },
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: roleSchemas.SOutputRole,
+                    }),
+                },
+            },
+            onRequest: [isAuthenticate, isAllowed(["Admin"])],
+        },
         roleController.getRole,
     );
 
@@ -33,26 +68,27 @@ export async function roleRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["Admin"])]
+            onRequest: [isAuthenticate, isAllowed(["Admin"])],
         },
         roleController.addRole,
     );
-    fastify.post(
-        "/user/:param/role/:param2",
-        {
-            schema: {
-                response: {
-                    201: z.object({
-                        status: z.string(),
-                        message: z.string(),
-                        data: roleSchemas.SOutputRole,
-                    }),
-                },
-            },
-            onRequest: [isAuthenticate, isAllowed(["Admin"])]
-        },
-        roleController.addUserRole,
-    );
+
+    // fastify.post(
+    //     "/user/:param/role/:param2",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 201: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: roleSchemas.SOutputRole,
+    //                 }),
+    //             },
+    //         },
+    //         onRequest: [isAuthenticate, isAllowed(["Admin"])],
+    //     },
+    //     roleController.addUserRole,
+    // );
 
     fastify.put(
         "/role/:param",

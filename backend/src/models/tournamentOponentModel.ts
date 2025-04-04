@@ -6,6 +6,8 @@ class MTournamentOponent extends Model {
     public id!: number;
     public id_oponent!: number;
     public id_tournament_image!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MTournamentOponent.init(
@@ -32,6 +34,7 @@ MTournamentOponent.init(
         sequelize,
         modelName: "MTournamentOponent",
         tableName: "tournament_oponent",
+        timestamps: true,
     },
 );
 

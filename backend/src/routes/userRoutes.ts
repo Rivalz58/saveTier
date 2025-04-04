@@ -7,10 +7,36 @@ import z from "zod";
 export async function userRoutes(fastify: FastifyInstance) {
     fastify.get(
         "/user",
-        { onRequest: [isAuthenticate, isAllowed(["Admin"])] },
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(userSchemas.SOutputUser),
+                    }),
+                },
+            },
+            onRequest: [isAuthenticate, isAllowed(["Admin"])],
+        },
         userController.getAllUsers,
     );
-    fastify.get("/user/:param", userController.getUser);
+
+    fastify.get(
+        "/user/:param",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: userSchemas.SOutputUser,
+                    }),
+                },
+            },
+        },
+        userController.getUser,
+    );
 
     fastify.post(
         "/user",
@@ -24,7 +50,7 @@ export async function userRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["Admin"])]
+            onRequest: [isAuthenticate, isAllowed(["Admin"])],
         },
         userController.addUser,
     );

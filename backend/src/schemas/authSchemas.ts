@@ -15,14 +15,9 @@ const SAuthCore = z.object({
 });
 
 export const SInputAuth = SAuthCore.extend({
-    nametag: z
+    identifier: z
         .string()
-        .min(3, "Username must be at least 3 characters long")
-        .max(16, "Username must be at most 16 characters long")
-        .regex(
-            /^[a-zA-Z0-9_]+$/,
-            "Username can only contain letters, numbers, and underscores",
-        ),
+        .min(3, "Nametag or email must be at least 3 characters long"),
 });
 
 export const SInputRegistration = SAuthCore.extend({
@@ -36,11 +31,11 @@ export const SInputRegistration = SAuthCore.extend({
         ),
     nametag: z
         .string()
-        .min(3, "Username must be at least 3 characters long")
-        .max(16, "Username must be at most 16 characters long")
+        .min(3, "Nametag must be at least 3 characters long")
+        .max(16, "Nametag must be at most 16 characters long")
         .regex(
             /^[a-zA-Z0-9_]+$/,
-            "Username can only contain letters, numbers, and underscores",
+            "Nametag can only contain letters, numbers, and underscores",
         ),
     email: z.string().email("Invalid email format"),
 });
@@ -72,7 +67,17 @@ export const SInputAuthPassword = SAuthCore.extend({
         ),
 });
 
+export const SInputForgotPassword = z.object({
+    email: z.string().email("Invalid email format"),
+});
+
+export const SInputResetPassword = SAuthCore.extend({
+    token: z.string(),
+});
+
 export type InputAuth = z.infer<typeof SInputAuth>;
 export type InputRegistration = z.infer<typeof SInputRegistration>;
 export type InputAuthPassword = z.infer<typeof SInputAuthPassword>;
 export type PartialAuth = z.infer<typeof SPartialAuth>;
+export type InputForgotPassword = z.infer<typeof SInputForgotPassword>;
+export type InputResetPassword = z.infer<typeof SInputResetPassword>;

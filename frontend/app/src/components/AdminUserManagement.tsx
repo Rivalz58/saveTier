@@ -8,7 +8,7 @@ interface User {
   nametag: string;
   email: string;
   status: string;
-  last_connexion: string;
+  last_connection: string;
   createdAt: string;
   updatedAt: string;
   roles: Role[];
@@ -101,8 +101,8 @@ const AdminUserManagement: React.FC = () => {
             return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
           case 'alphabetical':
             return a.username.localeCompare(b.username);
-          case 'last_connexion':
-            return new Date(b.last_connexion).getTime() - new Date(a.last_connexion).getTime();
+          case 'last_connection':
+            return new Date(b.last_connection).getTime() - new Date(a.last_connection).getTime();
           default:
             return 0;
         }
@@ -343,7 +343,7 @@ const AdminUserManagement: React.FC = () => {
             <option value="newest">Plus récents</option>
             <option value="oldest">Plus anciens</option>
             <option value="alphabetical">Alphabétique</option>
-            <option value="last_connexion">Dernière connexion</option>
+            <option value="last_connection">Dernière connexion</option>
           </select>
         </div>
       </div>
@@ -375,7 +375,7 @@ const AdminUserManagement: React.FC = () => {
                 <td>{user.nametag}</td>
                 <td>{user.email}</td>
                 <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td>{new Date(user.last_connexion).toLocaleDateString()}</td>
+                <td>{new Date(user.last_connection).toLocaleDateString()}</td>
                 <td>
                   <span className={`status-badge ${user.status}`}>
                     {user.status === "active" ? "Actif" : "En quarantaine"}

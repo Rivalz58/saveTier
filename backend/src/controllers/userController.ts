@@ -8,6 +8,7 @@ import {
 } from "../schemas/userSchemas.js";
 import { handleError } from "../errors/errorHandler.js";
 import { BadRequestError } from "../errors/AppError.js";
+import { checkEmailDomain } from "../config/checkDnsEmail.js";
 
 const userService = new UserService();
 
@@ -55,12 +56,20 @@ export async function getUser(
 export async function addUser(req: FastifyRequest, rep: FastifyReply) {
     try {
         const data: InputUser = SInputUser.parse(req.body);
+
+        const isValidDomain = await checkEmailDomain(data.email);
+        if (!isValidDomain) {
+            throw new BadRequestError(
+                "The email address is invalid or the domain cannot receive emails",
+            );
+        }
+
         const result = await userService.create(data);
 
         return rep.status(201).send({
             status: "success",
             message: "User has been created",
-            data: result.toSafeJSON(),
+            data: result,
         });
     } catch (error) {
         return handleError(error, rep);
@@ -91,7 +100,7 @@ export async function updateUser(
         return rep.status(200).send({
             status: "success",
             message: "User has been updated",
-            data: result.toSafeJSON(),
+            data: result,
         });
     } catch (error) {
         return handleError(error, rep);

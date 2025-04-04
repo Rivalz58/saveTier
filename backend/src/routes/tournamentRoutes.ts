@@ -5,16 +5,69 @@ import { isAllowed, isAuthenticate } from "../middlewares/auth.js";
 import z from "zod";
 
 export async function tournamentRoutes(fastify: FastifyInstance) {
-    fastify.get("/tournament", tournamentController.getAllTournaments);
+    fastify.get(
+        "/tournament",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(tournamentSchemas.SOutputTournament),
+                    }),
+                },
+            },
+        },
+        tournamentController.getAllTournaments,
+    );
+
     // fastify.get(
     //     "/user/:param/tournament",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(tournamentSchemas.SOutputTournament),
+    //                 }),
+    //             },
+    //         },
+    //     },
     //     tournamentController.getAllTournamentsToUser,
     // );
+
+    // fastify.get(
+    //     "/album/:id/tournament",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(tournamentSchemas.SOutputTournament),
+    //                 }),
+    //             },
+    //         },
+    //     },
+    //     tournamentController.getAllTournamentsToAlbum,
+    // );
+
     fastify.get(
-        "/album/:id/tournament",
-        tournamentController.getAllTournamentsToAlbum,
+        "/tournament/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: tournamentSchemas.SOutputTournament,
+                    }),
+                },
+            },
+        },
+        tournamentController.getTournament,
     );
-    fastify.get("/tournament/:id", tournamentController.getTournament);
 
     fastify.post(
         "/tournament",
@@ -28,7 +81,7 @@ export async function tournamentRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["User"])]
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         tournamentController.addTournament,
     );

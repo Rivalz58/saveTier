@@ -7,7 +7,7 @@ export interface TierlistAuthor {
   nametag: string;
   email: string;
   status: string;
-  last_connexion: string;
+  last_connection: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,7 +24,7 @@ export interface TierlistAlbum {
     nametag: string;
     email: string;
     status: string;
-    last_connexion: string;
+    last_connection: string;
     createdAt: string;
     updatedAt: string;
   };

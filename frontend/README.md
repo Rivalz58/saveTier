@@ -33,17 +33,19 @@ Le frontend nécessite les éléments suivants installés sur l'hôte :
 
 - `Node.js` (version recommandée : >= 20.18.2)
 - `Yarn` (version recommandée : >= 4.7.0)
+- `Corepack` (version recommandée : >= 0.31.0)
 
 ### Dépendances de service
 
 Le frontend dépend des services suivants :
 
 - Backend (API Fastify)
-    - URL : `https://api.tierhub.online`
-    - Variables d’environnement requises :
-        - `API_BASE_URL` (URL de l’API backend)
+  - URL : `https://api.tierhub.online`
+  - Variables d’environnement requises :
+    - `API_BASE_URL` (URL de l’API backend)
 
 # Authors
+
 - **[Vincent](https://git.ecole-89.com/vincent.ribeiro-paradela)**
 - **[Flavien](https://git.ecole-89.com/flavien.fromaget)**
 - **[Victor](https://git.ecole-89.com/victor.vandeputte)**

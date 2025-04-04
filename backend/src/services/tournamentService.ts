@@ -17,7 +17,7 @@ export class TournamentService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -26,7 +26,7 @@ export class TournamentService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -43,7 +43,6 @@ export class TournamentService {
                         {
                             model: MTournamentOponent,
                             as: "tournamentOponent",
-                            attributes: { exclude: ["id_tournament_image"] },
                         },
                     ],
                     attributes: { exclude: ["id_tournament", "id_image"] },
@@ -69,7 +68,7 @@ export class TournamentService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -78,7 +77,7 @@ export class TournamentService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -95,7 +94,6 @@ export class TournamentService {
                         {
                             model: MTournamentOponent,
                             as: "tournamentOponent",
-                            attributes: { exclude: ["id_tournament_image"] },
                         },
                     ],
                     attributes: { exclude: ["id_tournament", "id_image"] },
@@ -125,7 +123,7 @@ export class TournamentService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -134,7 +132,7 @@ export class TournamentService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -151,7 +149,6 @@ export class TournamentService {
                         {
                             model: MTournamentOponent,
                             as: "tournamentOponent",
-                            attributes: { exclude: ["id_tournament_image"] },
                         },
                     ],
                     attributes: { exclude: ["id_tournament", "id_image"] },
@@ -172,7 +169,7 @@ export class TournamentService {
     async findAllToUserNametag(userNametag: string) {
         const userExists = await MUser.findOne({
             where: { nametag: userNametag },
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] },
         });
         if (!userExists) {
             throw new NotFoundError(
@@ -186,7 +183,7 @@ export class TournamentService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -195,7 +192,7 @@ export class TournamentService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -212,7 +209,6 @@ export class TournamentService {
                         {
                             model: MTournamentOponent,
                             as: "tournamentOponent",
-                            attributes: { exclude: ["id_tournament_image"] },
                         },
                     ],
                     attributes: { exclude: ["id_tournament", "id_image"] },
@@ -236,7 +232,7 @@ export class TournamentService {
                 {
                     model: MUser,
                     as: "author",
-                    attributes: { exclude: ["password"] },
+                    attributes: { exclude: ["password", "email"] },
                 },
                 {
                     model: MAlbum,
@@ -245,7 +241,7 @@ export class TournamentService {
                         {
                             model: MUser,
                             as: "author",
-                            attributes: { exclude: ["password"] },
+                            attributes: { exclude: ["password", "email"] },
                         },
                     ],
                     attributes: { exclude: ["id_user"] },
@@ -262,7 +258,6 @@ export class TournamentService {
                         {
                             model: MTournamentOponent,
                             as: "tournamentOponent",
-                            attributes: { exclude: ["id_tournament_image"] },
                         },
                     ],
                     attributes: { exclude: ["id_tournament", "id_image"] },

@@ -5,10 +5,69 @@ import { isAllowed, isAuthenticate } from "../middlewares/auth.js";
 import z from "zod";
 
 export async function rankingRoutes(fastify: FastifyInstance) {
-    fastify.get("/ranking", rankingController.getAllRankings);
-    // fastify.get("/user/:param/ranking", rankingController.getAllRankingsToUser);
-    fastify.get("/album/:id/ranking", rankingController.getAllRankingsToAlbum);
-    fastify.get("/ranking/:id", rankingController.getRanking);
+    fastify.get(
+        "/ranking",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(rankingSchemas.SOutputRanking),
+                    }),
+                },
+            },
+        },
+        rankingController.getAllRankings,
+    );
+
+    // fastify.get(
+    //     "/user/:param/ranking",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(rankingSchemas.SOutputRanking),
+    //                 }),
+    //             },
+    //         },
+    //     },
+    //     rankingController.getAllRankingsToUser,
+    // );
+
+    // fastify.get(
+    //     "/album/:id/ranking",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(rankingSchemas.SOutputRanking),
+    //                 }),
+    //             },
+    //         },
+    //     },
+    //     rankingController.getAllRankingsToAlbum,
+    // );
+
+    fastify.get(
+        "/ranking/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: rankingSchemas.SOutputRanking,
+                    }),
+                },
+            },
+        },
+        rankingController.getRanking,
+    );
 
     fastify.post(
         "/ranking",
@@ -22,7 +81,7 @@ export async function rankingRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["User"])]
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         rankingController.addRanking,
     );

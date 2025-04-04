@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8080/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -43,9 +43,9 @@ api.interceptors.response.use(
 );
 
 // Fonction de connexion
-export const login = async (nametag: string, password: string) => {
+export const login = async (identifier: string, password: string) => {
   try {
-    const response = await api.post("/login", { nametag, password });
+    const response = await api.post("/login", { identifier, password });
     return response.data;
   } catch (error) {
     console.error("Login error:", error);
@@ -86,8 +86,8 @@ export const checkIsAdmin = async (): Promise<boolean> => {
     const response = await api.get("/me");
     
     // Vérifier si la réponse contient les données utilisateur
-    if (response.data && response.data.user && response.data.user.roles) {
-      const roles = response.data.user.roles;
+    if (response.data && response.data.data && response.data.data.roles) {
+      const roles = response.data.data.roles;
       // Rechercher un rôle "Admin" (insensible à la casse)
       return roles.some((role: { id: number; libelle: string }) => 
         role.libelle.toLowerCase() === "admin"

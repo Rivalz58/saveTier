@@ -1,4 +1,9 @@
 import z from "zod";
+import { SOutputRole } from "./roleSchemas.js";
+import { SOutputAlbum } from "./albumSchemas.js";
+import { SOutputTierlist } from "./tierlistSchemas.js";
+import { SOutputTournament } from "./tournamentSchemas.js";
+import { SOutputRanking } from "./rankingSchemas.js";
 
 export enum Status {
     active = "active",
@@ -16,7 +21,7 @@ export const SUserCore = z.object({
             "Username can only contain letters, numbers, and underscores",
         ),
     status: z.nativeEnum(Status).default(Status.active),
-    last_connexion: z.date().default(() => new Date()),
+    last_connection: z.date().default(() => new Date()),
 });
 
 export const SInputUser = SUserCore.extend({
@@ -56,26 +61,38 @@ export const SPartialUser = SUserCore.extend({
         ),
 }).partial();
 
-export const SUser = z.object({
-    id: z.number().positive(),
-    username: z
-        .string()
-        .min(3, "Username must be at least 3 characters long")
-        .max(16, "Username must be at most 16 characters long")
-        .regex(
-            /^[a-zA-Z0-9_]+$/,
-            "Username can only contain letters, numbers, and underscores",
-        ),
-    status: z.nativeEnum(Status).default(Status.active),
-    last_connexion: z.date().default(() => new Date()),
-});
+export const SOutputUser: z.ZodType<any> = z.lazy(() =>
+    z.object({
+        id: z.number().positive(),
+        username: z
+            .string()
+            .min(3, "Username must be at least 3 characters long")
+            .max(16, "Username must be at most 16 characters long")
+            .regex(
+                /^[a-zA-Z0-9_]+$/,
+                "Username can only contain letters, numbers, and underscores",
+            ),
+        nametag: z
+            .string()
+            .min(3, "Nametag must be at least 3 characters long")
+            .max(16, "Nametag must be at most 16 characters long")
+            .regex(
+                /^[a-z0-9_]+$/,
+                "Nametag can only contain letters, numbers, and underscores",
+            ),
+        email: z.string().email("Invalid email format").optional(),
+        status: z.nativeEnum(Status).default(Status.active),
+        last_connection: z.date().default(() => new Date()),
+        createdAt: z.date().optional(),
+        updatedAt: z.date().optional(),
+        roles: z.array(SOutputRole).optional(),
+        albums: z.array(SOutputAlbum).optional(),
+        tierlists: z.array(SOutputTierlist).optional(),
+        tournaments: z.array(SOutputTournament).optional(),
+        rankings: z.array(SOutputRanking).optional(),
+    }),
+);
 
-export const SOutputUser = SUser.extend({
-    createAt: z.date().optional(),
-    updateAt: z.date().optional(),
-});
-
-export type User = z.infer<typeof SUser>;
 export type PartialUser = z.infer<typeof SPartialUser>;
 export type InputUser = z.infer<typeof SInputUser>;
 export type OutputUser = z.infer<typeof SOutputUser>;

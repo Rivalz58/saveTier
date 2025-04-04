@@ -2,9 +2,6 @@ import { FastifyRequest } from "fastify";
 import { AuthenticationError, AuthorizationError } from "../errors/AppError.js";
 import { verifyToken } from "../config/auth.js";
 import MRevocation from "../models/revocationModel.js";
-import { UserService } from "../services/userService.js";
-
-const userService = new UserService();
 
 export async function isAuthenticate(
     req: FastifyRequest<{
@@ -30,13 +27,15 @@ export async function isAuthenticate(
 
         const revocations = await MRevocation.findAll({
             where: { id_user: payload.id },
-            attributes: ["date"],
+            attributes: ["revocation_date"],
         });
 
         if (revocations.length > 0) {
             revocations.forEach((revocation) => {
-                const { date } = revocation;
-                if (new Date((payload.iat as number) * 1000) < date) {
+                const { revocation_date } = revocation;
+                if (
+                    new Date((payload.iat as number) * 1000) < revocation_date
+                ) {
                     throw new AuthenticationError("Token expired");
                 }
             });

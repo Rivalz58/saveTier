@@ -7,11 +7,12 @@ import MAlbum from "../models/albumModel.js";
 import MTierlist from "../models/tierlistModel.js";
 import MTournament from "../models/tournamentModel.js";
 import MRanking from "../models/rankingModel.js";
+import { Op } from "sequelize";
 
 export class UserService {
     async findAll() {
         const users = await MUser.findAll({
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] },
             include: [
                 {
                     model: MRole,
@@ -49,7 +50,7 @@ export class UserService {
 
     async findById(id: number) {
         const user = await MUser.findByPk(id, {
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] },
             include: [
                 {
                     model: MRole,
@@ -87,7 +88,7 @@ export class UserService {
     async findByNametag(nametag: string) {
         const user = await MUser.findOne({
             where: { nametag: nametag },
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ["password", "email"] },
             include: [
                 {
                     model: MRole,
@@ -122,9 +123,20 @@ export class UserService {
         return user;
     }
 
+    async findByEmail(email: string) {
+        const user = await MUser.findOne({
+            where: { email },
+            attributes: ["id"],
+        });
+        if (!user) {
+            throw new NotFoundError(`User with Email ${email} not found`);
+        }
+        return user;
+    }
+
     async getHashPasswordById(id: number) {
         const user = await MUser.findByPk(id, {
-            attributes: ["id", "password", "last_connexion"],
+            attributes: ["id", "password", "last_connection"],
         });
         if (!user) {
             throw new NotFoundError(`User with ID ${id} not found`);
@@ -133,13 +145,17 @@ export class UserService {
         return user;
     }
 
-    async getHashPasswordByNametag(nametag: string) {
+    async getHashPasswordByIdentifier(identifier: string) {
         const user = await MUser.findOne({
-            where: { nametag: nametag },
-            attributes: ["id", "password", "last_connexion"],
+            where: {
+                [Op.or]: [{ email: identifier }, { nametag: identifier }],
+            },
+            attributes: ["id", "password", "last_connection"],
         });
         if (!user) {
-            throw new NotFoundError(`User with Nametag ${nametag} not found`);
+            throw new NotFoundError(
+                `User with Nametag or email ${identifier} not found`,
+            );
         }
 
         return user;
@@ -150,7 +166,7 @@ export class UserService {
         return MUser.create({
             ...data,
             password: passwordHash,
-            last_connexion: new Date(),
+            last_connection: new Date(),
         });
     }
 
@@ -164,9 +180,9 @@ export class UserService {
             data.password = await hashPassword(data.password);
         }
 
-        data.last_connexion = new Date();
+        data.last_connection = new Date();
 
-        return user.update({ ...data, last_connexion: new Date() });
+        return user.update({ ...data, last_connection: new Date() });
     }
 
     async updateByNametag(nametag: string, data: PartialUser) {
@@ -179,7 +195,7 @@ export class UserService {
             data.password = await hashPassword(data.password);
         }
 
-        return user.update({ ...data, last_connexion: new Date() });
+        return user.update({ ...data, last_connection: new Date() });
     }
 
     async deleteById(id: number) {

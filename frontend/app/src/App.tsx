@@ -38,8 +38,8 @@ function App() {
       // Récupérer les informations de l'utilisateur actuel
       const response = await getCurrentUser();
       
-      if (response && response.user) {
-        setUser(response.user.nametag);
+      if (response && response.data) {
+        setUser(response.data.nametag);
         
         // Vérifier si l'utilisateur est administrateur
         const adminStatus = await checkIsAdmin();
@@ -121,8 +121,8 @@ function App() {
   const updateUserStatus = async () => {
     try {
       const response = await getCurrentUser();
-      if (response && response.user) {
-        setUser(response.user.nametag);
+      if (response && response.data) {
+        setUser(response.data.nametag);
         
         // Vérifier si l'utilisateur est administrateur
         const adminStatus = await checkIsAdmin();

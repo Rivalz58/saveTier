@@ -7,14 +7,52 @@ import z from "zod";
 export async function tierlistLineRoutes(fastify: FastifyInstance) {
     fastify.get(
         "/tierlist/line",
-        { onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])] },
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(tierlistLineSchemas.SOutputTierlistLine),
+                    }),
+                },
+            },
+            onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])],
+        },
         tierlistLineController.getAllLines,
     );
+
     // fastify.get(
     //     "/tierlist/:id/line",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(tierlistLineSchemas.SOutputTierlistLine),
+    //                 }),
+    //             },
+    //         },
+    //     },
     //     tierlistLineController.getAllLinesToTierlist,
     // );
-    fastify.get("/tierlist/line/:id", tierlistLineController.getLine);
+
+    fastify.get(
+        "/tierlist/line/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: tierlistLineSchemas.SOutputTierlistLine,
+                    }),
+                },
+            },
+        },
+        tierlistLineController.getLine,
+    );
 
     fastify.post(
         "/tierlist/line",
@@ -28,7 +66,7 @@ export async function tierlistLineRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["User"])]
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         tierlistLineController.addLine,
     );

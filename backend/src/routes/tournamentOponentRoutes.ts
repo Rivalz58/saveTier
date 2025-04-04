@@ -7,15 +7,54 @@ import z from "zod";
 export async function tournamentOponentRoutes(fastify: FastifyInstance) {
     fastify.get(
         "/tournament/image/oponent",
-        { onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])] },
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: z.array(
+                            tournamentOponentSchemas.SOutputTournamentOponent,
+                        ),
+                    }),
+                },
+            },
+            onRequest: [isAuthenticate, isAllowed(["Modo", "Admin"])],
+        },
         tournamentOponentController.getAllOponents,
     );
+
     // fastify.get(
     //     "/tournament/image/:id/oponent",
+    //     {
+    //         schema: {
+    //             response: {
+    //                 200: z.object({
+    //                     status: z.string(),
+    //                     message: z.string(),
+    //                     data: z.array(
+    //                         tournamentOponentSchemas.SOutputTournamentOponent,
+    //                     ),
+    //                 }),
+    //             },
+    //         },
+    //     },
     //     tournamentOponentController.getAllOponentsToTournamentImage,
     // );
+
     fastify.get(
         "/tournament/image/oponent/:id",
+        {
+            schema: {
+                response: {
+                    200: z.object({
+                        status: z.string(),
+                        message: z.string(),
+                        data: tournamentOponentSchemas.SOutputTournamentOponent,
+                    }),
+                },
+            },
+        },
         tournamentOponentController.getOponent,
     );
 
@@ -31,7 +70,7 @@ export async function tournamentOponentRoutes(fastify: FastifyInstance) {
                     }),
                 },
             },
-            onRequest: [isAuthenticate, isAllowed(["User"])]
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         tournamentOponentController.addOponent,
     );

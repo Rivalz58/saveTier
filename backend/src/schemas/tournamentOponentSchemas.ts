@@ -10,18 +10,16 @@ export const SInputTournamentOponent = STournamentOponentCore.extend({
 
 export const SPartialTournamentOponent = STournamentOponentCore.partial();
 
-export const STournamentOponent = z.object({
-    id: z.number().positive(),
-    id_oponent: z.number().positive(),
-    id_tournament_image: z.number().positive(),
-});
+export const SOutputTournamentOponent: z.ZodType<any> = z.lazy(() =>
+    z.object({
+        id: z.number().positive(),
+        id_oponent: z.number().positive(),
+        id_tournament_image: z.number().positive(),
+        createdAt: z.date().optional(),
+        updatedAt: z.date().optional(),
+    }),
+);
 
-export const SOutputTournamentOponent = STournamentOponent.extend({
-    createAt: z.date().optional(),
-    updateAt: z.date().optional(),
-});
-
-export type TournamentOponent = z.infer<typeof STournamentOponent>;
 export type PartialTournamentOponent = z.infer<
     typeof SPartialTournamentOponent
 >;

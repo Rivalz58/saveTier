@@ -9,6 +9,8 @@ class MImage extends Model {
     public description!: string;
     public url!: string;
     public id_album!: number;
+    public createdAt!: Date;
+    public updatedAt!: Date;
 }
 
 MImage.init(
@@ -47,6 +49,7 @@ MImage.init(
         sequelize,
         modelName: "MImage",
         tableName: "image",
+        timestamps: true,
     },
 );
 
