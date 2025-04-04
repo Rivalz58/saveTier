@@ -12,6 +12,7 @@ import Tierlists from "./pages/Tierlists";
 import Tournois from "./pages/Tournois";
 import Classements from "./pages/Classements";
 import SetupItemSelection from "./pages/SetupItemSelection";
+import TierListEditor from "./pages/TierListEditor"; // Importer le nouveau composant
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NewPassword from "./pages/NewPassword";
@@ -168,12 +169,15 @@ function App() {
           element={user ? <AddAlbum user={user} /> : <Navigate to="/login" />} 
         />
         
+        {/* Routes pour les éditeurs de contenu */}
+        <Route path="/setup" element={<SetupItemSelection user={user} />} />
+        <Route path="/tierlists/create/editor" element={<TierListEditor user={user} />} />
+        
         {/* Routes accessibles à tous */}
         <Route path="/allalbum" element={<AllAlbum user={user} />} />
         <Route path="/tierlists" element={<Tierlists user={user} />} />
         <Route path="/tournois" element={<Tournois user={user} />} />
         <Route path="/classements" element={<Classements user={user} />} />
-        <Route path="/setup" element={<SetupItemSelection user={user} />} />
       </Routes>
     </BrowserRouter>
   );

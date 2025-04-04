@@ -25,7 +25,8 @@ type AlbumData = {
   images: AlbumImage[];
 };
 
-const SetupItemSelection: React.FC<SetupItemSelectionProps> = () => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -137,7 +138,13 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = () => {
     const selectedImageIds = selectedImages.map(img => img.id);
     
     // Rediriger vers la page de création correspondante avec les paramètres nécessaires
-    navigate(`/${contentType}/create/editor?album=${albumData.id}&images=${JSON.stringify(selectedImageIds)}&main=${mainImage}&name=${encodeURIComponent(contentName)}`);
+    if (contentType === 'tierlists') {
+      // Pour les tierlists, rediriger vers le nouvel éditeur spécifique
+      navigate(`/tierlists/create/editor?album=${albumData.id}&images=${JSON.stringify(selectedImageIds)}&main=${mainImage}&name=${encodeURIComponent(contentName)}`);
+    } else {
+      // Pour les autres types, utiliser la route générique
+      navigate(`/${contentType}/create/editor?album=${albumData.id}&images=${JSON.stringify(selectedImageIds)}&main=${mainImage}&name=${encodeURIComponent(contentName)}`);
+    }
   };
   
   // Annuler et retourner à la page précédente

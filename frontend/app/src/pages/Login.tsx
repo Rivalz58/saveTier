@@ -81,6 +81,9 @@ const Login: React.FC<LoginProps> = ({ setUser, updateUserStatus }) => {
         </button>
       </form>
       <p>
+        <a href="/forgot-password">Mot de passe oublié?</a>
+      </p>
+      <p>
         Pas encore de compte ? <a href="/register">S'inscrire</a>
       </p>
     </div>
