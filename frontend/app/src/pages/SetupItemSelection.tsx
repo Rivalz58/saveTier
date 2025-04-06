@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/SetupItemSelection.css";
-
-// Importation d'une image temporaire pour les tests
-import filmsImage from "../assets/films.jpg";
+import albumAccessService from "../services/albumAccessService";
 
 interface SetupItemSelectionProps {
   user: string | null;
@@ -14,6 +12,8 @@ type AlbumImage = {
   id: string;
   src: string;
   title: string;
+  description: string | null;
+  url: string | null;
   selected: boolean;
 };
 
@@ -23,9 +23,10 @@ type AlbumData = {
   name: string;
   categories: string[];
   images: AlbumImage[];
+  authorId: number;
+  authorName: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,52 +46,85 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
   // État pour le nom personnalisé
   const [contentName, setContentName] = useState<string>("");
   
-  // État de chargement
+  // États de chargement et d'erreur
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Récupérer les paramètres de l'URL et charger les données
   useEffect(() => {
-    // Récupérer le type de contenu et l'ID de l'album depuis l'URL
-    const params = new URLSearchParams(location.search);
-    const albumId = params.get('album');
-    const type = params.get('type'); // tierlists, tournois, classements
-    const name = params.get('name');
+    const loadAlbumData = async () => {
+      try {
+        // Récupérer le type de contenu et l'ID de l'album depuis l'URL
+        const params = new URLSearchParams(location.search);
+        const albumId = params.get('album');
+        const type = params.get('type'); // tierlists, tournois, classements
+        const name = params.get('name');
+        
+        if (!albumId || !type) {
+          // Rediriger vers la page d'albums si les paramètres sont manquants
+          setError("Paramètres manquants dans l'URL");
+          setTimeout(() => navigate("/allalbum"), 2000);
+          return;
+        }
+        
+        // Définir le type de contenu
+        setContentType(type);
+        
+        // Définir le nom du contenu s'il existe
+        if (name) {
+          setContentName(name);
+        }
+        
+        // Vérifier l'accès à l'album
+        const accessCheck = await albumAccessService.checkAlbumAccess(albumId);
+        
+        if (!accessCheck.hasAccess) {
+          setError(`Accès refusé à cet album. ${accessCheck.message}`);
+          setTimeout(() => navigate("/allalbum"), 3000);
+          return;
+        }
+        
+        const album = accessCheck.album;
+        if (!album) {
+          setError("Album introuvable");
+          setTimeout(() => navigate("/allalbum"), 2000);
+          return;
+        }
+        
+        // Formater les données de l'album
+        const formattedAlbum: AlbumData = {
+          id: album.id.toString(),
+          name: album.name,
+          categories: album.categories.map(cat => cat.name),
+          authorId: album.author.id,
+          authorName: album.author.username,
+          images: album.image.map(img => ({
+            id: img.id.toString(),
+            src: img.path_image,
+            title: img.name,
+            description: img.description,
+            url: img.url,
+            selected: true // Toutes les images sont sélectionnées par défaut
+          }))
+        };
+        
+        setAlbumData(formattedAlbum);
+        setSelectedImages(formattedAlbum.images);
+        
+        // Définir la première image comme principale par défaut si elle existe
+        if (formattedAlbum.images.length > 0) {
+          setMainImage(formattedAlbum.images[0].id);
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Erreur lors du chargement des données:", err);
+        setError("Une erreur est survenue lors du chargement des données");
+        setLoading(false);
+      }
+    };
     
-    if (!albumId || !type) {
-      // Rediriger vers la page d'albums si les paramètres sont manquants
-      navigate("/allalbum");
-      return;
-    }
-    
-    // Définir le type de contenu
-    setContentType(type);
-    
-    // Définir le nom du contenu s'il existe
-    if (name) {
-      setContentName(name);
-    }
-    
-    // Simuler le chargement des données d'album depuis une API
-    // Dans une application réelle, vous feriez un appel API ici
-    setTimeout(() => {
-      // Données fictives de l'album
-      const mockAlbum: AlbumData = {
-        id: albumId,
-        name: "Album " + albumId,
-        categories: ["Films", "Animation"],
-        images: Array.from({ length: 20 }, (_, i) => ({
-          id: `img-${i + 1}`,
-          src: filmsImage, // Utiliser l'image importée pour tous les éléments
-          title: `Image ${i + 1}`,
-          selected: true // Toutes les images sont sélectionnées par défaut
-        }))
-      };
-      
-      setAlbumData(mockAlbum);
-      setSelectedImages(mockAlbum.images);
-      setMainImage(mockAlbum.images[0]?.id || null); // Définir la première image comme principale par défaut
-      setLoading(false);
-    }, 1000);
+    loadAlbumData();
   }, [location, navigate]);
   
   // Basculer la sélection d'une image
@@ -164,6 +198,19 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
     );
   }
   
+  // Si erreur, afficher le message
+  if (error) {
+    return (
+      <div className="setup-container">
+        <div className="setup-error">
+          <h2>Erreur</h2>
+          <p>{error}</p>
+          <button onClick={handleCancel} className="setup-button">Retour</button>
+        </div>
+      </div>
+    );
+  }
+  
   // Si pas de données d'album, afficher un message d'erreur
   if (!albumData) {
     return (
@@ -205,6 +252,14 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
               <span className="stat-label">Image principale:</span>
               <span className="stat-value">{mainImage ? albumData.images.find(img => img.id === mainImage)?.title : "Non définie"}</span>
             </div>
+            <div className="stat-item">
+              <span className="stat-label">Créateur:</span>
+              <span className="stat-value">{albumData.authorName}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Catégories:</span>
+              <span className="stat-value">{albumData.categories.join(", ")}</span>
+            </div>
           </div>
           <div className="setup-actions">
             <button onClick={handleCancel} className="setup-button cancel">Annuler</button>
@@ -219,38 +274,42 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
         </div>
         
         <div className="setup-images-container">
-          <h3>Images disponibles</h3>
-          <div className="setup-images-grid">
-            {albumData.images.map((image) => (
-              <div 
-                key={image.id} 
-                className={`setup-image-card ${image.selected ? 'selected' : ''} ${mainImage === image.id ? 'main-image' : ''}`}
-              >
-                <div className="image-container">
-                  <img src={image.src} alt={image.title} />
-                  {mainImage === image.id && (
-                    <div className="main-image-badge">Image principale</div>
-                  )}
+          <h3>Images disponibles ({albumData.images.length})</h3>
+          {albumData.images.length === 0 ? (
+            <p className="no-images-message">Cet album ne contient aucune image.</p>
+          ) : (
+            <div className="setup-images-grid">
+              {albumData.images.map((image) => (
+                <div 
+                  key={image.id} 
+                  className={`setup-image-card ${image.selected ? 'selected' : ''} ${mainImage === image.id ? 'main-image' : ''}`}
+                >
+                  <div className="image-container">
+                    <img src={image.src} alt={image.title} />
+                    {mainImage === image.id && (
+                      <div className="main-image-badge">Image principale</div>
+                    )}
+                  </div>
+                  <div className="image-title" title={image.description || ""}>{image.title}</div>
+                  <div className="image-actions">
+                    <button 
+                      className={`select-button ${image.selected ? 'selected' : ''}`}
+                      onClick={() => toggleImageSelection(image.id)}
+                    >
+                      {image.selected ? 'Désélectionner' : 'Sélectionner'}
+                    </button>
+                    <button 
+                      className={`main-button ${mainImage === image.id ? 'selected' : ''}`}
+                      onClick={() => setAsMainImage(image.id)}
+                      disabled={!image.selected && mainImage !== image.id}
+                    >
+                      Définir comme principale
+                    </button>
+                  </div>
                 </div>
-                <div className="image-title">{image.title}</div>
-                <div className="image-actions">
-                  <button 
-                    className={`select-button ${image.selected ? 'selected' : ''}`}
-                    onClick={() => toggleImageSelection(image.id)}
-                  >
-                    {image.selected ? 'Désélectionner' : 'Sélectionner'}
-                  </button>
-                  <button 
-                    className={`main-button ${mainImage === image.id ? 'selected' : ''}`}
-                    onClick={() => setAsMainImage(image.id)}
-                    disabled={!image.selected && mainImage !== image.id}
-                  >
-                    Définir comme principale
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
