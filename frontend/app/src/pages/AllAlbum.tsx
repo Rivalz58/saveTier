@@ -95,7 +95,7 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
       // Préparer les paramètres de requête
       const queryParams: AlbumQueryParams = {
         page: pageToLoad,
-        limit: 12,
+        limit: 21,
         sortBy: sortBy
       };
 
@@ -150,16 +150,30 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
     loadAlbums(1, true);
   }, [loadAlbums, selectedCategory, debouncedSearchQuery]);
 
-  // Fonction pour charger plus d'albums
-  const handleLoadMore = () => {
-    if (!isLoadingMore && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      loadAlbums(nextPage);
-    }
-  };
+  // Effet pour le défilement infini
+  useEffect(() => {
+    // Fonction de gestion du défilement
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >= 
+        document.documentElement.offsetHeight - 100 && 
+        hasMore && 
+        !isLoadingMore
+      ) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        loadAlbums(nextPage);
+      }
+    };
 
-  // Fonction pour gérer le changement de catégorie
+    // Ajouter l'écouteur d'événement
+    window.addEventListener('scroll', handleScroll);
+
+    // Nettoyer l'écouteur d'événement
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, isLoadingMore, page, loadAlbums]);
+
+  // Gestionnaire de changement de catégorie
   const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);
     setPage(1);
@@ -235,11 +249,8 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
                 className="album-card-container"
                 onClick={() => handleAlbumClick(album)}
               >
-                {/*{/* Ajouter un badge pour les vues futures */}
                 <div className="album-usage-count">
-                  {/* Afficher les vues ou utilisations quand disponibles */}
-                  {/* {album.views ? `${album.views} vues` : `${album.uses || 0} utilisations`} */}
-                  {/*{selectedCategory ? `Par ${album.authorName}` : album.categories.slice(0, 1).join(", ")*/}
+                  {selectedCategory ? `Par ${album.authorName}` : album.categories.slice(0, 1).join(", ")}
                 </div>
                 <CategoryCard 
                   name={album.name} 
@@ -250,24 +261,9 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
             ))}
           </div>
           
-          {/* Bouton "Charger plus" */}
-          {hasMore && (
-            <div className="load-more-container">
-              <button 
-                className="load-more-button" 
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
-              >
-                {isLoadingMore ? (
-                  <>
-                    <span className="load-more-spinner"></span>
-                    Chargement...
-                  </>
-                ) : (
-                  "Charger plus d'albums"
-                )}
-              </button>
-            </div>
+          {/* Indicateur de chargement */}
+          {isLoadingMore && (
+            <div className="loading-spinner"></div>
           )}
         </div>
       )}

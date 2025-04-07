@@ -27,7 +27,7 @@ export const getPaginatedAlbums = async (params: AlbumQueryParams): Promise<Pagi
   try {
     // Paramètres par défaut
     const page = params.page || 1;
-    const limit = params.limit || 12;
+    const limit = params.limit || 21;
     
     // Pour l'instant, on récupère tous les albums puis on les filtre en client
     // À terme, l'API gérera la pagination côté serveur

@@ -5,6 +5,8 @@
   color: #fff;
   padding-bottom: 40px; /* Ajout : padding en bas pour permettre le défilement */
   min-height: 100vh; /* Ajout : assure que le container prend au moins toute la hauteur de la vue */
+  margin-left: 5%;
+  margin-right: 5%;
 }
 
 .admin-title {
