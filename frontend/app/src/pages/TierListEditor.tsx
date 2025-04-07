@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Modal from 'react-modal';
 import '../styles/TierListEditor.css';
+import tierlistService, { TierlistImage, TierlistLine } from '../services/tierlist-service';
+
+Modal.setAppElement('#root'); // Nécessaire pour l'accessibilité
 
 interface TierListEditorProps {
   user: string | null;
 }
 
-type Image = { 
-  id: string; 
-  src: string; 
-  alt: string;
-  name: string;
-};
+type Image = TierlistImage;
 
 type Tier = {
   id: string;
@@ -28,6 +27,7 @@ interface DragInfo {
   sourceIndex: number;
 }
 
+// Tiers par défaut (S, A, B, C, D)
 const DEFAULT_TIERS = [
   { id: "tierS", name: "S", color: "#FF7F7F", images: [] },
   { id: "tierA", name: "A", color: "#FFBF7F", images: [] },
@@ -36,7 +36,6 @@ const DEFAULT_TIERS = [
   { id: "tierD", name: "D", color: "#7F7FFF", images: [] },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,23 +61,27 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
   const [mainImage, setMainImage] = useState<string | null>(null);
   const [isDropTargetUnclassified, setIsDropTargetUnclassified] = useState<boolean>(false);
   
+  // État pour la modal de détails d'image
+  const [imageDetailsModalOpen, setImageDetailsModalOpen] = useState<boolean>(false);
+  const [selectedImageDetails, setSelectedImageDetails] = useState<Image | null>(null);
+  
   // Chargement des données depuis URL ou localStorage
   useEffect(() => {
     // Récupérer les paramètres de l'URL
     const params = new URLSearchParams(location.search);
-    const albumId = params.get('album');
+    const albumIdParam = params.get('album');
     const imagesParam = params.get('images');
     const name = params.get('name');
     const mainImgParam = params.get('main'); // Récupérer l'image principale
     
-    if (!albumId) {
+    if (!albumIdParam) {
       // Rediriger si paramètres manquants
       navigate('/allalbum');
       return;
     }
     
     // Définir l'ID de l'album
-    setAlbumId(albumId);
+    setAlbumId(albumIdParam);
     
     // Définir le nom initial de la tierlist
     if (name) {
@@ -121,24 +124,48 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
       return;
     }
     
-    // Créer un tableau d'images (à remplacer par des données réelles)
-    const loadedImages: Image[] = selectedImageIds.map((id: string, index: number) => ({
-      id,
-      src: `/api/placeholder/150/150`, // Utiliser un placeholder pour l'artifact
-      alt: `Image ${index + 1}`,
-      name: `Image ${index + 1}`
-    }));
+    // Charger les vraies images depuis l'API
+    const loadImagesFromApi = async () => {
+      try {
+        // Récupérer les détails de l'album pour obtenir ses images
+        const albumImages = await tierlistService.getAlbumImages(albumIdParam);
+        
+        // Filtrer pour ne garder que les images sélectionnées
+        const filteredImages = albumImages.filter(img => 
+          selectedImageIds.includes(img.id.toString())
+        );
+        
+        // Définir les images non classées
+        setUnclassifiedImages(filteredImages);
+        
+        // Définir l'image principale si présente
+        if (mainImgParam) {
+          setMainImage(mainImgParam);
+        } else if (filteredImages.length > 0) {
+          // Sinon prendre la première image
+          setMainImage(filteredImages[0].id);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des images:", error);
+        // Fallback: créer des images dummy pour l'interface
+        const dummyImages: Image[] = selectedImageIds.map((id: string, index: number) => ({
+          id,
+          src: `/api/placeholder/150/150`,
+          alt: `Image ${index + 1}`,
+          name: `Image ${index + 1}`
+        }));
+        
+        setUnclassifiedImages(dummyImages);
+        
+        if (mainImgParam) {
+          setMainImage(mainImgParam);
+        } else if (dummyImages.length > 0) {
+          setMainImage(dummyImages[0].id);
+        }
+      }
+    };
     
-    // Définir les images non classées
-    setUnclassifiedImages(loadedImages);
-    
-    // Définir l'image principale si présente
-    if (mainImgParam) {
-      setMainImage(mainImgParam);
-    } else if (loadedImages.length > 0) {
-      // Sinon prendre la première image
-      setMainImage(loadedImages[0].id);
-    }
+    loadImagesFromApi();
     
     // Nettoyer localStorage si nécessaire
     if (imagesParam) {
@@ -171,6 +198,18 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
     }
 
     return null;
+  };
+  
+  // Ouvrir la modal de détails d'image
+  const openImageDetailsModal = (image: Image) => {
+    setSelectedImageDetails(image);
+    setImageDetailsModalOpen(true);
+  };
+  
+  // Fermer la modal de détails d'image
+  const closeImageDetailsModal = () => {
+    setImageDetailsModalOpen(false);
+    setSelectedImageDetails(null);
   };
   
   // Fonction pour déplacer un tier vers le haut
@@ -567,57 +606,87 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
   };
   
   // Sauvegarder la tierlist
-  const handleSaveTierlist = async () => {
-    // Vérifier que le nom n'est pas vide
-    if (!tierlistName.trim()) {
-      alert("Veuillez donner un nom à votre tierlist.");
-      return;
-    }
-    
-    // Vérifier que toutes les images sont classées
-    if (unclassifiedImages.length > 0) {
-      if (!window.confirm("Il reste des images non classées. Êtes-vous sûr de vouloir continuer ?")) {
-        return;
-      }
-    }
-    
-    setIsSaving(true);
-    
-    try {
-      // Créer la structure de données pour l'API
-      const tierlistData = {
-        name: tierlistName,
-        description: tierlistDescription,
-        albumId,
-        private: !isPublic,
-        tiers: tierList.map(tier => ({
-          name: tier.name,
-          color: tier.color,
-          images: tier.images.map(img => ({
-            id: img.id,
-            order: tier.images.indexOf(img)
-          }))
-        }))
-      };
-      
-      // Simuler la sauvegarde (à remplacer par un appel à l'API réelle)
-      console.log("Sauvegarde de la tierlist:", tierlistData);
-      
-      // Attendre un délai pour simuler l'appel API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Rediriger vers la page de la tierlist
-      alert("Tierlist sauvegardée avec succès!");
-      navigate("/tierlists");
-      
-    } catch (error) {
-      console.error("Erreur lors de la sauvegarde de la tierlist:", error);
-      alert("Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+// Sauvegarder la tierlist
+const handleSaveTierlist = async () => {
+  // Vérifier que le nom n'est pas vide
+  if (!tierlistName.trim()) {
+    alert("Veuillez donner un nom à votre tierlist.");
+    return;
+  }
   
+  setIsSaving(true);
+  
+  try {
+    // Convertir les données pour l'API
+    const albumIdInt = parseInt(albumId);
+    
+    if (isNaN(albumIdInt)) {
+      throw new Error("ID d'album invalide");
+    }
+    
+    // Préparation des données pour la tierlist
+    const tierlistData = {
+      name: tierlistName.trim(),
+      description: tierlistDescription?.trim() || null,
+      private: !isPublic,
+      id_album: albumIdInt
+    };
+    
+    // Vérification supplémentaire des données
+    if (!tierlistData.name) {
+      throw new Error("Le nom de la tierlist ne peut pas être vide");
+    }
+    
+    if (isNaN(tierlistData.id_album) || tierlistData.id_album <= 0) {
+      throw new Error(`ID d'album invalide: ${albumId} (converti en ${tierlistData.id_album})`);
+    }
+    
+    console.log("Données de tierlist à sauvegarder:", tierlistData);
+    
+    // Préparer les lignes de tier pour l'API
+    const tierLines = tierList.map((tier) => ({
+      label: tier.name.trim(),
+      placement: tierList.indexOf(tier) + 1, // Ordre basé sur l'index, commençant à 1
+      color: tier.color.replace('#', ''), // Retirer le # du code couleur
+      images: tier.images.map((img, imgIndex) => ({
+        id: img.id,
+        id_image: parseInt(img.id),
+        placement: imgIndex + 1, // Ordre basé sur l'index, commençant à 1
+        disable: false
+      }))
+    }));
+    
+    console.log("Structure des tiers à sauvegarder:", tierLines);
+    console.log("Images non classées:", unclassifiedImages.length);
+    
+    // Appel au service pour sauvegarder la tierlist
+    // Passer également les images non classées
+    const tierlistId = await tierlistService.saveTierlist(
+      tierlistData, 
+      tierLines,
+      unclassifiedImages
+    );
+    
+    // Log du succès
+    console.log("Tierlist sauvegardée avec succès :", tierlistId);
+    
+    // Rediriger vers la page de la tierlist
+    alert("Tierlist sauvegardée avec succès!");
+    navigate(`/tierlist/${tierlistId}`);
+    
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde de la tierlist:", error);
+    
+    // Afficher des détails supplémentaires si disponibles
+    if (error.response && error.response.data) {
+      console.error("Détails de l'erreur:", error.response.data);
+    }
+    
+    alert("Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.");
+  } finally {
+    setIsSaving(false);
+  }
+}
   // Revenir à la sélection d'images
   const handleCancel = () => {
     if (window.confirm("Êtes-vous sûr de vouloir annuler ? Vos modifications seront perdues.")) {
@@ -658,6 +727,40 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
           </div>
         </div>
       )}
+      
+      {/* Modal pour afficher les détails d'une image */}
+      <Modal
+        isOpen={imageDetailsModalOpen}
+        onRequestClose={closeImageDetailsModal}
+        className="image-details-modal"
+        overlayClassName="image-details-modal-overlay"
+      >
+        {selectedImageDetails && (
+          <div className="image-details">
+            <h2>{selectedImageDetails.name}</h2>
+            <img 
+              src={selectedImageDetails.src} 
+              alt={selectedImageDetails.alt} 
+              className="image-details-preview" 
+            />
+            {selectedImageDetails.description && (
+              <div className="image-description">
+                <h3>Description</h3>
+                <p>{selectedImageDetails.description}</p>
+              </div>
+            )}
+            {selectedImageDetails.url && (
+              <div className="image-url">
+                <h3>URL</h3>
+                <a href={selectedImageDetails.url} target="_blank" rel="noopener noreferrer">
+                  {selectedImageDetails.url}
+                </a>
+              </div>
+            )}
+            <button className="close-details-btn" onClick={closeImageDetailsModal}>Fermer</button>
+          </div>
+        )}
+      </Modal>
       
       {/* En-tête compact avec les informations essentielles */}
       <div className="tierlist-compact-header">
@@ -855,6 +958,7 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, tier.id, image.id)}
                     onDoubleClick={() => handleResetImage(image.id, tier.id)}
+                    onClick={() => openImageDetailsModal(image)}
                     title={`${image.name} (Double-cliquez pour retirer)`}
                   >
                     <img src={image.src} alt={image.alt} />
@@ -886,6 +990,7 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
                   className="tier-image"
                   draggable
                   onDragStart={(e) => handleDragStart(e, image.id, 'unclassified', unclassifiedImages.indexOf(image))}
+                  onClick={() => openImageDetailsModal(image)}
                   title={`${image.name} (Glissez dans un tier)`}
                 >
                   <img src={image.src} alt={image.alt} />
