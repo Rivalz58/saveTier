@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Modal from 'react-modal';
@@ -64,24 +65,119 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
   // État pour la modal de détails d'image
   const [imageDetailsModalOpen, setImageDetailsModalOpen] = useState<boolean>(false);
   const [selectedImageDetails, setSelectedImageDetails] = useState<Image | null>(null);
-  
-  // Chargement des données depuis URL ou localStorage
-  useEffect(() => {
-    // Récupérer les paramètres de l'URL
-    const params = new URLSearchParams(location.search);
-    const albumIdParam = params.get('album');
-    const imagesParam = params.get('images');
-    const name = params.get('name');
-    const mainImgParam = params.get('main'); // Récupérer l'image principale
-    
-    if (!albumIdParam) {
-      // Rediriger si paramètres manquants
-      navigate('/allalbum');
-      return;
+
+  // Constantes pour la sauvegarde locale
+  const STORAGE_KEY_TIERLIST_STATE = `tierlist_editor_${albumId}`;
+  const SAVE_INTERVAL_MS = 5000; // Sauvegarde automatique toutes les 5 secondes
+
+  // Fonction pour sauvegarder l'état dans localStorage
+  const saveStateToLocalStorage = () => {
+    try {
+      const stateToSave = {
+        tierlistName,
+        tierlistDescription,
+        unclassifiedImages,
+        tierList,
+        isPublic,
+        mainImage,
+        lastSaved: new Date().toISOString()
+      };
+      
+      localStorage.setItem(STORAGE_KEY_TIERLIST_STATE, JSON.stringify(stateToSave));
+      console.log("État de la tierlist sauvegardé localement:", new Date().toLocaleTimeString());
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde locale:", error);
     }
+  };
+
+  // Fonction pour charger l'état depuis localStorage
+  const loadStateFromLocalStorage = () => {
+    try {
+      const savedState = localStorage.getItem(STORAGE_KEY_TIERLIST_STATE);
+      
+      if (!savedState) {
+        console.log("Aucun état sauvegardé trouvé pour cette tier-list");
+        return false;
+      }
+      
+      const parsedState = JSON.parse(savedState);
+      
+      // Mettre à jour tous les états avec les données sauvegardées
+      setTierlistName(parsedState.tierlistName || "");
+      setTierlistDescription(parsedState.tierlistDescription || "");
+      setUnclassifiedImages(parsedState.unclassifiedImages || []);
+      setTierList(parsedState.tierList || DEFAULT_TIERS);
+      setIsPublic(parsedState.isPublic !== undefined ? parsedState.isPublic : true);
+      setMainImage(parsedState.mainImage || null);
+      
+      console.log("État de la tierlist restauré depuis la sauvegarde locale du:", 
+        new Date(parsedState.lastSaved).toLocaleString());
+      
+      return true;
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'état sauvegardé:", error);
+      return false;
+    }
+  };
+
+  // Fonction pour effacer l'état sauvegardé
+  const clearSavedState = () => {
+    localStorage.removeItem(STORAGE_KEY_TIERLIST_STATE);
+    console.log("État sauvegardé effacé");
+  };
+  
+  // Chargement des données depuis localStorage d'abord, puis depuis URL
+  useEffect(() => {
+  // Récupérer les paramètres de l'URL
+  const params = new URLSearchParams(location.search);
+  const albumIdParam = params.get('album');
+  const imagesParam = params.get('images');
+  const name = params.get('name');
+  const mainImgParam = params.get('main');
+  
+  if (!albumIdParam) {
+    // Rediriger si paramètres manquants
+    navigate('/allalbum');
+    return;
+  }
+  
+  // Définir l'ID de l'album
+  setAlbumId(albumIdParam);
+  
+  // Essayer de charger l'état sauvegardé localement d'abord
+  // Utiliser la clé spécifique à cet album
+  const storageKey = `tierlist_editor_${albumIdParam}`;
+  const savedState = localStorage.getItem(storageKey);
+  
+  if (savedState) {
+    try {
+      const parsedState = JSON.parse(savedState);
+      
+      // Mettre à jour tous les états avec les données sauvegardées
+      setTierlistName(parsedState.tierlistName || "");
+      setTierlistDescription(parsedState.tierlistDescription || "");
+      setUnclassifiedImages(parsedState.unclassifiedImages || []);
+      setTierList(parsedState.tierList || DEFAULT_TIERS);
+      setIsPublic(parsedState.isPublic !== undefined ? parsedState.isPublic : true);
+      setMainImage(parsedState.mainImage || null);
+      
+      console.log("État de la tierlist restauré depuis la sauvegarde locale du:", 
+        new Date(parsedState.lastSaved).toLocaleString());
+      
+      // Simplifier l'URL après avoir restauré les données du localStorage
+      if (imagesParam || name || mainImgParam) {
+        const cleanUrl = `${window.location.pathname}?album=${albumIdParam}`;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+      
+      return; // Si on a restauré un état, on ne charge pas depuis l'URL
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'état sauvegardé:", error);
+      // En cas d'erreur, continuer et charger depuis l'URL
+    }
+  }
     
-    // Définir l'ID de l'album
-    setAlbumId(albumIdParam);
+    // Si aucun état sauvegardé n'a été trouvé ou a échoué, on procède comme avant
     
     // Définir le nom initial de la tierlist
     if (name) {
@@ -171,7 +267,60 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
     if (imagesParam) {
       localStorage.removeItem('tierlistImages');
     }
+    if (imagesParam || name || mainImgParam) {
+      const cleanUrl = `${window.location.pathname}?album=${albumIdParam}`;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+    
   }, [location, navigate]);
+  
+  // Sauvegarde automatique de l'état
+  useEffect(() => {
+    // Ne commencer la sauvegarde automatique que si l'albumId est défini
+    if (!albumId) return;
+    
+    // Définir la clé de stockage spécifique à cet album
+    const storageKey = `tierlist_editor_${albumId}`;
+    
+    // Fonction pour sauvegarder
+    const saveState = () => {
+      try {
+        const stateToSave = {
+          tierlistName,
+          tierlistDescription,
+          unclassifiedImages,
+          tierList,
+          isPublic,
+          mainImage,
+          lastSaved: new Date().toISOString()
+        };
+        
+        localStorage.setItem(storageKey, JSON.stringify(stateToSave));
+        console.log("État sauvegardé:", new Date().toLocaleTimeString());
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde:", error);
+      }
+    };
+    
+    // Sauvegarder immédiatement pour capturer l'état initial ou changé
+    saveState();
+    
+    // Configurer un intervalle pour sauvegarder périodiquement
+    const interval = setInterval(saveState, SAVE_INTERVAL_MS);
+    
+    // Sauvegarder également lorsque l'utilisateur quitte la page ou change d'onglet
+    const handleBeforeUnload = () => {
+      saveState();
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Nettoyer
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [albumId, tierlistName, tierlistDescription, unclassifiedImages, tierList, isPublic, mainImage]);
 
   // Fonction pour trouver une image par son ID
   const findImageById = (id: string): { image: Image; tier: string | 'unclassified'; index: number } | null => {
@@ -606,90 +755,94 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
   };
   
   // Sauvegarder la tierlist
-// Sauvegarder la tierlist
-const handleSaveTierlist = async () => {
-  // Vérifier que le nom n'est pas vide
-  if (!tierlistName.trim()) {
-    alert("Veuillez donner un nom à votre tierlist.");
-    return;
-  }
+  const handleSaveTierlist = async () => {
+    // Vérifier que le nom n'est pas vide
+    if (!tierlistName.trim()) {
+      alert("Veuillez donner un nom à votre tierlist.");
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    try {
+      // Convertir les données pour l'API
+      const albumIdInt = parseInt(albumId);
+      if (isNaN(albumIdInt)) {
+        throw new Error("ID d'album invalide");
+      }
+      
+      // Préparation des données pour la tierlist
+      const tierlistData = {
+        name: tierlistName.trim(),
+        description: tierlistDescription?.trim() || null,
+        private: !isPublic,
+        id_album: albumIdInt
+      };
+      
+      // Vérification supplémentaire des données
+      if (!tierlistData.name) {
+        throw new Error("Le nom de la tierlist ne peut pas être vide");
+      }
+      
+      if (isNaN(tierlistData.id_album) || tierlistData.id_album <= 0) {
+        throw new Error(`ID d'album invalide: ${albumId} (converti en ${tierlistData.id_album})`);
+      }
+      
+      console.log("Données de tierlist à sauvegarder:", tierlistData);
+      
+      // Préparer les lignes de tier pour l'API
+      const tierLines = tierList.map((tier) => ({
+        label: tier.name.trim(),
+        placement: tierList.indexOf(tier) + 1, // Ordre basé sur l'index, commençant à 1
+        color: tier.color.replace('#', ''), // Retirer le # du code couleur
+        images: tier.images.map((img, imgIndex) => ({
+          id: img.id,
+          id_image: parseInt(img.id),
+          placement: imgIndex + 1, // Ordre basé sur l'index, commençant à 1
+          disable: false
+        }))
+      }));
+      
+      console.log("Structure des tiers à sauvegarder:", tierLines);
+      console.log("Images non classées:", unclassifiedImages.length);
+      
+      // Appel au service pour sauvegarder la tierlist
+      // Passer également les images non classées
+      const tierlistId = await tierlistService.saveTierlist(
+        tierlistData, 
+        tierLines,
+        unclassifiedImages
+      );
+      
+      // Log du succès
+      console.log("Tierlist sauvegardée avec succès :", tierlistId);
+      
+      // Effacer les données sauvegardées localement
+      clearSavedState();
+      
+      // Rediriger vers la page de la tierlist
+      alert("Tierlist sauvegardée avec succès!");
+      navigate(`/tierlist/${tierlistId}`);
+      
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde de la tierlist:", error);
+      
+      // Afficher des détails supplémentaires si disponibles
+      //if (error.response && error.response.data) {
+      //  console.error("Détails de l'erreur:", error.response.data);
+      //}
+      
+      alert("Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
-  setIsSaving(true);
-  
-  try {
-    // Convertir les données pour l'API
-    const albumIdInt = parseInt(albumId);
-    
-    if (isNaN(albumIdInt)) {
-      throw new Error("ID d'album invalide");
-    }
-    
-    // Préparation des données pour la tierlist
-    const tierlistData = {
-      name: tierlistName.trim(),
-      description: tierlistDescription?.trim() || null,
-      private: !isPublic,
-      id_album: albumIdInt
-    };
-    
-    // Vérification supplémentaire des données
-    if (!tierlistData.name) {
-      throw new Error("Le nom de la tierlist ne peut pas être vide");
-    }
-    
-    if (isNaN(tierlistData.id_album) || tierlistData.id_album <= 0) {
-      throw new Error(`ID d'album invalide: ${albumId} (converti en ${tierlistData.id_album})`);
-    }
-    
-    console.log("Données de tierlist à sauvegarder:", tierlistData);
-    
-    // Préparer les lignes de tier pour l'API
-    const tierLines = tierList.map((tier) => ({
-      label: tier.name.trim(),
-      placement: tierList.indexOf(tier) + 1, // Ordre basé sur l'index, commençant à 1
-      color: tier.color.replace('#', ''), // Retirer le # du code couleur
-      images: tier.images.map((img, imgIndex) => ({
-        id: img.id,
-        id_image: parseInt(img.id),
-        placement: imgIndex + 1, // Ordre basé sur l'index, commençant à 1
-        disable: false
-      }))
-    }));
-    
-    console.log("Structure des tiers à sauvegarder:", tierLines);
-    console.log("Images non classées:", unclassifiedImages.length);
-    
-    // Appel au service pour sauvegarder la tierlist
-    // Passer également les images non classées
-    const tierlistId = await tierlistService.saveTierlist(
-      tierlistData, 
-      tierLines,
-      unclassifiedImages
-    );
-    
-    // Log du succès
-    console.log("Tierlist sauvegardée avec succès :", tierlistId);
-    
-    // Rediriger vers la page de la tierlist
-    alert("Tierlist sauvegardée avec succès!");
-    navigate(`/tierlist/${tierlistId}`);
-    
-  } catch (error) {
-    console.error("Erreur lors de la sauvegarde de la tierlist:", error);
-    
-    // Afficher des détails supplémentaires si disponibles
-    if (error.response && error.response.data) {
-      console.error("Détails de l'erreur:", error.response.data);
-    }
-    
-    alert("Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.");
-  } finally {
-    setIsSaving(false);
-  }
-}
   // Revenir à la sélection d'images
   const handleCancel = () => {
     if (window.confirm("Êtes-vous sûr de vouloir annuler ? Vos modifications seront perdues.")) {
+      // Nettoyer les données sauvegardées
+      clearSavedState();
       // Rediriger vers la page d'albums
       navigate("/allalbum");
     }
@@ -722,6 +875,7 @@ const handleSaveTierlist = async () => {
                 <li><strong>Ajout/Suppression</strong> : Utilisez les boutons pour ajouter ou supprimer des tiers</li>
               </ul>
               <p>N'oubliez pas de remplir les informations et de sauvegarder votre tierlist!</p>
+              <p><strong>Note</strong>: Votre travail est automatiquement sauvegardé toutes les 5 secondes. Vous pouvez recharger la page sans perdre vos modifications.</p>
             </div>
             <button className="info-close-btn" onClick={closeInfoModal}>Commencer</button>
           </div>
@@ -799,9 +953,8 @@ const handleSaveTierlist = async () => {
           </button>
         </div>
       </div>
-      
-      {/* Barre latérale pour les informations détaillées (cachée par défaut) */}
-      <div className={`tierlist-sidebar ${showSidebar ? 'active' : ''}`}>
+{/* Barre latérale pour les informations détaillées (cachée par défaut) */}
+<div className={`tierlist-sidebar ${showSidebar ? 'active' : ''}`}>
         <div className="sidebar-header">
           <h2>Informations de la Tierlist</h2>
           <button className="close-sidebar" onClick={toggleSidebar}>×</button>
@@ -854,6 +1007,7 @@ const handleSaveTierlist = async () => {
               <li>Vous pouvez aussi faire glisser une image vers la zone "Images non classées"</li>
               <li>Cliquez sur le nom d'un tier pour le modifier</li>
               <li>Utilisez les flèches pour réordonner les tiers</li>
+              <li><strong>Sauvegarde auto</strong>: Votre travail est automatiquement sauvegardé toutes les 5 secondes</li>
             </ul>
           </div>
           

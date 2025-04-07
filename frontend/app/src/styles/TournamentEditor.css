@@ -1,0 +1,926 @@
+/* Tournament Editor Styles (matching TierHub theme) */
+.tournament-editor {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-top: 110px !important; /* Reduced top padding to focus on content */
+    color: var(--text-color);
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    position: relative;
+  }
+  
+  /* Compact Header styles */
+  .tournament-compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-tertiary);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    top: 85px;
+    z-index: 100;
+  }
+  
+  .tournament-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .tournament-title h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: var(--text-color);
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .edit-info-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+  }
+  
+  .edit-info-button:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.05);
+  }
+  
+  /* Tournament actions */
+  .tournament-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .restart-button,
+  .save-button,
+  .cancel-button,
+  .next-button,
+  .next-round-button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    white-space: nowrap;
+  }
+  
+  .restart-button {
+    background-color: var(--bg-input);
+    color: var(--text-color);
+  }
+  
+  .restart-button:hover {
+    background-color: var(--error-color);
+    color: white;
+    transform: translateY(-2px);
+  }
+  
+  .save-button {
+    background-color: var(--success-color);
+    color: white;
+  }
+  
+  .save-button:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-2px);
+  }
+  
+  .cancel-button {
+    background-color: var(--bg-input);
+    color: var(--text-color);
+  }
+  
+  .cancel-button:hover {
+    background-color: var(--error-color);
+    color: white;
+    transform: translateY(-2px);
+  }
+  
+  .next-button,
+  .next-round-button {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .next-button:hover,
+  .next-round-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+  }
+  
+  .next-button:disabled,
+  .next-round-button:disabled,
+  .save-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* Sidebar for detailed information */
+  .tournament-sidebar {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 320px;
+    height: 100vh;
+    background-color: var(--bg-tertiary);
+    box-shadow: -4px 0 10px var(--shadow-color);
+    transition: right 0.3s ease;
+    z-index: 999;
+    padding-top: 80px; /* Space for navbar */
+    overflow-y: auto;
+  }
+  
+  .tournament-sidebar.active {
+    right: 0;
+  }
+  
+  .sidebar-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .sidebar-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--text-color);
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .close-sidebar {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-content {
+    padding: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    background-color: var(--bg-input);
+    color: var(--text-color);
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary-color);
+  }
+  
+  /* Privacy toggle */
+  .privacy-setting {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .privacy-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .privacy-toggle span {
+    color: var(--text-secondary);
+  }
+  
+  .privacy-toggle span.active {
+    color: var(--text-color);
+    font-weight: bold;
+  }
+  
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-input);
+    transition: .4s;
+    border-radius: 24px;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider {
+    background-color: var(--primary-color);
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }
+  
+  /* Sidebar help section */
+  .sidebar-help {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+  }
+  
+  .sidebar-help h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: var(--text-color);
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .sidebar-help ul {
+    padding-left: 20px;
+    margin: 0;
+  }
+  
+  .sidebar-help li {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .sidebar-save-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .sidebar-save-button:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+  }
+  
+  .sidebar-save-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Main content area */
+  .tournament-main-content {
+    transition: all 0.3s ease;
+  }
+  
+  .tournament-main-content.with-sidebar {
+    margin-right: 320px; /* Make room for sidebar */
+  }
+  
+  /* Active tournament area */
+  .tournament-active {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+  
+  .tournament-stats-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg-tertiary);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    margin-bottom: 20px;
+  }
+  
+  .tournament-stats {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .round-indicator {
+    text-align: center;
+    padding: 8px 20px;
+    background-color: var(--bg-secondary);
+    border-radius: 30px;
+    box-shadow: 0 2px 6px var(--shadow-color);
+  }
+  
+  .round-label {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    margin-right: 10px;
+    letter-spacing: 1px;
+  }
+  
+  .round-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-color);
+  }
+  
+  .final-round {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #FFD700;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  
+  /* Duel area */
+  .duel-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .duel-instructions {
+    background-color: var(--bg-tertiary);
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .duel-instructions p {
+    margin: 0;
+    font-weight: bold;
+    color: var(--text-color);
+  }
+  
+  /* Duel container for images and next button */
+  .duel-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+  }
+  
+  /* Images group for duels */
+  .images-group {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  
+  /* Large next button container */
+  .large-next-button-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 0 20px;
+  }
+  
+  .large-next-button,
+  .large-next-round-button {
+    padding: 20px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    white-space: nowrap;
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .large-next-button {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .large-next-round-button {
+    background-color: #FFD700;
+    color: #333;
+  }
+  
+  .large-next-button:hover,
+  .large-next-round-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 15px var(--shadow-color);
+  }
+  
+  .large-next-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .image-item {
+    position: relative;
+    width: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--bg-tertiary);
+    box-shadow: 0 4px 10px var(--shadow-color);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 3px solid transparent;
+  }
+  
+  .image-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px var(--shadow-color);
+  }
+  
+  .image-item.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-color), 0 8px 20px var(--shadow-color);
+  }
+  
+  .image-item img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .image-info {
+    padding: 10px;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+  }
+  
+  .image-name {
+    margin: 0 0 5px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .image-score {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  
+  /* Winners section */
+  .winners-section {
+    background-color: var(--bg-tertiary);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px var(--shadow-color);
+  }
+  
+  .winners-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    text-align: center;
+  }
+  
+  .winners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+  }
+  
+  .winner-item {
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: center;
+  }
+  
+  .winner-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+  }
+  
+  .winner-name {
+    padding: 8px;
+    margin: 0;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-color);
+  }
+  
+  /* Tournament results */
+  .tournament-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+  
+  .tournament-results h2 {
+    color: var(--text-color);
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .winner-card {
+    background-color: var(--bg-tertiary);
+    border: 3px solid #FFD700;
+    border-radius: 10px;
+    padding: 20px;
+    width: 100%;
+    max-width: 300px;
+    box-shadow: 0 8px 15px var(--shadow-color);
+    margin-bottom: 10px;
+  }
+  
+  .winner-card h3 {
+    text-align: center;
+    margin-top: 0;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .winner-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .winner-image img {
+    width: 100%;
+    max-width: 250px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+  }
+  
+  .winner-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 10px 0 0;
+    color: var(--text-color);
+  }
+  
+  .winner-score {
+    margin: 5px 0 0;
+    color: var(--text-secondary);
+  }
+  
+  /* Tournament results */
+  .tournament-results h3 {
+    color: var(--text-color);
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.4rem;
+  }
+  
+  .rankings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    width: 100%;
+  }
+  
+  /* Top finishers podium */
+  .top-finishers {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  
+  .podium-image {
+    position: relative;
+    width: 200px;
+    background-color: var(--bg-tertiary);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    padding-top: 40px; /* Space for rank badge */
+  }
+  
+  .podium-image.rank-3 {
+    transform: translateY(20px);
+    width: 180px;
+  }
+  
+  .podium-image.rank-1 {
+    transform: translateY(-20px);
+    width: 220px;
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+    border: 3px solid #FFD700;
+  }
+  
+  .podium-image.rank-2 {
+    width: 200px;
+  }
+  
+  .rank-number {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 5px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .rank-1 .rank-number {
+    background-color: #FFD700; /* Gold */
+    color: #333;
+  }
+  
+  .rank-2 .rank-number {
+    background-color: #C0C0C0; /* Silver */
+    color: #333;
+  }
+  
+  .rank-3 .rank-number {
+    background-color: #CD7F32; /* Bronze */
+  }
+  
+  .podium-image img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+  
+  .podium-image p {
+    padding: 10px;
+    margin: 0;
+    text-align: center;
+    font-weight: bold;
+    background-color: var(--bg-secondary);
+  }
+  
+  /* Other finishers */
+  .other-finishers {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .ranking-group {
+    background-color: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px var(--shadow-color);
+  }
+  
+  .ranking-group h4 {
+    margin-top: 0;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .ranking-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    justify-content: center;
+  }
+  
+  .result-image {
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    box-shadow: 0 2px 5px var(--shadow-color);
+  }
+  
+  .result-image img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 5px;
+  }
+  
+  .result-image p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-color);
+  }
+  
+  /* Info modal */
+  .info-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .info-modal-content {
+    background-color: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 25px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .info-modal-content h2 {
+    color: var(--text-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .info-content {
+    color: var(--text-color);
+    margin-bottom: 20px;
+  }
+  
+  .info-content p {
+    margin-bottom: 10px;
+  }
+  
+  .info-content ul {
+    padding-left: 20px;
+  }
+  
+  .info-content li {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+  }
+  
+  .info-close-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    transition: all 0.3s ease;
+    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  }
+  
+  .info-close-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 968px) {
+    .tournament-compact-header {
+      flex-direction: column;
+      gap: 15px;
+      align-items: stretch;
+      padding: 15px;
+    }
+    
+    .tournament-actions {
+      justify-content: space-between;
+    }
+    
+    .tournament-sidebar {
+      width: 280px;
+    }
+    
+    .tournament-main-content.with-sidebar {
+      margin-right: 0;
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .tournament-editor {
+      padding: 10px;
+      padding-top: 90px !important;
+    }
+    
+    .tournament-compact-header {
+      padding: 10px;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .tournament-title h1 {
+      font-size: 1.2rem;
+    }
+    
+    .tournament-actions {
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .tournament-stats-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .tournament-stats {
+      width: 100%;
+      justify-content: space-between;
+    }
+    
+    .duel-controls {
+      width: 100%;
+    }
+    
+    .duel-controls button {
+      flex: 1;
+    }
+    
+    .image-item {
+      width: 150px;
+    }
+    
+    .image-item img {
+      height: 140px;
+    }
+    
+    .tournament-sidebar {
+      width: 100%;
+      right: -100%;
+    }
+    
+    .winner-card {
+      max-width: 250px;
+    }
+  }

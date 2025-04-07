@@ -13,6 +13,7 @@ import Tournois from "./pages/Tournois";
 import Classements from "./pages/Classements";
 import SetupItemSelection from "./pages/SetupItemSelection";
 import TierListEditor from "./pages/TierListEditor"; // Importer le nouveau composant
+import TournamentEditor from "./pages/TournamentEditor";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NewPassword from "./pages/NewPassword";
@@ -172,6 +173,7 @@ function App() {
         {/* Routes pour les éditeurs de contenu */}
         <Route path="/setup" element={<SetupItemSelection user={user} />} />
         <Route path="/tierlists/create/editor" element={<TierListEditor user={user} />} />
+        <Route path="/tournois/create/editor" element={<TournamentEditor user={user} />} />
         
         {/* Routes accessibles à tous */}
         <Route path="/allalbum" element={<AllAlbum user={user} />} />

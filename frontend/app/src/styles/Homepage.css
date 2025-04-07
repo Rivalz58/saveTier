@@ -76,13 +76,13 @@
 /* Grille pour afficher les catégories */
 .categories {
   display: grid;
-  grid-template-columns: repeat(6, minmax(150px, 180px));
+  grid-template-columns: repeat(7, minmax(150px, 180px));
   gap: 20px;
   overflow-x: auto;
   padding-bottom: 10px;
   margin-bottom: 20px;
   padding-top: 5px;
-  margin-top: 10px;
+  margin: 10px;
   scrollbar-width: thin;
   -ms-overflow-style: none;
 }

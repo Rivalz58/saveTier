@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AddAlbum.css";
@@ -275,7 +276,7 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
       // 1. Créer l'album via le service
       const albumData = {
         name,
-        status: isPublic ? 'public' : 'private',
+        status: (isPublic ? "public" : "private") as "public" | "private",
         description
       };
       

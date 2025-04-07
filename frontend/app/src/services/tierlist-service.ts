@@ -96,9 +96,9 @@ export const createTierlist = async (tierlist: Tierlist): Promise<number> => {
     return response.data.data.id;
   } catch (error) {
     console.error('Erreur lors de la création de la tierlist:', error);
-    if (error.response && error.response.data) {
-      console.error('Détails de l\'erreur:', error.response.data);
-    }
+    //if (error.response && error.response.data) {
+    //  console.error('Détails de l\'erreur:', error.response.data);
+    //}
     throw error;
   }
 };
@@ -120,9 +120,9 @@ export const createTierlistLine = async (line: TierlistLine): Promise<number> =>
     return response.data.data.id;
   } catch (error) {
     console.error('Erreur lors de la création de la ligne de tierlist:', error);
-    if (error.response && error.response.data) {
-      console.error('Détails de l\'erreur:', error.response.data);
-    }
+    //if (error.response && error.response.data) {
+    //  console.error('Détails de l\'erreur:', error.response.data);
+    //}
     throw error;
   }
 };
@@ -147,9 +147,9 @@ export const addImageToTierlistLine = async (
     await api.post('/tierlist/line/image', apiData);
   } catch (error) {
     console.error(`Erreur lors de l'ajout de l'image ${imageId} à la ligne ${tierlistLineId}:`, error);
-    if (error.response && error.response.data) {
-      console.error('Détails de l\'erreur:', error.response.data);
-    }
+    //if (error.response && error.response.data) {
+    //  console.error('Détails de l\'erreur:', error.response.data);
+    //}
     throw error;
   }
 };

@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/SetupItemSelection.css";
-import albumAccessService from "../services/albumAccessService";
-
+import albumAccessService from "../services/albumAccessService.ts";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface SetupItemSelectionProps {
   user: string | null;
 }

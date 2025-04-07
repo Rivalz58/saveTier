@@ -29,7 +29,7 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
         setError(null);
         
         // Récupérer les albums les plus populaires (triés par nombre d'utilisations)
-        const popularAlbumsData = await getAlbumsByPopularity(5);
+        const popularAlbumsData = await getAlbumsByPopularity(7);
         setPopularAlbums(popularAlbumsData);
         
         try {
