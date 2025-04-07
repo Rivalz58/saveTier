@@ -12,11 +12,12 @@ import Tierlists from "./pages/Tierlists";
 import Tournois from "./pages/Tournois";
 import Classements from "./pages/Classements";
 import SetupItemSelection from "./pages/SetupItemSelection";
-import TierListEditor from "./pages/TierListEditor"; // Importer le nouveau composant
+import TierListEditor from "./pages/TierListEditor"; 
 import TournamentEditor from "./pages/TournamentEditor";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NewPassword from "./pages/NewPassword";
+import AlbumEditor from "./pages/AlbumEditor"; // Importer le nouvel éditeur d'album
 import TokenExpirationHandler from "./components/TokenExpirationHandler";
 import { getCurrentUser, checkIsAdmin, isTokenValid } from "./services/api";
 import "./styles/theme.css";
@@ -168,6 +169,12 @@ function App() {
         <Route 
           path="/add-album" 
           element={user ? <AddAlbum user={user} /> : <Navigate to="/login" />} 
+        />
+        
+        {/* Nouvelle route pour l'édition d'album */}
+        <Route 
+          path="/album/edit/:id" 
+          element={user ? <AlbumEditor user={user} /> : <Navigate to="/login" />} 
         />
         
         {/* Routes pour les éditeurs de contenu */}
