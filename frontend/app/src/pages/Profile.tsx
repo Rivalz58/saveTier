@@ -338,16 +338,25 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
     }
   };
 
+  // Modifier pour naviguer vers l'éditeur d'album
   const handleAlbumClick = (album: AlbumItem) => {
-    setSelectedAlbum(album);
-    setModalOpen(true);
+    // Rediriger vers la page d'édition de l'album
+    navigate(`/album/edit/${album.id}`);
   };
 
   const handleItemClick = (item: ContentItem, type: string) => {
     // Rediriger vers la page appropriée selon le type
     switch (type) {
       case "Tierlist":
-        navigate(`/tierlists/${item.id}`);
+        // Option pour visualiser ou modifier
+        const confirmEdit = window.confirm("Souhaitez-vous modifier cette tierlist ? Cliquez sur Annuler pour simplement la visualiser.");
+        if (confirmEdit) {
+          // Rediriger vers l'éditeur
+          navigate(`/tierlists/edit/${item.id}`);
+        } else {
+          // Rediriger vers la page de visualisation
+          navigate(`/tierlists/${item.id}`);
+        }
         break;
       case "Tournoi":
         navigate(`/tournois/${item.id}`);
@@ -357,7 +366,6 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         break;
     }
   };
-
   if (!user) return null;
 
   if (loading) {
@@ -476,7 +484,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
           ) : (
             <div className="empty-section">
               <p>Vous n'avez pas encore créé de tierlists</p>
-              <button className="create-btn" onClick={() => navigate("/tierlists")}>
+              <button className="create-btn" onClick={() => navigate("/allalbum")}>
                 Créer une tierlist
               </button>
             </div>
@@ -516,7 +524,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
           ) : (
             <div className="empty-section">
               <p>Vous n'avez pas encore créé de tournois</p>
-              <button className="create-btn" onClick={() => navigate("/tournois")}>
+              <button className="create-btn" onClick={() => navigate("/allalbum")}>
                 Créer un tournoi
               </button>
             </div>
@@ -556,7 +564,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
           ) : (
             <div className="empty-section">
               <p>Vous n'avez pas encore créé de classements</p>
-              <button className="create-btn" onClick={() => navigate("/classements")}>
+              <button className="create-btn" onClick={() => navigate("/allalbum")}>
                 Créer un classement
               </button>
             </div>
@@ -646,18 +654,6 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
           </button>
         </div>
       </Modal>
-
-      {/* Modal pour les détails d'album */}
-      {selectedAlbum && (
-        <AlbumModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          albumName={selectedAlbum.name}
-          albumId={selectedAlbum.id}
-          isUserLoggedIn={true}
-          categories={selectedAlbum.categories}
-        />
-      )}
     </div>
   );
 };

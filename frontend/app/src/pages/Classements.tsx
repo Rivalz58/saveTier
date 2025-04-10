@@ -18,7 +18,6 @@ type FormattedRanking = {
   creatorId: string;
   categories: string[];
   createdAt: string;
-  votes: number; // Simuler les votes
 };
 
 const Classements: React.FC<ClassementsProps> = ({ user }) => {
@@ -70,8 +69,6 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
             creatorId: ranking.author.id.toString(),
             categories: albumInfo.categories,
             createdAt: ranking.createdAt,
-            // Simuler un nombre de votes
-            votes: Math.floor(Math.random() * 1000) + 100,
           };
           
           formattedRankings.push(formattedRanking);
@@ -87,13 +84,13 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
           });
         }
         
-        // Trier les classements par votes dans chaque catégorie
+        // Trier les classements par nom dans chaque catégorie
         categoriesMap.forEach((rankings, category) => {
-          categoriesMap.set(category, rankings.sort((a, b) => b.votes - a.votes));
+          categoriesMap.set(category, rankings.sort((a, b) => a.name.localeCompare(b.name)));
         });
         
         // Mettre à jour les états
-        setAllRankings(formattedRankings.sort((a, b) => b.votes - a.votes));
+        setAllRankings(formattedRankings.sort((a, b) => a.name.localeCompare(b.name)));
         setRankingCategories(categoriesMap);
         setAvailableCategories(Array.from(allCategories));
         
@@ -189,7 +186,7 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
             className={`category-filter ${selectedCategory === null ? 'active' : ''}`}
             onClick={() => setSelectedCategory(null)}
           >
-            Plus Populaires
+            Tous les Classements
           </button>
           
           {availableCategories.map((title, index) => (
@@ -211,7 +208,7 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
       ) : (
         <div className="all-albums-section">
           <div>
-            <h2 className="category-title">{selectedCategory || "Classements les plus populaires"}</h2>
+            <h2 className="category-title">{selectedCategory || "Tous les Classements"}</h2>
             <div className="all-albums-grid">
               {filteredRankings.map((ranking, index) => (
                 <div 
@@ -219,7 +216,6 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
                   className="album-card-container"
                   onClick={() => handleRankingClick(ranking)}
                 >
-                  <div className="album-usage-count">{ranking.votes} votes</div>
                   <CategoryCard 
                     name={ranking.name} 
                     image={ranking.image}

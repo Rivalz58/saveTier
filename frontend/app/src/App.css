@@ -1,5 +1,5 @@
 /* Import Google Fonts properly with multiple weights */
-@import url('https://fonts.googleapis.com/css2?family=Palanquin+Dark:wght@400;500;600;700&display=swap');
+@import './styles/font.css';
 
 html, body {
   margin: 0;

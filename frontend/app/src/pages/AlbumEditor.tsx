@@ -31,6 +31,7 @@ interface Album {
   author: {
     id: number;
     username: string;
+    nametag: string; // Ajout du champ nametag
   };
   image: Image[];
 }
@@ -88,6 +89,7 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
           setAlbum(albumData);
           setAlbumName(albumData.name);
           setIsPublic(albumData.status === 'public');
+          console.log("Album data loaded:", albumData);
         }
       } catch (error) {
         console.error("Error fetching album:", error);
@@ -103,8 +105,14 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
   // Check if user is the album owner
   useEffect(() => {
     if (album && user) {
-      // If user is not the author, redirect to profile page
-      if (album.author.username !== user) {
+      // Si l'utilisateur n'est pas l'auteur, rediriger vers la page de profil
+      // Modifié pour comparer avec le nametag au lieu du username
+      console.log("Comparing author:", album.author);
+      console.log("Current user:", user);
+      
+      // Vérifier la correspondance avec le nametag ou le username
+      if (album.author.nametag && album.author.nametag !== user && album.author.username !== user) {
+        console.log("User is not the author, redirecting to profile");
         navigate("/profile");
       }
     }

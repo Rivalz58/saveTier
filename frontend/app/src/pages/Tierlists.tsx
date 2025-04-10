@@ -18,7 +18,6 @@ type FormattedTierlist = {
   creatorId: string;
   categories: string[];
   createdAt: string;
-  likes: number; // Simulation de popularité
 };
 
 type TierlistCategory = {
@@ -75,8 +74,6 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
             creatorId: tierlist.author.id.toString(),
             categories: albumInfo.categories,
             createdAt: tierlist.createdAt,
-            // Simuler un nombre de likes basé sur la date (plus récent = plus populaire pour le moment)
-            likes: Math.floor(Math.random() * 1000) + 100,
           };
           
           formattedTierlists.push(formattedTierlist);
@@ -92,13 +89,13 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
           });
         }
         
-        // Trier les tierlists par likes dans chaque catégorie
+        // Trier les tierlists par nom dans chaque catégorie
         categoriesMap.forEach((tierlists, category) => {
-          categoriesMap.set(category, tierlists.sort((a, b) => b.likes - a.likes));
+          categoriesMap.set(category, tierlists.sort((a, b) => a.name.localeCompare(b.name)));
         });
         
         // Mettre à jour les états
-        setAllTierlists(formattedTierlists.sort((a, b) => b.likes - a.likes));
+        setAllTierlists(formattedTierlists.sort((a, b) => a.name.localeCompare(b.name)));
         setTierlistCategories(categoriesMap);
         setAvailableCategories(Array.from(allCategories));
         
@@ -194,7 +191,7 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
             className={`category-filter ${selectedCategory === null ? 'active' : ''}`}
             onClick={() => setSelectedCategory(null)}
           >
-            Plus Populaires
+            Toutes les Tierlists
           </button>
           
           {availableCategories.map((title, index) => (
@@ -216,7 +213,7 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
       ) : (
         <div className="all-albums-section">
           <div>
-            <h2 className="category-title">{selectedCategory || "Tierlists les plus populaires"}</h2>
+            <h2 className="category-title">{selectedCategory || "Toutes les Tierlists"}</h2>
             <div className="all-albums-grid">
               {filteredTierlists.map((tierlist, index) => (
                 <div 
@@ -224,7 +221,6 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
                   className="album-card-container"
                   onClick={() => handleTierlistClick(tierlist)}
                 >
-                  <div className="album-usage-count">{tierlist.likes} likes</div>
                   <CategoryCard 
                     name={tierlist.name} 
                     image={tierlist.image} 

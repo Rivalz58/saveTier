@@ -18,7 +18,6 @@ type FormattedTournament = {
   creatorId: string;
   categories: string[];
   createdAt: string;
-  participants: number; // Simuler les participations
 };
 
 const Tournois: React.FC<TournoisProps> = ({ user }) => {
@@ -70,8 +69,6 @@ const Tournois: React.FC<TournoisProps> = ({ user }) => {
             creatorId: tournament.author.id.toString(),
             categories: albumInfo.categories,
             createdAt: tournament.createdAt,
-            // Simuler un nombre de participants
-            participants: Math.floor(Math.random() * 1000) + 100,
           };
           
           formattedTournaments.push(formattedTournament);
@@ -87,13 +84,13 @@ const Tournois: React.FC<TournoisProps> = ({ user }) => {
           });
         }
         
-        // Trier les tournois par participants dans chaque catégorie
+        // Trier les tournois par nom dans chaque catégorie
         categoriesMap.forEach((tournaments, category) => {
-          categoriesMap.set(category, tournaments.sort((a, b) => b.participants - a.participants));
+          categoriesMap.set(category, tournaments.sort((a, b) => a.name.localeCompare(b.name)));
         });
         
         // Mettre à jour les états
-        setAllTournaments(formattedTournaments.sort((a, b) => b.participants - a.participants));
+        setAllTournaments(formattedTournaments.sort((a, b) => a.name.localeCompare(b.name)));
         setTournamentCategories(categoriesMap);
         setAvailableCategories(Array.from(allCategories));
         
@@ -189,7 +186,7 @@ const Tournois: React.FC<TournoisProps> = ({ user }) => {
             className={`category-filter ${selectedCategory === null ? 'active' : ''}`}
             onClick={() => setSelectedCategory(null)}
           >
-            Plus Populaires
+            Tous les Tournois
           </button>
           
           {availableCategories.map((title, index) => (
@@ -211,7 +208,7 @@ const Tournois: React.FC<TournoisProps> = ({ user }) => {
       ) : (
         <div className="all-albums-section">
           <div>
-            <h2 className="category-title">{selectedCategory || "Tournois les plus populaires"}</h2>
+            <h2 className="category-title">{selectedCategory || "Tous les Tournois"}</h2>
             <div className="all-albums-grid">
               {filteredTournaments.map((tournament, index) => (
                 <div 
@@ -219,7 +216,6 @@ const Tournois: React.FC<TournoisProps> = ({ user }) => {
                   className="album-card-container"
                   onClick={() => handleTournamentClick(tournament)}
                 >
-                  <div className="album-usage-count">{tournament.participants} participants</div>
                   <CategoryCard 
                     name={tournament.name} 
                     image={tournament.image} 
