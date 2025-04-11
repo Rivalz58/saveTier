@@ -54,15 +54,32 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   
   // Load images and params from URL
-  useEffect(() => {
-    if (isInitialized) return; // Empêche une réinitialisation multiple
+// Load images and params from URL
+useEffect(() => {
+  if (isInitialized) return; // Prevent multiple initializations
+
+  const searchParams = new URLSearchParams(location.search);
+  const albumParam = searchParams.get('album');
+  const imagesParam = searchParams.get('images');
+  const nameParam = searchParams.get('name');
+
+  if (!albumParam) {
+    navigate('/allalbum');
+    return;
+  }
   
-    // Tenter de restaurer l'état sauvegardé depuis le localStorage
-    const savedState = localStorage.getItem('tournamentEditorState');
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
-        setAlbumId(state.albumId);
+  // Clean cache if new selection
+  clearCacheForAlbum(albumParam);
+  
+  setAlbumId(albumParam);
+  
+  // Try to restore saved state for this specific album
+  const savedState = localStorage.getItem(`tournamentEditorState_${albumParam}`);
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState);
+      // Check if this is the same album and has images
+      if (state.albumId === albumParam && state.allImages.length > 0) {
         setAllImages(state.allImages);
         setDisplayedImages(state.displayedImages);
         setSelectedImageId(state.selectedImageId);
@@ -81,113 +98,116 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
         setTournamentDescription(state.tournamentDescription);
         setIsPublic(state.isPublic);
         setIsInitialized(true);
-        console.log("État restauré depuis le localStorage");
-        return; // Si on a restauré l'état, ne pas continuer l'initialisation
-      } catch (error) {
-        console.error("Erreur lors de la restauration de l'état sauvegardé", error);
-        localStorage.removeItem('tournamentEditorState');
-      }
-    }
-  
-    // Aucun état sauvegardé trouvé, on procède à l'initialisation classique
-    const searchParams = new URLSearchParams(location.search);
-    const albumParam = searchParams.get('album');
-    const imagesParam = searchParams.get('images');
-    const nameParam = searchParams.get('name');
-  
-    if (!albumParam || !imagesParam) {
-      navigate('/allalbum');
-      return;
-    }
-    
-    setAlbumId(albumParam);
-    if (nameParam) {
-      setTournamentName(nameParam);
-    }
-    
-    const loadImagesFromApi = async () => {
-      try {
-        const imageIds = JSON.parse(imagesParam);
-        const albumInfo = await tournamentService.getAlbumInfo(albumParam);
-        setAlbumName(albumInfo.name);
+        console.log("State restored from localStorage for album", albumParam);
         
-        const albumImages = await tournamentService.getAlbumImages(albumParam);
-        const selectedImages = albumImages
-          .filter(img => imageIds.includes(img.id))
-          .map(img => ({
-            id: img.id,
-            src: img.src,
-            name: img.name,
-            score: 0  // Score initialisé à 0
-          }));
-        
-        if (selectedImages.length === 0) {
-          throw new Error("Aucune image sélectionnée");
+        // Simplify URL after restoring data from localStorage
+        if (imagesParam || nameParam) {
+          const cleanUrl = `${window.location.pathname}?album=${albumParam}`;
+          window.history.replaceState({}, document.title, cleanUrl);
         }
         
-        console.log("Images avant démarrage du tournoi:", selectedImages);
-        
-        setAllImages(selectedImages);
-        startNewTournament(selectedImages);  // Votre fonction modifiée qui démarre le tournoi
-        setIsInitialized(true);
-        
-      } catch (error) {
-        console.error("Erreur lors du chargement des images:", error);
-        alert("Erreur lors du chargement des images. Redirection vers la page d'albums.");
-        navigate('/allalbum');
+        return; // If we restored state, don't continue initialization
       }
-    };
-    
-    loadImagesFromApi();
-  }, [location, navigate, isInitialized]);
+    } catch (error) {
+      console.error("Error restoring saved state", error);
+      localStorage.removeItem(`tournamentEditorState_${albumParam}`);
+    }
+  }
+
+  // No saved state found, proceed with standard initialization
+  if (nameParam) {
+    setTournamentName(nameParam);
+  }
+  
+  if (!imagesParam) {
+    navigate('/allalbum');
+    return;
+  }
+  
+  const loadImagesFromApi = async () => {
+    try {
+      const imageIds = JSON.parse(imagesParam);
+      const albumInfo = await tournamentService.getAlbumInfo(albumParam);
+      setAlbumName(albumInfo.name);
+      
+      const albumImages = await tournamentService.getAlbumImages(albumParam);
+      const selectedImages = albumImages
+        .filter(img => imageIds.includes(img.id))
+        .map(img => ({
+          id: img.id,
+          src: img.src,
+          name: img.name,
+          score: 0  // Initialize score to 0
+        }));
+      
+      if (selectedImages.length === 0) {
+        throw new Error("No images selected");
+      }
+      
+      console.log("Images before starting tournament:", selectedImages);
+      
+      setAllImages(selectedImages);
+      startNewTournament(selectedImages);  // Your modified function that starts the tournament
+      setIsInitialized(true);
+      
+    } catch (error) {
+      console.error("Error loading images:", error);
+      alert("Error loading images. Redirecting to album page.");
+      navigate('/allalbum');
+    }
+  };
+  
+  loadImagesFromApi();
+}, [location, navigate, isInitialized]);
   
   
   // Save state to localStorage
-  useEffect(() => {
-    if (allImages.length > 0) {
-      const state = {
-        albumId,
-        allImages,
-        displayedImages,
-        selectedImageId,
-        binome,
-        trinome,
-        currentRoundImages,
-        roundWinners,
-        tournamentFinished,
-        winner,
-        currentRound,
-        targetScore,
-        maxRoundValue,
-        currentMaxScore,
-        duelsCompleted,
-        tournamentName,
-        tournamentDescription,
-        isPublic
-      };
-      
-      localStorage.setItem('tournamentEditorState', JSON.stringify(state));
-    }
-  }, [
-    albumId,
-    allImages, 
-    displayedImages, 
-    selectedImageId, 
-    binome, 
-    trinome, 
-    currentRoundImages, 
-    roundWinners, 
-    tournamentFinished, 
-    winner, 
-    currentRound, 
-    targetScore, 
-    maxRoundValue, 
-    currentMaxScore, 
-    duelsCompleted,
-    tournamentName,
-    tournamentDescription,
-    isPublic
-  ]);
+// Save state to localStorage with album-specific key
+useEffect(() => {
+  if (allImages.length > 0 && albumId) {
+    const state = {
+      albumId,
+      allImages,
+      displayedImages,
+      selectedImageId,
+      binome,
+      trinome,
+      currentRoundImages,
+      roundWinners,
+      tournamentFinished,
+      winner,
+      currentRound,
+      targetScore,
+      maxRoundValue,
+      currentMaxScore,
+      duelsCompleted,
+      tournamentName,
+      tournamentDescription,
+      isPublic
+    };
+    
+    localStorage.setItem(`tournamentEditorState_${albumId}`, JSON.stringify(state));
+  }
+}, [
+  albumId,
+  allImages, 
+  displayedImages, 
+  selectedImageId, 
+  binome, 
+  trinome, 
+  currentRoundImages, 
+  roundWinners, 
+  tournamentFinished, 
+  winner, 
+  currentRound, 
+  targetScore, 
+  maxRoundValue, 
+  currentMaxScore, 
+  duelsCompleted,
+  tournamentName,
+  tournamentDescription,
+  isPublic
+]);
   
   // Start next round when all duels are completed
   useEffect(() => {
@@ -220,11 +240,20 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
     }, images[0].score);
   };
 
+// Clean localStorage cache if new images are selected
+const clearCacheForAlbum = (albumIdToClean: string) => {
+  // If 'images' parameter is in URL, it means we're coming from a new image selection
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('images')) {
+    localStorage.removeItem(`tournamentEditorState_${albumIdToClean}`);
+    console.log("Previous cache cleared for album:", albumIdToClean);
+  }
+};
   // Calculate maximum possible rounds
   const getMaxRounds = (imageCount: number) => {
     let round = 0;
     let max = 1;
-    while (max * 2 < imageCount) {
+    while (max * 2 <= imageCount) {
       max *= 2;
       round += 1;
     }
@@ -328,7 +357,7 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
   };
   
   const startNextRoundWithImages = (images: TournamentImage[]) => {
-    // Utiliser 'images' au lieu de 'allImages' pour les calculs initiaux
+    // Use 'images' instead of 'allImages' for initial calculations
     setDuelsCompleted(false);
   
     const maxRounds = getMaxRounds(images.length);
@@ -339,7 +368,7 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
     
     let nextRoundImages: TournamentImage[];
     
-    // Pour le premier round, utilisez toutes les images
+    // For the first round, use all images
     if (currentRound === 0) {
       nextRoundImages = images.map(img => ({ ...img, score: 0 }));
     } else {
@@ -347,9 +376,29 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
     }
     
     const winnerImage = images.find((img) => img.score >= maxRounds);
-    if ((nextRoundImages.length < 2 && currentRound > 0) || winnerImage) {
+    // Check if tournament should end:
+    // 1. If there are less than 2 images with max score
+    // 2. If there's an image that reached the max rounds score
+    // 3. If we're in the final round with exactly 2 images and total images is 4 or less
+    if ((nextRoundImages.length < 2 && currentRound > 0) || winnerImage ||
+        (currentRound > 0 && nextRoundImages.length === 2 && images.length <= 4)) {
       setTournamentFinished(true);
-      setWinner(winnerImage || nextRoundImages[0] || null);
+      
+      // If there's a clear winner by score, use it
+      if (winnerImage) {
+        setWinner(winnerImage);
+      }
+      // If we're in the final with exactly 2 images, use the one with higher score
+      else if (nextRoundImages.length === 2) {
+        const finalWinner = nextRoundImages.reduce((prev, current) => 
+          (prev.score > current.score) ? prev : current
+        );
+        setWinner(finalWinner);
+      }
+      // Otherwise, just use the first image
+      else {
+        setWinner(nextRoundImages[0] || null);
+      }
       return;
     }
     
@@ -369,62 +418,60 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
   
 
   // Start the next round
-  const startNextRound = () => {
-    // Reset duel state
-    setDuelsCompleted(false);
-  
-    // Calculer le nombre maximum de rounds théoriques
-    const maxRounds = getMaxRounds(allImages.length);
-    setMaxRoundValue(maxRounds);
-  
-    // Obtenir le score maximum actuel parmi toutes les images
-    const maxScore = scoreMax(allImages);
-    setCurrentMaxScore(maxScore);
-  
-    // Sélectionner les images pour le prochain round
-    let nextRoundImages: TournamentImage[];
-  
-    // Pour le premier tour, utiliser toutes les images
-    // Avec des scores réinitialisés à 0
-    console.log("currentRound :"+currentRound)
-    if (currentRound === 0) {
-      nextRoundImages = allImages.map(img => ({ ...img, score: 0 }));
-      console.log("image"+allImages)
-    } else {
-      // Pour les tours suivants, filtrer les images avec le score max
-      console.log("max:"+maxScore)
-      nextRoundImages = allImages.filter((img) => img.score === maxScore);
-      console.log(
-        `Round ${currentRound}: Selecting ${nextRoundImages.length} images with score ${maxScore}`
-      );
-    }
-  
-    // Vérifier si un gagnant existe ou s'il ne reste qu'une seule image
-    const winnerImage = allImages.find((img) => img.score >= maxRounds);
-    console.log("l'image vainqueur : "+winnerImage+nextRoundImages.length);
-    if ((nextRoundImages.length < 2 && currentRound > 0) || winnerImage) {
-      setTournamentFinished(true);
-      setWinner(winnerImage || nextRoundImages[0] || null);
-      return;
-    }
+ // Start the next round
+ const startNextRound = () => {
+  // Réinitialiser l'état des duels
+  setDuelsCompleted(false);
 
-  
-    // Calculer le numéro du prochain round
-    const newCurrentRound = calculRound(nextRoundImages.length);
-    setCurrentRound(newCurrentRound);
-    setTargetScore(newCurrentRound);
-  
-    // Calculer les duels
-    const { newBinome, newTrinome } = calculateDuels(nextRoundImages);
-    setBinome(newBinome);
-    setTrinome(newTrinome);
-  
-    setCurrentRoundImages([...nextRoundImages]);
-    setRoundWinners([]);
-  
-    // Configurer le prochain duel
-    setupNextDuel([...nextRoundImages], newBinome, newTrinome);
-  };
+  // Calculer le nombre maximum de rounds théoriques
+  const maxRounds = getMaxRounds(allImages.length);
+  setMaxRoundValue(maxRounds);
+
+  // Obtenir le score maximum parmi toutes les images
+  const maxScore = scoreMax(allImages);
+  setCurrentMaxScore(maxScore);
+
+  // Sélectionner les images pour le prochain round
+  let nextRoundImages: TournamentImage[];
+
+  // Pour le premier round, utiliser toutes les images en réinitialisant leur score
+  if (currentRound === 0) {
+    nextRoundImages = allImages.map(img => ({ ...img, score: 0 }));
+  } else {
+    // Pour les rounds suivants, filtrer les images ayant le score maximum
+    nextRoundImages = allImages.filter(img => img.score === maxScore);
+  }
+
+  // Vérifier si une image a atteint le score maximum théorique
+  // ou s'il ne reste plus d'au moins 2 images pour continuer le tournoi.
+  console.log("\n\nallimage\n\n"+ allImages.find(img => img.score));
+  const winnerImage = allImages.find(img => img.score >= maxRounds);
+
+  // Condition modifiée :
+  // Terminer le tournoi seulement s'il reste moins de 2 images (donc 0 ou 1 image)
+  // ou si une image a atteint le score maximum théorique.
+  if (nextRoundImages.length < 2 || winnerImage) {
+    setTournamentFinished(true);
+    setWinner(winnerImage || nextRoundImages[0] || null);
+    return;
+  }
+
+  // Calculer le numéro pour le prochain round
+  const newCurrentRound = calculRound(nextRoundImages.length);
+  setCurrentRound(newCurrentRound);
+  setTargetScore(newCurrentRound);
+
+  // Calculer le nombre de duels pour le round : binomes et trinomes
+  const { newBinome, newTrinome } = calculateDuels(nextRoundImages);
+  setBinome(newBinome);
+  setTrinome(newTrinome);
+
+  setCurrentRoundImages([...nextRoundImages]);
+  setRoundWinners([]);
+
+  // Lancer le prochain duel
+  setupNextDuel([...nextRoundImages], newBinome, newTrinome);
+};
 
   // Select a winner for the current duel
   const selectWinner = (imageId: string) => {
@@ -473,31 +520,32 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
   };
 
   // Restart the tournament
-  const restartTournament = () => {
-    // Reset all image scores
-    const resetImages = allImages.map(img => ({ ...img, score: 0 }));
-    
-    setAllImages(resetImages);
-    setDisplayedImages([]);
-    setSelectedImageId(null);
-    setCurrentRoundImages([]);
-    setRoundWinners([]);
-    setBinome(0);
-    setTrinome(0);
-    setTournamentFinished(false);
-    setWinner(null);
-    setCurrentRound(0);
-    setTargetScore(0);
-    setMaxRoundValue(0);
-    setCurrentMaxScore(0);
-    setDuelsCompleted(false);
-    
-    // Clear saved state
-    localStorage.removeItem('tournamentEditorState');
-    
-    // Start new tournament
-    startNextRound();
-  };
+ // Restart the tournament
+const restartTournament = () => {
+  // Reset all image scores
+  const resetImages = allImages.map(img => ({ ...img, score: 0 }));
+  
+  setAllImages(resetImages);
+  setDisplayedImages([]);
+  setSelectedImageId(null);
+  setCurrentRoundImages([]);
+  setRoundWinners([]);
+  setBinome(0);
+  setTrinome(0);
+  setTournamentFinished(false);
+  setWinner(null);
+  setCurrentRound(0);
+  setTargetScore(0);
+  setMaxRoundValue(0);
+  setCurrentMaxScore(0);
+  setDuelsCompleted(false);
+  
+  // Clear saved state for this specific album
+  localStorage.removeItem(`tournamentEditorState_${albumId}`);
+  
+  // Start new tournament
+  startNextRound();
+};
 
   // Group images by round lost for final results display
   const getImagesByRoundLost = () => {
@@ -737,9 +785,72 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
         </div>
       </div>
   
-      {/* Main Tournament Content */}
-      <div className={`tournament-main-content ${showSidebar ? "with-sidebar" : ""}`}>
-        {!tournamentFinished ? (
+ {/* Main Tournament Content */}
+ <div className={`tournament-main-content ${showSidebar ? "with-sidebar" : ""}`}>
+        {tournamentFinished ? (
+          <div className="tournament-results">
+            <h2>Tournament Complete!</h2>
+            
+            {winner && (
+              <div className="winner-card">
+                <h3>Champion</h3>
+                <div className="winner-image">
+                  <img src={winner.src} alt={winner.name} />
+                  <p className="winner-name">{winner.name}</p>
+                </div>
+              </div>
+            )}
+            
+            <h3>Final Rankings</h3>
+            <div className="rankings-container">
+              {Object.entries(getImagesByRoundLost())
+                .sort(([roundA], [roundB]) => parseInt(roundA) - parseInt(roundB)) // Champion d'abord
+                .map(([round, images]) => {
+                  if (images.length === 0) return null;
+                  
+                  let roundTitle = "";
+                  const roundNumber = parseInt(round);
+                  
+                  // Déterminer le titre et la classe CSS selon le round
+                  if (roundNumber === 0) {
+                    roundTitle = "Champion";
+                  } else if (roundNumber === 1) {
+                    roundTitle = "Finalists";
+                  } else if (roundNumber === 2) {
+                    roundTitle = "Semi-Finalists";
+                  } else {
+                    roundTitle = `Round Eliminated: ${round}`;
+                  }
+                  
+                  // Ajouter une classe de style spéciale selon le niveau d'élimination
+                  let roundGroupClass = "round-group";
+                  if (roundNumber === 0) {
+                    roundGroupClass += " champion-group";
+                  } else if (roundNumber === 1) {
+                    roundGroupClass += " finalist-group";
+                  } else if (roundNumber === 2) {
+                    roundGroupClass += " semifinalist-group";
+                  }
+                  
+                  return (
+                    <div key={round} className={roundGroupClass}>
+                      <h4 data-count={`${images.length} ${images.length === 1 ? 'image' : 'images'}`}>
+                        {roundTitle}
+                      </h4>
+                      <div className="images-group">
+                        {images.map(image => (
+                          <div key={image.id} className="result-image">
+                            <img src={image.src} alt={image.name} />
+                            <p>{image.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        ) : (
           <div className="tournament-active">
             <div className="tournament-stats-row">
               <div className="tournament-stats">
@@ -818,29 +929,10 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
               </div>
             )}
           </div>
-        ) : (
-          <div className="tournament-results">
-            <h2>Tournament Complete!</h2>
-            {winner && (
-              <div className="winner-card">
-                <h3>Champion</h3>
-                <div className="winner-image">
-                  <img src={winner.src} alt={winner.name} />
-                  <p className="winner-name">{winner.name}</p>
-                </div>
-              </div>
-            )}
-            <h3>Final Rankings</h3>
-            <div className="rankings-container">
-              {/* Insérez ici votre code d'affichage des classements finaux */}
-            </div>
-            {/* Le bouton Save n'est plus affiché ici afin de le centraliser dans le header */}
-          </div>
         )}
       </div>
     </div>
   );  
-  
 }  
 
 export default TournamentEditor;
