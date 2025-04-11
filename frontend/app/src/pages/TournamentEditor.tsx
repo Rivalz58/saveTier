@@ -44,115 +44,103 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
   const [isPublic, setIsPublic] = useState<boolean>(true);
   const [albumId, setAlbumId] = useState<string>("");
   const [albumName, setAlbumName] = useState<string>("");
-  
+  const [hasSaved, setHasSaved] = useState(false);
   // UI state
-  const [showInfoModal, setShowInfoModal] = useState<boolean>(true);
+  const [showInfoModal, setShowInfoModal] = useState<boolean>(() => {
+    const hasSeenInfoModal = localStorage.getItem('tournamentInfoModalShown');
+    return !hasSeenInfoModal;
+  });
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   
   // Load images and params from URL
   useEffect(() => {
-    if (isInitialized) return; // Prevent multiple initializations
-    
+    if (isInitialized) return; // Empêche une réinitialisation multiple
+  
+    // Tenter de restaurer l'état sauvegardé depuis le localStorage
+    const savedState = localStorage.getItem('tournamentEditorState');
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        setAlbumId(state.albumId);
+        setAllImages(state.allImages);
+        setDisplayedImages(state.displayedImages);
+        setSelectedImageId(state.selectedImageId);
+        setBinome(state.binome);
+        setTrinome(state.trinome);
+        setCurrentRoundImages(state.currentRoundImages);
+        setRoundWinners(state.roundWinners);
+        setTournamentFinished(state.tournamentFinished);
+        setWinner(state.winner);
+        setCurrentRound(state.currentRound);
+        setTargetScore(state.targetScore);
+        setMaxRoundValue(state.maxRoundValue);
+        setCurrentMaxScore(state.currentMaxScore);
+        setDuelsCompleted(state.duelsCompleted);
+        setTournamentName(state.tournamentName);
+        setTournamentDescription(state.tournamentDescription);
+        setIsPublic(state.isPublic);
+        setIsInitialized(true);
+        console.log("État restauré depuis le localStorage");
+        return; // Si on a restauré l'état, ne pas continuer l'initialisation
+      } catch (error) {
+        console.error("Erreur lors de la restauration de l'état sauvegardé", error);
+        localStorage.removeItem('tournamentEditorState');
+      }
+    }
+  
+    // Aucun état sauvegardé trouvé, on procède à l'initialisation classique
     const searchParams = new URLSearchParams(location.search);
     const albumParam = searchParams.get('album');
     const imagesParam = searchParams.get('images');
-    const mainParam = searchParams.get('main');
     const nameParam = searchParams.get('name');
-    
+  
     if (!albumParam || !imagesParam) {
-      // Redirect if parameters are missing
       navigate('/allalbum');
       return;
     }
     
-    // Set album ID and tournament name
     setAlbumId(albumParam);
     if (nameParam) {
       setTournamentName(nameParam);
     }
     
-    // Check localStorage for saved state first
-    const savedState = localStorage.getItem('tournamentEditorState');
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
-        
-        // Only restore if it's for the same album
-        if (state.albumId === albumParam) {
-          // Restore all state values at once
-          setAllImages(state.allImages);
-          setDisplayedImages(state.displayedImages);
-          setSelectedImageId(state.selectedImageId);
-          setBinome(state.binome);
-          setTrinome(state.trinome);
-          setCurrentRoundImages(state.currentRoundImages);
-          setRoundWinners(state.roundWinners);
-          setTournamentFinished(state.tournamentFinished);
-          setWinner(state.winner);
-          setCurrentRound(state.currentRound);
-          setTargetScore(state.targetScore);
-          setMaxRoundValue(state.maxRoundValue);
-          setCurrentMaxScore(state.currentMaxScore);
-          setDuelsCompleted(state.duelsCompleted);
-          setTournamentName(state.tournamentName || (nameParam ? nameParam : ""));
-          setTournamentDescription(state.tournamentDescription || "");
-          setIsPublic(state.isPublic);
-          
-          // Don't show info modal on restore
-          setShowInfoModal(false);
-          setIsInitialized(true);
-          
-          // Important - ne pas appeler startNewTournament ou startNextRound ici
-          console.log("Restored tournament state from localStorage");
-          return;
-        }
-      } catch (error) {
-        console.error("Error parsing saved state:", error);
-      }
-    }
-    
-    // Si on n'a pas pu restaurer l'état, charger les images de l'API
     const loadImagesFromApi = async () => {
       try {
-        // Parse image IDs
         const imageIds = JSON.parse(imagesParam);
-        
-        // Get album info
         const albumInfo = await tournamentService.getAlbumInfo(albumParam);
         setAlbumName(albumInfo.name);
         
-        // Get album images
         const albumImages = await tournamentService.getAlbumImages(albumParam);
-        
-        // Filter selected images
         const selectedImages = albumImages
           .filter(img => imageIds.includes(img.id))
           .map(img => ({
             id: img.id,
             src: img.src,
             name: img.name,
-            score: 0
+            score: 0  // Score initialisé à 0
           }));
         
         if (selectedImages.length === 0) {
-          throw new Error("No images selected");
+          throw new Error("Aucune image sélectionnée");
         }
         
-        // Initialize tournament
+        console.log("Images avant démarrage du tournoi:", selectedImages);
+        
         setAllImages(selectedImages);
-        startNewTournament(selectedImages);
+        startNewTournament(selectedImages);  // Votre fonction modifiée qui démarre le tournoi
         setIsInitialized(true);
         
       } catch (error) {
-        console.error("Error loading images:", error);
-        alert("Error loading images. Redirecting to albums page.");
+        console.error("Erreur lors du chargement des images:", error);
+        alert("Erreur lors du chargement des images. Redirection vers la page d'albums.");
         navigate('/allalbum');
       }
     };
     
     loadImagesFromApi();
   }, [location, navigate, isInitialized]);
+  
   
   // Save state to localStorage
   useEffect(() => {
@@ -314,7 +302,11 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
 
   // Start a new tournament with provided images
   const startNewTournament = (images: TournamentImage[]) => {
-    setAllImages([...images]);
+    const resetImages = images.map(img => ({ ...img, score: 0 }));
+    console.log("reset", resetImages, "allimages:", allImages);
+    
+    // Réinitialisation des états
+    setAllImages(resetImages);
     setRoundWinners([]);
     setTournamentFinished(false);
     setWinner(null);
@@ -323,57 +315,114 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
     setMaxRoundValue(0);
     setCurrentMaxScore(0);
     setDuelsCompleted(false);
-    startNextRound();
+    setDisplayedImages([]);
+    setSelectedImageId(null);
+    setCurrentRoundImages([]);
+    setBinome(0);
+    setTrinome(0);
+  
+    console.log("after reset", resetImages, "allimages:", allImages);
+    
+    // Appel de la fonction en passant resetImages directement
+    startNextRoundWithImages(resetImages);
   };
+  
+  const startNextRoundWithImages = (images: TournamentImage[]) => {
+    // Utiliser 'images' au lieu de 'allImages' pour les calculs initiaux
+    setDuelsCompleted(false);
+  
+    const maxRounds = getMaxRounds(images.length);
+    setMaxRoundValue(maxRounds);
+    
+    const maxScore = scoreMax(images);
+    setCurrentMaxScore(maxScore);
+    
+    let nextRoundImages: TournamentImage[];
+    
+    // Pour le premier round, utilisez toutes les images
+    if (currentRound === 0) {
+      nextRoundImages = images.map(img => ({ ...img, score: 0 }));
+    } else {
+      nextRoundImages = images.filter((img) => img.score === maxScore);
+    }
+    
+    const winnerImage = images.find((img) => img.score >= maxRounds);
+    if ((nextRoundImages.length < 2 && currentRound > 0) || winnerImage) {
+      setTournamentFinished(true);
+      setWinner(winnerImage || nextRoundImages[0] || null);
+      return;
+    }
+    
+    const newCurrentRound = calculRound(nextRoundImages.length);
+    setCurrentRound(newCurrentRound);
+    setTargetScore(newCurrentRound);
+    
+    const { newBinome, newTrinome } = calculateDuels(nextRoundImages);
+    setBinome(newBinome);
+    setTrinome(newTrinome);
+    
+    setCurrentRoundImages([...nextRoundImages]);
+    setRoundWinners([]);
+    
+    setupNextDuel([...nextRoundImages], newBinome, newTrinome);
+  };
+  
 
   // Start the next round
   const startNextRound = () => {
     // Reset duel state
     setDuelsCompleted(false);
-
-    // Calculate theoretical maximum score
+  
+    // Calculer le nombre maximum de rounds théoriques
     const maxRounds = getMaxRounds(allImages.length);
     setMaxRoundValue(maxRounds);
-
-    // Get current maximum score among all images
+  
+    // Obtenir le score maximum actuel parmi toutes les images
     const maxScore = scoreMax(allImages);
     setCurrentMaxScore(maxScore);
-
-    // Select images for next round based on max score
+  
+    // Sélectionner les images pour le prochain round
     let nextRoundImages: TournamentImage[];
-
+  
+    // Pour le premier tour, utiliser toutes les images
+    // Avec des scores réinitialisés à 0
+    console.log("currentRound :"+currentRound)
     if (currentRound === 0) {
-      // For first round, use all images
-      nextRoundImages = [...allImages];
+      nextRoundImages = allImages.map(img => ({ ...img, score: 0 }));
+      console.log("image"+allImages)
     } else {
-      // For subsequent rounds, filter images with max score
+      // Pour les tours suivants, filtrer les images avec le score max
+      console.log("max:"+maxScore)
       nextRoundImages = allImages.filter((img) => img.score === maxScore);
       console.log(
         `Round ${currentRound}: Selecting ${nextRoundImages.length} images with score ${maxScore}`
       );
     }
-
-    // Check if a winner exists or only one image remains
+  
+    // Vérifier si un gagnant existe ou s'il ne reste qu'une seule image
     const winnerImage = allImages.find((img) => img.score >= maxRounds);
-    if (nextRoundImages.length < 2 || winnerImage) {
+    console.log("l'image vainqueur : "+winnerImage+nextRoundImages.length);
+    if ((nextRoundImages.length < 2 && currentRound > 0) || winnerImage) {
       setTournamentFinished(true);
       setWinner(winnerImage || nextRoundImages[0] || null);
       return;
     }
 
-    // Calculate next round number
+  
+    // Calculer le numéro du prochain round
     const newCurrentRound = calculRound(nextRoundImages.length);
     setCurrentRound(newCurrentRound);
     setTargetScore(newCurrentRound);
-
-    // Calculate duels
+  
+    // Calculer les duels
     const { newBinome, newTrinome } = calculateDuels(nextRoundImages);
     setBinome(newBinome);
     setTrinome(newTrinome);
-
+  
     setCurrentRoundImages([...nextRoundImages]);
     setRoundWinners([]);
-
+  
+    // Configurer le prochain duel
     setupNextDuel([...nextRoundImages], newBinome, newTrinome);
   };
 
@@ -480,64 +529,64 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
   // Close the info modal
   const closeInfoModal = () => {
     setShowInfoModal(false);
+    localStorage.setItem('tournamentInfoModalShown', 'true');
   };
   
   // Save tournament
   const handleSaveTournament = async () => {
+    // Vérifier que le nom du tournoi n'est pas vide
     if (!tournamentName.trim()) {
       alert("Please give your tournament a name.");
       return;
     }
     
+    if (hasSaved) {
+      // Empêcher une double sauvegarde
+      alert("Tournament has already been saved. Please restart to save again.");
+      return;
+    }
+    
+    // Si l'utilisateur n'est pas connecté, alerter
     if (!user) {
       alert("You need to be logged in to save a tournament.");
       return;
     }
     
     setIsSaving(true);
-    
     try {
-      // Prepare tournament data for API
-      const albumIdInt = parseInt(albumId);
-      
-      if (isNaN(albumIdInt)) {
-        throw new Error("Invalid album ID");
-      }
-      
+      // Préparer les données du tournoi (selon votre structure)
       const tournamentData = {
         name: tournamentName.trim(),
-        description: tournamentDescription?.trim() || null,
+        description: tournamentDescription || "",
         private: !isPublic,
-        id_album: albumIdInt
+        id_album: Number(albumId)
       };
-      
-      // Verify data
-      if (!tournamentData.name) {
-        throw new Error("Tournament name cannot be empty");
-      }
-      
       console.log("Tournament data to save:", tournamentData);
       
-      // Save tournament
+      // Appel à votre service de sauvegarde qui renvoie l'ID du tournoi (ou un résultat)
       const tournamentId = await tournamentService.saveTournament(
         tournamentData,
         allImages,
-        winner ? winner.id : null
+        winner ? winner.id : ""
       );
       
-      console.log("Tournament saved successfully:", tournamentId);
+      console.log("Tournament saved successfully. Tournament ID:", tournamentId);
+      // Mettez à jour l'état pour indiquer que le tournoi a été sauvegardé
+      setHasSaved(true);
       
-      // Show success message and redirect
+      // Affichez un message de succès ou mettez à jour une partie de l'UI
       alert("Tournament saved successfully!");
-      navigate(`/tournois/${tournamentId}`);
       
+      // IMPORTANT : PAS de redirection via navigate ici,
+      // on reste sur la même page.
     } catch (error) {
       console.error("Error saving tournament:", error);
-      alert("An error occurred while saving. Please try again.");
+      alert("Error saving tournament. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
+  
   
   // Handle cancel button
   const handleCancel = () => {
@@ -568,61 +617,75 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
             <div className="info-content">
               <p>Welcome to the TierHub Tournament Editor!</p>
               <ul>
-                <li><strong>Tournament Format</strong>: Images compete in head-to-head matches</li>
-                <li><strong>Selection</strong>: Click on your favorite image in each match</li>
-                <li><strong>Rounds</strong>: Continue through rounds until a winner emerges</li>
-                <li><strong>Customization</strong>: Click on the edit button to change tournament details</li>
-                <li><strong>Results</strong>: View final rankings when tournament is complete</li>
+                <li>
+                  <strong>Tournament Format:</strong> Images compete in head-to-head matches
+                </li>
+                <li>
+                  <strong>Selection:</strong> Click on your favorite image in each match
+                </li>
+                <li>
+                  <strong>Rounds:</strong> Continue through rounds until a winner emerges
+                </li>
+                <li>
+                  <strong>Customization:</strong> Click on the edit button to change tournament details
+                </li>
+                <li>
+                  <strong>Results:</strong> View final rankings when the tournament is complete
+                </li>
               </ul>
               <p>Remember to fill in tournament information and save your tournament!</p>
             </div>
-            <button className="info-close-btn" onClick={closeInfoModal}>Begin</button>
+            <button className="info-close-btn" onClick={closeInfoModal}>
+              Begin
+            </button>
           </div>
         </div>
       )}
-      
+  
       {/* Compact Header */}
       <div className="tournament-compact-header">
         <div className="tournament-title">
           <h1>{tournamentName || "New Tournament"}</h1>
-          <button 
-            className="edit-info-button" 
+          <button
+            className="edit-info-button"
             onClick={toggleSidebar}
             title="Edit tournament information"
           >
             ✎
           </button>
         </div>
-        
         <div className="tournament-actions">
-          <button 
-            className="restart-button" 
-            onClick={restartTournament}
+          <button
+            className="restart-button"
+            onClick={() => {
+              restartTournament();
+              setHasSaved(false); // Réinitialisation de l'état de sauvegarde lors du restart
+            }}
           >
             Restart
           </button>
-          <button 
-            className="save-button" 
-            onClick={handleSaveTournament} 
-            disabled={isSaving || !tournamentName.trim()}
-          >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-          <button 
-            className="cancel-button" 
-            onClick={handleCancel} 
-            disabled={isSaving}
-          >
+          {tournamentFinished && (
+            <button
+              className="save-button"
+              onClick={handleSaveTournament}
+              disabled={isSaving || !tournamentName.trim() || hasSaved}
+            >
+              {isSaving ? "Saving..." : hasSaved ? "Tournament Saved" : "Save Tournament"}
+            </button>
+          )}
+          <button className="cancel-button" onClick={handleCancel} disabled={isSaving}>
             Cancel
           </button>
         </div>
       </div>
-      
-      {/* Sidebar for editing tournament details */}
-      <div className={`tournament-sidebar ${showSidebar ? 'active' : ''}`}>
+  
+      {/* Sidebar */}
+      <div className={`tournament-sidebar ${showSidebar ? "active" : ""}`}>
         <div className="sidebar-header">
           <h2>Tournament Information</h2>
-          <button className="close-sidebar" onClick={toggleSidebar}>×</button>
+          <button className="close-sidebar" onClick={toggleSidebar}>
+            ×
+          </button>
         </div>
         <div className="sidebar-content">
           <div className="form-group">
@@ -636,7 +699,6 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
               required
             />
           </div>
-          
           <div className="form-group">
             <label htmlFor="tournament-description">Description (optional)</label>
             <textarea
@@ -647,11 +709,10 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
               rows={4}
             />
           </div>
-          
           <div className="form-group privacy-setting">
             <label>Privacy</label>
             <div className="privacy-toggle">
-              <span className={!isPublic ? 'active' : ''}>Private</span>
+              <span className={!isPublic ? "active" : ""}>Private</span>
               <label className="switch">
                 <input
                   type="checkbox"
@@ -660,10 +721,9 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
                 />
                 <span className="slider"></span>
               </label>
-              <span className={isPublic ? 'active' : ''}>Public</span>
+              <span className={isPublic ? "active" : ""}>Public</span>
             </div>
           </div>
-          
           <div className="sidebar-help">
             <h3>Help</h3>
             <ul>
@@ -673,19 +733,12 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
               <li>The tournament ends when a champion is determined</li>
             </ul>
           </div>
-          
-          <button 
-            className="sidebar-save-button" 
-            onClick={handleSaveTournament} 
-            disabled={isSaving || !tournamentName.trim()}
-          >
-            {isSaving ? "Saving..." : "Save Tournament"}
-          </button>
+          {/* Aucun bouton Save dans la sidebar */}
         </div>
       </div>
-      
-      {/* Main tournament content */}
-      <div className={`tournament-main-content ${showSidebar ? 'with-sidebar' : ''}`}>
+  
+      {/* Main Tournament Content */}
+      <div className={`tournament-main-content ${showSidebar ? "with-sidebar" : ""}`}>
         {!tournamentFinished ? (
           <div className="tournament-active">
             <div className="tournament-stats-row">
@@ -702,7 +755,6 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
                 </div>
               </div>
             </div>
-            
             <div className="duel-area">
               <div className="duel-instructions">
                 {displayedImages.length > 0 ? (
@@ -717,15 +769,12 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
                   <p>Setting up next match...</p>
                 )}
               </div>
-              
               <div className="duel-container">
                 <div className="images-group">
                   {displayedImages.map((image) => (
                     <div
                       key={image.id}
-                      className={`image-item ${
-                        selectedImageId === image.id ? "selected" : ""
-                      }`}
+                      className={`image-item ${selectedImageId === image.id ? "selected" : ""}`}
                       onClick={() => selectWinner(image.id)}
                     >
                       <img src={image.src} alt={image.name} />
@@ -735,7 +784,6 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
                     </div>
                   ))}
                 </div>
-                
                 <div className="large-next-button-container">
                   {!duelsCompleted ? (
                     <button
@@ -746,7 +794,7 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
                       Next
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={startNextRound}
                       className="large-next-round-button"
                     >
@@ -756,7 +804,6 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
                 </div>
               </div>
             </div>
-            
             {roundWinners.length > 0 && (
               <div className="winners-section">
                 <h3>Round Winners</h3>
@@ -774,7 +821,6 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
         ) : (
           <div className="tournament-results">
             <h2>Tournament Complete!</h2>
-            
             {winner && (
               <div className="winner-card">
                 <h3>Champion</h3>
@@ -784,58 +830,17 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
                 </div>
               </div>
             )}
-            
             <h3>Final Rankings</h3>
             <div className="rankings-container">
-              {/* Top 3 finishers */}
-              <div className="top-finishers">
-                {Object.entries(getImagesByRoundLost())
-                  .sort((a, b) => Number(a[0]) - Number(b[0])) // Sort by round lost (ascending)
-                  .slice(0, 3)
-                  .flatMap(([roundLost, images]) => 
-                    images.map((image) => {
-                      // Calculate rank (1 for winner, higher numbers for others)
-                      const rank = Number(roundLost) === 0 ? 1 : Number(roundLost) + 1;
-                      return (
-                        <div key={image.id} className={`podium-image rank-${rank <= 3 ? rank : 3}`}>
-                          <div className="rank-number">{rank}</div>
-                          <img src={image.src} alt={image.name} />
-                          <p>{image.name}</p>
-                        </div>
-                      );
-                    })
-                  )
-                }
-              </div>
-              
-              {/* Other finishers in a grid */}
-              <div className="other-finishers">
-                {Object.entries(getImagesByRoundLost())
-                  .sort((a, b) => Number(a[0]) - Number(b[0])) // Sort by round lost (ascending)
-                  .slice(3) // Skip top 3 ranks
-                  .map(([roundLost, images]) => 
-                    images.length > 0 && (
-                      <div key={roundLost} className="ranking-group">
-                        <h4>Round {roundLost} Eliminated</h4>
-                        <div className="ranking-images">
-                          {images.map(image => (
-                            <div key={image.id} className="result-image">
-                              <img src={image.src} alt={image.name} />
-                              <p>{image.name}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )
-                }
-              </div>
+              {/* Insérez ici votre code d'affichage des classements finaux */}
             </div>
+            {/* Le bouton Save n'est plus affiché ici afin de le centraliser dans le header */}
           </div>
         )}
       </div>
     </div>
-  );
-};
+  );  
+  
+}  
 
 export default TournamentEditor;

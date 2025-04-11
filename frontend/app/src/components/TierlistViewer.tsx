@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/TierListEditor.css'; // Réutilisation du CSS existant
@@ -14,13 +15,13 @@ const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
   // États pour les données de tierlist
   const [tierlistName, setTierlistName] = useState<string>("");
   const [tierlistDescription, setTierlistDescription] = useState<string>("");
-  const [tierlist, setTierlist] = useState<any>(null);
+  const [/*tierlist*/, setTierlist] = useState<any>(null);
   const [tierLines, setTierLines] = useState<any[]>([]);
   const [unclassifiedImages, setUnclassifiedImages] = useState<any[]>([]);
-  const [albumId, setAlbumId] = useState<number | null>(null);
+  const [/*albumId*/, setAlbumId] = useState<number | null>(null);
   const [albumName, setAlbumName] = useState<string>("");
   const [authorName, setAuthorName] = useState<string>("");
-  const [isPrivate, setIsPrivate] = useState<boolean>(false);
+  const [/*isPrivate*/, setIsPrivate] = useState<boolean>(false);
   const [isAuthor, setIsAuthor] = useState<boolean>(false);
   
   // États UI

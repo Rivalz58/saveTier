@@ -64,7 +64,10 @@ const TierListEditor: React.FC<TierListEditorProps> = ({ user }) => {
   const [editingTierId, setEditingTierId] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState({ name: '', color: '' });
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [showInfoModal, setShowInfoModal] = useState<boolean>(true);
+  const [showInfoModal, setShowInfoModal] = useState<boolean>(() => {
+    const hasSeenInfoModal = localStorage.getItem('tierListInfoModalShown');
+    return !hasSeenInfoModal;
+  });
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [mainImage, setMainImage] = useState<string | null>(null);
   const [isDropTargetUnclassified, setIsDropTargetUnclassified] = useState<boolean>(false);
@@ -990,6 +993,7 @@ const handleSaveTierlist = async () => {
   // Fermer le modal d'information
   const closeInfoModal = () => {
     setShowInfoModal(false);
+    localStorage.setItem('tierListInfoModalShown', 'true');
   };
 
   // Basculer l'affichage de la barre latérale

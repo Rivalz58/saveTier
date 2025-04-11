@@ -24,10 +24,10 @@ export const getAlbumUsageStats = async (albumId: number): Promise<AlbumUsageSta
     if (!album) return null;
     
     // Variables pour stocker les compteurs
-    let tierlistCount = 0;
-    let tournamentCount = 0;
-    let rankingCount = 0;
-    
+    const tierlistCount = 0;
+    const tournamentCount = 0;
+    const rankingCount = 0;
+    /*
     // Récupérer les tierlists de manière sécurisée
     try {
       const tierlistsResponse = await api.get(`/album/${albumId}/tierlist`);
@@ -56,7 +56,7 @@ export const getAlbumUsageStats = async (albumId: number): Promise<AlbumUsageSta
     } catch (err) {
       console.log(`Impossible de charger les classements pour l'album ${albumId}, utilisation de 0 comme valeur par défaut`);
       // Laisser le compteur à 0 par défaut
-    }
+    }*/
     
     // Calculer le nombre total d'utilisations
     const totalUsageCount = tierlistCount + tournamentCount + rankingCount;

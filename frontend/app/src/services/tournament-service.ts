@@ -50,13 +50,15 @@ export interface ApiResponse<T> {
 // Get album information
 export const getAlbumInfo = async (albumId: string): Promise<{ id: number; name: string }> => {
   try {
+    console.log(`[tournamentService] Récupération des infos de l'album ${albumId}`);
     const response = await api.get<ApiResponse<AlbumInfo>>(`/album/${albumId}`);
+    console.log(`[tournamentService] Infos d'album reçues:`, response.data.data);
     return {
       id: response.data.data.id,
       name: response.data.data.name
     };
   } catch (error) {
-    console.error(`Error fetching album info for album ${albumId}:`, error);
+    console.error(`[tournamentService] Erreur lors de la récupération des infos de l'album ${albumId}:`, error);
     throw error;
   }
 };
@@ -64,49 +66,53 @@ export const getAlbumInfo = async (albumId: string): Promise<{ id: number; name:
 // Get album images
 export const getAlbumImages = async (albumId: string): Promise<TournamentImage[]> => {
   try {
+    console.log(`[tournamentService] Récupération des images de l'album ${albumId}`);
     const response = await api.get<ApiResponse<AlbumInfo>>(`/album/${albumId}`);
     
     if (!response.data.data.image || response.data.data.image.length === 0) {
+      console.warn(`[tournamentService] Aucune image trouvée pour l'album ${albumId}`);
       return [];
     }
     
-    // Convert album images to tournament format
-    return response.data.data.image.map(img => ({
+    const images = response.data.data.image.map(img => ({
       id: img.id.toString(),
       src: img.path_image,
       name: img.name,
       description: img.description,
       url: img.url
     }));
+    console.log(`[tournamentService] Images récupérées:`, images);
+    return images;
   } catch (error) {
-    console.error(`Error fetching album images for album ${albumId}:`, error);
+    console.error(`[tournamentService] Erreur lors de la récupération des images de l'album ${albumId}:`, error);
     throw error;
   }
 };
 
 // Create a new tournament
 export const createTournament = async (tournament: Tournament): Promise<number> => {
-  try {
-    // Ensure all fields are properly formatted
-    const formattedTournament = {
-      name: tournament.name,
-      description: tournament.description === "" ? null : tournament.description,
-      private: Boolean(tournament.private),
-      id_album: Number(tournament.id_album),
-      turn: tournament.turn || 1
-    };
-    
-    console.log('Tournament data to send:', formattedTournament);
-    
-    const response = await api.post<ApiResponse<{ id: number }>>('/tournament', formattedTournament);
-    return response.data.data.id;
-  } catch (error) {
-    console.error('Error creating tournament:', error);
-    throw error;
-  }
-};
-
-// Add tournament images
+    try {
+      // Si tournament.description est null ou une chaîne vide, on envoie ""
+      const formattedTournament = {
+        name: tournament.name,
+        description: tournament.description || "",
+        private: Boolean(tournament.private),
+        id_album: Number(tournament.id_album),
+        turn: tournament.turn || 1
+      };
+      
+      console.log('[tournamentService] Création du tournoi avec les données:', formattedTournament);
+      
+      const response = await api.post<ApiResponse<{ id: number }>>('/tournament', formattedTournament);
+      console.log('[tournamentService] Tournoi créé. Réponse du serveur:', response.data.data);
+      return response.data.data.id;
+    } catch (error) {
+      console.error('[tournamentService] Erreur lors de la création du tournoi:', error);
+      throw error;
+    }
+  };
+  
+// Add tournament image
 export const addTournamentImage = async (
   tournamentId: number,
   imageId: number,
@@ -123,9 +129,11 @@ export const addTournamentImage = async (
       isWinner: Boolean(isWinner)
     };
     
+    console.log(`[tournamentService] Ajout de l'image ${imageId} au tournoi ${tournamentId} avec le payload:`, apiData);
     await api.post('/tournament/image', apiData);
+    console.log(`[tournamentService] Image ${imageId} ajoutée avec succès au tournoi ${tournamentId}`);
   } catch (error) {
-    console.error(`Error adding image ${imageId} to tournament ${tournamentId}:`, error);
+    console.error(`[tournamentService] Erreur lors de l'ajout de l'image ${imageId} au tournoi ${tournamentId}:`, error);
     throw error;
   }
 };
@@ -134,48 +142,54 @@ export const addTournamentImage = async (
 export const saveTournament = async (
   tournamentData: Tournament,
   images: TournamentImage[],
-  winnerId: string | null = null
+  winnerId: string | ""
 ): Promise<number> => {
   try {
-    // 1. Create the tournament
+    console.log(`[tournamentService] Début de la sauvegarde complète du tournoi.`);
+    // 1. Créer le tournoi
     const tournamentId = await createTournament({
       ...tournamentData,
-      turn: images.length // Set turn count to image count
+      turn: images.length // On utilise le nombre d'images pour le turn
     });
+    console.log(`[tournamentService] Tournoi créé avec l'ID ${tournamentId}.`);
     
-    // 2. Add images with their scores
+    // 2. Ajouter chaque image avec son score
     for (let i = 0; i < images.length; i++) {
       const image = images[i];
+      const isWinner = winnerId === image.id;
+      console.log(`[tournamentService] Traitement de l'image ${image.id} (placement ${i + 1}, score ${image.score || 0}, isWinner=${isWinner}).`);
       try {
-        const isWinner = winnerId === image.id;
         await addTournamentImage(
           tournamentId,
           parseInt(image.id),
-          i + 1, // Placement (starting at 1)
+          i + 1, // placement (commence à 1)
           image.score || 0,
           isWinner
         );
       } catch (imgError) {
-        console.error(`Error adding image ${image.id} to tournament:`, imgError);
-        // Continue with other images if one fails
+        console.error(`[tournamentService] Échec lors de l'ajout de l'image ${image.id}. Erreur:`, imgError);
+        // Continuer malgré l'erreur sur cette image
       }
     }
     
-    // 3. If there's a winner, update the tournament
+    // 3. Mettre à jour le tournoi pour enregistrer le vainqueur, si un vainqueur est défini
     if (winnerId) {
+      console.log(`[tournamentService] Mise à jour du tournoi ${tournamentId} avec le vainqueur ${winnerId}.`);
       try {
         await api.put(`/tournament/${tournamentId}`, {
           winner_id: parseInt(winnerId)
         });
+        console.log(`[tournamentService] Vainqueur mis à jour avec succès pour le tournoi ${tournamentId}.`);
       } catch (winnerError) {
-        console.error(`Error setting winner for tournament ${tournamentId}:`, winnerError);
-        // Not critical, continue
+        console.error(`[tournamentService] Erreur lors de la mise à jour du vainqueur pour le tournoi ${tournamentId}:`, winnerError);
+        // Erreur non bloquante : continuer même si la mise à jour échoue
       }
     }
     
+    console.log(`[tournamentService] Sauvegarde complète du tournoi ${tournamentId} terminée avec succès.`);
     return tournamentId;
   } catch (error) {
-    console.error('Error saving complete tournament:', error);
+    console.error('[tournamentService] Erreur lors de la sauvegarde complète du tournoi:', error);
     throw error;
   }
 };
@@ -183,10 +197,11 @@ export const saveTournament = async (
 // Get tournament by ID
 export const getTournamentById = async (id: number): Promise<Tournament> => {
   try {
+    console.log(`[tournamentService] Récupération du tournoi avec l'ID ${id}.`);
     const response = await api.get<ApiResponse<Tournament>>(`/tournament/${id}`);
     return response.data.data;
   } catch (error) {
-    console.error(`Error fetching tournament ${id}:`, error);
+    console.error(`[tournamentService] Erreur lors de la récupération du tournoi ${id}:`, error);
     throw error;
   }
 };
@@ -194,6 +209,7 @@ export const getTournamentById = async (id: number): Promise<Tournament> => {
 // Get tournament images
 export const getTournamentImages = async (tournamentId: number): Promise<TournamentImage[]> => {
   try {
+    console.log(`[tournamentService] Récupération des images pour le tournoi ${tournamentId}.`);
     const response = await api.get<ApiResponse<Array<{
       id: number;
       placement: number;
@@ -209,7 +225,7 @@ export const getTournamentImages = async (tournamentId: number): Promise<Tournam
       }
     }>>>(`/tournament/${tournamentId}/image`);
     
-    return response.data.data.map(item => ({
+    const tournamentImages = response.data.data.map(item => ({
       id: item.id_image.toString(),
       src: item.image.path_image,
       name: item.image.name,
@@ -217,8 +233,10 @@ export const getTournamentImages = async (tournamentId: number): Promise<Tournam
       url: item.image.url,
       score: item.score
     }));
+    console.log(`[tournamentService] Images récupérées pour le tournoi ${tournamentId}:`, tournamentImages);
+    return tournamentImages;
   } catch (error) {
-    console.error(`Error fetching images for tournament ${tournamentId}:`, error);
+    console.error(`[tournamentService] Erreur lors de la récupération des images pour le tournoi ${tournamentId}:`, error);
     throw error;
   }
 };

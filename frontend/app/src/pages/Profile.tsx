@@ -5,7 +5,7 @@ import Modal from "react-modal";
 import "../styles/Profile.css";
 import profil from "../assets/ProfileUser.jpg";
 import CategoryCard from "../components/CategoryCard";
-import AlbumModal from "../components/AlbumModal";
+//import AlbumModal from "../components/AlbumModal";
 import api, { revokeToken, isTokenValid, getCurrentUser } from "../services/api";
 
 Modal.setAppElement("#root");
@@ -48,8 +48,8 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState<AlbumItem | null>(null);
+  //const [modalOpen, setModalOpen] = useState(false);
+  //const [selectedAlbum, setSelectedAlbum] = useState<AlbumItem | null>(null);
   const [memberSince, setMemberSince] = useState<string>("26 mars 2025");
 
   // Rediriger si non connecté
@@ -349,14 +349,14 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
     switch (type) {
       case "Tierlist":
         // Option pour visualiser ou modifier
-        const confirmEdit = window.confirm("Souhaitez-vous modifier cette tierlist ? Cliquez sur Annuler pour simplement la visualiser.");
-        if (confirmEdit) {
+        //const confirmEdit = window.confirm("Souhaitez-vous modifier cette tierlist ? Cliquez sur Annuler pour simplement la visualiser.");
+        //if (confirmEdit) {
           // Rediriger vers l'éditeur
           navigate(`/tierlists/edit/${item.id}`);
-        } else {
+        //} else {
           // Rediriger vers la page de visualisation
-          navigate(`/tierlists/${item.id}`);
-        }
+        //  navigate(`/tierlists/${item.id}`);
+        //}
         break;
       case "Tournoi":
         navigate(`/tournois/${item.id}`);
