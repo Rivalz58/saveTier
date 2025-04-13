@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -154,56 +155,59 @@ function App() {
     <BrowserRouter>
       <TokenExpirationHandler setUser={setUser} setIsAdmin={setIsAdmin} />
       <Navbar user={user} onLogout={handleLogout} isAdmin={isAdmin} />
-      <Routes>
-        <Route path="/" element={<Homepage user={user} />} />
-        <Route path="/login" element={<Login setUser={setUser} updateUserStatus={updateUserStatus} />} />
-        <Route path="/register" element={<Register setUser={setUser} updateUserStatus={updateUserStatus} />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/new-password" element={<NewPassword />} />
-        
-        {/* Routes protégées qui nécessitent une authentification */}
-        <Route 
-          path="/profile" 
-          element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/admin" 
-          element={user && isAdmin ? <Admin user={user} isAdmin={isAdmin} /> : <Navigate to="/" />} 
-        />
-        <Route 
-          path="/add-album" 
-          element={user ? <AddAlbum user={user} /> : <Navigate to="/login" />} 
-        />
-        
-        {/* Nouvelle route pour l'édition d'album */}
-        <Route 
-          path="/album/edit/:id" 
-          element={user ? <AlbumEditor user={user} /> : <Navigate to="/login" />} 
-        />
-        
-        {/* Routes pour les éditeurs de contenu */}
-        <Route path="/setup" element={<SetupItemSelection user={user} />} />
-        <Route path="/tierlists/create/editor" element={<TierListEditor user={user} />} />
-        <Route path="/tournois/create/editor" element={<TournamentEditor user={user} />} />
-        <Route path="/classements/create/editor" element={<RankingEditor user={user} />} />
-        
-        {/* Routes pour visualiser et éditer les contenus existants */}
-        <Route path="/tierlists/edit/:id" element={<TierListEditor user={user} />} />
-        <Route path="/tierlists/:id" element={<TierlistViewer user={user} />} />
-        
-        <Route path="/tournois/edit/:id" element={<TournamentEditor user={user} />} />
-        <Route path="/tournois/:id" element={<TournamentViewer user={user} />} />
-        
-        <Route path="/classements/edit/:id" element={<RankingEditor user={user} />} />
-        <Route path="/classements/:id" element={<RankingViewer user={user} />} />
-        
-        {/* Routes accessibles à tous */}
-        <Route path="/allalbum" element={<AllAlbum user={user} />} />
-        <Route path="/tierlists" element={<Tierlists user={user} />} />
-        <Route path="/tournois" element={<Tournois user={user} />} />
-        <Route path="/classements" element={<Classements user={user} />} />
-      </Routes>
+      <div className="page-content">
+        <Routes>
+          <Route path="/" element={<Homepage user={user} />} />
+          <Route path="/login" element={<Login setUser={setUser} updateUserStatus={updateUserStatus} />} />
+          <Route path="/register" element={<Register setUser={setUser} updateUserStatus={updateUserStatus} />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/new-password" element={<NewPassword />} />
+          
+          {/* Routes protégées qui nécessitent une authentification */}
+          <Route 
+            path="/profile" 
+            element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/admin" 
+            element={user && isAdmin ? <Admin user={user} isAdmin={isAdmin} /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/add-album" 
+            element={user ? <AddAlbum user={user} /> : <Navigate to="/login" />} 
+          />
+          
+          {/* Nouvelle route pour l'édition d'album */}
+          <Route 
+            path="/album/edit/:id" 
+            element={user ? <AlbumEditor user={user} /> : <Navigate to="/login" />} 
+          />
+          
+          {/* Routes pour les éditeurs de contenu */}
+          <Route path="/setup" element={<SetupItemSelection user={user} />} />
+          <Route path="/tierlists/create/editor" element={<TierListEditor user={user} />} />
+          <Route path="/tournois/create/editor" element={<TournamentEditor user={user} />} />
+          <Route path="/classements/create/editor" element={<RankingEditor user={user} />} />
+          
+          {/* Routes pour visualiser et éditer les contenus existants */}
+          <Route path="/tierlists/edit/:id" element={<TierListEditor user={user} />} />
+          <Route path="/tierlists/:id" element={<TierlistViewer user={user} />} />
+          
+          <Route path="/tournois/edit/:id" element={<TournamentEditor user={user} />} />
+          <Route path="/tournois/:id" element={<TournamentViewer user={user} />} />
+          
+          <Route path="/classements/edit/:id" element={<RankingEditor user={user} />} />
+          <Route path="/classements/:id" element={<RankingViewer user={user} />} />
+          
+          {/* Routes accessibles à tous */}
+          <Route path="/allalbum" element={<AllAlbum user={user} />} />
+          <Route path="/tierlists" element={<Tierlists user={user} />} />
+          <Route path="/tournois" element={<Tournois user={user} />} />
+          <Route path="/classements" element={<Classements user={user} />} />
+        </Routes>
+      </div>
+      <Footer />
     </BrowserRouter>
   );
 }

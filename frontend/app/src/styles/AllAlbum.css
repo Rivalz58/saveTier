@@ -1,5 +1,4 @@
-.all-album-container {
-  padding-top: 140px !important; /* Force l'espacement pour ce conteneur */
+.all-album-container {/* Force l'espacement pour ce conteneur */
   max-width: 1400px;
   margin: 0 auto;
   color: #fff;

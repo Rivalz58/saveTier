@@ -2,8 +2,7 @@
 .add-album-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  padding-top: 7%; /* Augmentez cette valeur pour laisser de l'espace pour la navbar */
+  padding: 2rem; /* Augmentez cette valeur pour laisser de l'espace pour la navbar */
 }
 
 .add-album-title {

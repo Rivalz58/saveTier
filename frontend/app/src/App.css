@@ -39,15 +39,21 @@ h1, h2, h3, h4, h5, h6 {
   overflow-x: hidden;
 }
 
+/* Structure de la page pour placer le footer en bas */
+.page-content {
+  min-height: calc(100vh - 140px); /* Hauteur minimale pour pousser le footer en bas */
+  padding-top: 140px; /* Espace pour la navbar */
+  overflow-x: hidden;
+}
+
 /* Pages spécifiques - ajustement de l'espacement */
 .all-album-container,
 .admin-container,
 .profile-container,
 .add-album-container,
 .setup-container,
-.homepage {
-  padding-top: 140px !important; /* Force l'espacement pour ces conteneurs spécifiques */
-  margin-top: 0 !important;
+.homepage { /* Force l'espacement pour ces conteneurs spécifiques */
+  padding-bottom: 80px; /* Ajouter espace en bas pour le footer */
 }
 
 /* Fix common font display issues in Firefox */
@@ -70,14 +76,10 @@ h1, h2, h3, h4, h5, h6 {
     padding-right: 10px;
   }
   
-  .all-album-container,
-  .admin-container,
-  .profile-container,
-  .add-album-container,
-  .setup-container,
-  .homepage {
-    padding-top: 120px !important;
+  .page-content {
+    padding-top: 120px;
   }
+  
 }
 
 /* Chargement de l'application */
