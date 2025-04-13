@@ -602,31 +602,33 @@ const restartTournament = () => {
     
     setIsSaving(true);
     try {
-      // Préparer les données du tournoi (selon votre structure)
+      // Préparer les données du tournoi avec les informations importantes
       const tournamentData = {
         name: tournamentName.trim(),
         description: tournamentDescription || "",
         private: !isPublic,
-        id_album: Number(albumId)
+        id_album: Number(albumId),
+        turn: currentRound + 1 // Ajout du nombre de rounds comme turn
       };
       console.log("Tournament data to save:", tournamentData);
       
-      // Appel à votre service de sauvegarde qui renvoie l'ID du tournoi (ou un résultat)
+      // Ensure we have the most up-to-date information for the winner
+      const winnerImageId = winner ? winner.id : "";
+      
+      // Appel à votre service de sauvegarde qui renvoie l'ID du tournoi
       const tournamentId = await tournamentService.saveTournament(
         tournamentData,
-        allImages,
-        winner ? winner.id : ""
+        allImages,  // Passer toutes les images avec leurs scores
+        winnerImageId
       );
       
       console.log("Tournament saved successfully. Tournament ID:", tournamentId);
       // Mettez à jour l'état pour indiquer que le tournoi a été sauvegardé
       setHasSaved(true);
       
-      // Affichez un message de succès ou mettez à jour une partie de l'UI
+      // Affichez un message de succès
       alert("Tournament saved successfully!");
       
-      // IMPORTANT : PAS de redirection via navigate ici,
-      // on reste sur la même page.
     } catch (error) {
       console.error("Error saving tournament:", error);
       alert("Error saving tournament. Please try again.");
@@ -634,6 +636,7 @@ const restartTournament = () => {
       setIsSaving(false);
     }
   };
+  
   
   
   // Handle cancel button
@@ -644,6 +647,63 @@ const restartTournament = () => {
     }
   };
 
+  const loadTournament = async (tournamentId: string) => {
+    try {
+      // Fetch tournament data
+      const tournamentData = await tournamentService.getTournamentById(Number(tournamentId));
+      
+      // Fetch tournament images with scores
+      const tournamentImages = await tournamentService.getTournamentImages(Number(tournamentId));
+      
+      // Set tournament info
+      setTournamentName(tournamentData.name);
+      setTournamentDescription(tournamentData.description || "");
+      setIsPublic(!tournamentData.private);
+      
+      // Set album ID if available
+      if (tournamentData.id_album) {
+        setAlbumId(tournamentData.id_album.toString());
+        
+        // Get album info if needed
+        try {
+          const albumInfo = await tournamentService.getAlbumInfo(tournamentData.id_album.toString());
+          setAlbumName(albumInfo.name);
+        } catch (albumError) {
+          console.error("Error loading album info:", albumError);
+        }
+      }
+      
+      // Set all images with their scores
+      setAllImages(tournamentImages);
+      
+      // Find and set winner if available
+      if (tournamentData.winner_id) {
+        const winnerImage = tournamentImages.find(img => img.id === tournamentData.winner_id);
+        if (winnerImage) {
+          setWinner(winnerImage);
+        }
+      }
+      
+      // Set tournament to finished state
+      setTournamentFinished(true);
+      
+      // Calculate and set other tournament data
+      const maxRounds = getMaxRounds(tournamentImages.length);
+      setMaxRoundValue(maxRounds);
+      
+      const maxScore = scoreMax(tournamentImages);
+      setCurrentMaxScore(maxScore);
+      setCurrentRound(maxScore); // Set current round to max score
+      
+      // Mark as initialized
+      setIsInitialized(true);
+      
+    } catch (error) {
+      console.error("Error loading tournament:", error);
+      alert("Error loading tournament. Redirecting to album page.");
+      navigate('/allalbum');
+    }
+  };
   // Vérifie si c'est le round final
   const isFinalRound = () => {
     if (!allImages.length) return false;

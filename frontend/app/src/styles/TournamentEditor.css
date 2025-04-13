@@ -17,6 +17,7 @@
     background-color: var(--bg-tertiary);
     padding: 15px;
     border-radius: 8px;
+    margin-top: 140px;
     margin-bottom: 20px;
     box-shadow: 0 4px 10px var(--shadow-color);
     top: 85px;

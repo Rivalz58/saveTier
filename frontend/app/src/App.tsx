@@ -14,15 +14,19 @@ import Classements from "./pages/Classements";
 import SetupItemSelection from "./pages/SetupItemSelection";
 import TierListEditor from "./pages/TierListEditor"; 
 import TournamentEditor from "./pages/TournamentEditor";
+import RankingEditor from "./pages/RankingEditor";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NewPassword from "./pages/NewPassword";
-import AlbumEditor from "./pages/AlbumEditor"; // Importer le nouvel éditeur d'album
+import AlbumEditor from "./pages/AlbumEditor";
 import TokenExpirationHandler from "./components/TokenExpirationHandler";
 import { getCurrentUser, checkIsAdmin, isTokenValid } from "./services/api";
 import "./styles/theme.css";
 import TierlistViewer from './components/TierlistViewer';
+import TournamentViewer from './components/TournamentViewer';
+import RankingViewer from './components/RankingViewer';
 import "./App.css";
+
 function App() {
   const [user, setUser] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -182,12 +186,18 @@ function App() {
         <Route path="/setup" element={<SetupItemSelection user={user} />} />
         <Route path="/tierlists/create/editor" element={<TierListEditor user={user} />} />
         <Route path="/tournois/create/editor" element={<TournamentEditor user={user} />} />
+        <Route path="/classements/create/editor" element={<RankingEditor user={user} />} />
         
-        {/* Nouvelles routes pour visualiser et éditer des tierlists existantes */}
-        <Route path="/tierlists/create/editor" element={<TierListEditor user={user} />} />
-<Route path="/tierlists/edit/:id" element={<TierListEditor user={user} />} />
-<Route path="/tierlists/:id" element={<TierlistViewer user={user} />} />
-
+        {/* Routes pour visualiser et éditer les contenus existants */}
+        <Route path="/tierlists/edit/:id" element={<TierListEditor user={user} />} />
+        <Route path="/tierlists/:id" element={<TierlistViewer user={user} />} />
+        
+        <Route path="/tournois/edit/:id" element={<TournamentEditor user={user} />} />
+        <Route path="/tournois/:id" element={<TournamentViewer user={user} />} />
+        
+        <Route path="/classements/edit/:id" element={<RankingEditor user={user} />} />
+        <Route path="/classements/:id" element={<RankingViewer user={user} />} />
+        
         {/* Routes accessibles à tous */}
         <Route path="/allalbum" element={<AllAlbum user={user} />} />
         <Route path="/tierlists" element={<Tierlists user={user} />} />

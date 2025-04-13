@@ -98,7 +98,8 @@ export const createTournament = async (tournament: Tournament): Promise<number> 
         description: tournament.description || "",
         private: Boolean(tournament.private),
         id_album: Number(tournament.id_album),
-        turn: tournament.turn || 1
+        turn: tournament.turn || 1,
+        winner_id: tournament.winner_id ? Number(tournament.winner_id) : null
       };
       
       console.log('[tournamentService] Création du tournoi avec les données:', formattedTournament);
@@ -112,21 +113,23 @@ export const createTournament = async (tournament: Tournament): Promise<number> 
     }
   };
   
-// Add tournament image
+// Add tournament image - Updated to match API requirements
 export const addTournamentImage = async (
   tournamentId: number,
   imageId: number,
-  placement: number = 0,
-  score: number = 0,
+  place: number = 0,
+  turn: number = 0,
   isWinner: boolean = false
 ): Promise<void> => {
   try {
+    // Match field names to what the API is expecting
     const apiData = {
       id_image: Number(imageId),
       id_tournament: Number(tournamentId),
-      placement: Number(placement),
-      score: Number(score),
-      isWinner: Boolean(isWinner)
+      place: Number(place),       // Changed from placement to place
+      turn: Number(turn),         // Use turn instead of score
+      lose: !isWinner,            // Add lose field as opposite of isWinner
+      disable: false              // Add disable field with default false
     };
     
     console.log(`[tournamentService] Ajout de l'image ${imageId} au tournoi ${tournamentId} avec le payload:`, apiData);
@@ -146,24 +149,36 @@ export const saveTournament = async (
 ): Promise<number> => {
   try {
     console.log(`[tournamentService] Début de la sauvegarde complète du tournoi.`);
-    // 1. Créer le tournoi
+    
+    // Calculate maximum score achieved
+    const maxScore = images.reduce((max, img) => 
+      (img.score !== undefined && img.score > max) ? img.score : max, 0);
+    
+    // 1. Créer le tournoi avec le vainqueur
     const tournamentId = await createTournament({
       ...tournamentData,
-      turn: images.length // On utilise le nombre d'images pour le turn
+      turn: maxScore + 1, // Set turn to max score + 1 (representing rounds)
+      winner_id: winnerId
     });
     console.log(`[tournamentService] Tournoi créé avec l'ID ${tournamentId}.`);
     
-    // 2. Ajouter chaque image avec son score
+    // 2. Ajouter chaque image avec ses statistiques
     for (let i = 0; i < images.length; i++) {
       const image = images[i];
       const isWinner = winnerId === image.id;
-      console.log(`[tournamentService] Traitement de l'image ${image.id} (placement ${i + 1}, score ${image.score || 0}, isWinner=${isWinner}).`);
+      const score = image.score || 0;
+      
+      // Calculate place based on scores - higher scores get lower places (better ranking)
+      // Images with same score get same place
+      const place = images.filter(img => (img.score || 0) > score).length + 1;
+      
+      console.log(`[tournamentService] Traitement de l'image ${image.id} (place ${place}, turn ${score}, isWinner=${isWinner}).`);
       try {
         await addTournamentImage(
           tournamentId,
           parseInt(image.id),
-          i + 1, // placement (commence à 1)
-          image.score || 0,
+          place,                  // Use calculated place for ranking
+          score,                  // Use score as turn (number of rounds survived)
           isWinner
         );
       } catch (imgError) {
@@ -212,8 +227,9 @@ export const getTournamentImages = async (tournamentId: number): Promise<Tournam
     console.log(`[tournamentService] Récupération des images pour le tournoi ${tournamentId}.`);
     const response = await api.get<ApiResponse<Array<{
       id: number;
-      placement: number;
-      score: number;
+      place: number;
+      turn: number;
+      lose: boolean;
       id_image: number;
       id_tournament: number;
       image: {
@@ -231,7 +247,7 @@ export const getTournamentImages = async (tournamentId: number): Promise<Tournam
       name: item.image.name,
       description: item.image.description,
       url: item.image.url,
-      score: item.score
+      score: item.turn  // Map turn to score for compatibility with frontend
     }));
     console.log(`[tournamentService] Images récupérées pour le tournoi ${tournamentId}:`, tournamentImages);
     return tournamentImages;
