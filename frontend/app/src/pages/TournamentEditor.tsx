@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Modal from "react-modal";
 import "../styles/TournamentEditor.css";
 import tournamentService from "../services/tournament-service.ts";
+import ImageDetailsModal from "../components/ImageDetailsModal";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 Modal.setAppElement("#root"); // Necessary for accessibility
 
@@ -45,6 +47,20 @@ const TournamentEditor: React.FC<TournamentEditorProps> = ({ user }) => {
   const [albumId, setAlbumId] = useState<string>("");
   const [albumName, setAlbumName] = useState<string>("");
   const [hasSaved, setHasSaved] = useState(false);
+  const [imageDetailsModalOpen, setImageDetailsModalOpen] = useState<boolean>(false);
+const [selectedImageDetails, setSelectedImageDetails] = useState<TournamentImage | null>(null);
+
+// 3. Ajoutez ces fonctions pour ouvrir et fermer le modal:
+const openImageDetailsModal = (image: TournamentImage) => {
+  setSelectedImageDetails(image);
+  setImageDetailsModalOpen(true);
+};
+
+const closeImageDetailsModal = () => {
+  setImageDetailsModalOpen(false);
+  setSelectedImageDetails(null);
+};
+
   // UI state
   const [showInfoModal, setShowInfoModal] = useState<boolean>(() => {
     const hasSeenInfoModal = localStorage.getItem('tournamentInfoModalShown');
@@ -898,13 +914,19 @@ const restartTournament = () => {
                         {roundTitle}
                       </h4>
                       <div className="images-group">
-                        {images.map(image => (
-                          <div key={image.id} className="result-image">
-                            <img src={image.src} alt={image.name} />
-                            <p>{image.name}</p>
-                          </div>
-                        ))}
-                      </div>
+  {images.map(image => (
+    <div 
+      key={image.id} 
+      className="result-image"
+      onClick={() => openImageDetailsModal(image)}
+      style={{ cursor: 'pointer' }}
+      title="Cliquez pour voir les détails"
+    >
+      <img src={image.src} alt={image.name} />
+      <p>{image.name}</p>
+    </div>
+  ))}
+</div>
                     </div>
                   );
                 })}
@@ -941,20 +963,22 @@ const restartTournament = () => {
                 )}
               </div>
               <div className="duel-container">
-                <div className="images-group">
-                  {displayedImages.map((image) => (
-                    <div
-                      key={image.id}
-                      className={`image-item ${selectedImageId === image.id ? "selected" : ""}`}
-                      onClick={() => selectWinner(image.id)}
-                    >
-                      <img src={image.src} alt={image.name} />
-                      <div className="image-info">
-                        <p className="image-name">{image.name}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="images-group">
+  {displayedImages.map((image) => (
+    <div
+      key={image.id}
+      className={`image-item ${selectedImageId === image.id ? "selected" : ""}`}
+      onClick={() => selectWinner(image.id)}
+      onDoubleClick={() => openImageDetailsModal(image)}
+      title={`${image.name} (Double-cliquez pour voir les détails)`}
+    >
+      <img src={image.src} alt={image.name} />
+      <div className="image-info">
+        <p className="image-name">{image.name}</p>
+      </div>
+    </div>
+  ))}
+</div>
                 <div className="large-next-button-container">
                   {!duelsCompleted ? (
                     <button
@@ -979,18 +1003,29 @@ const restartTournament = () => {
               <div className="winners-section">
                 <h3>Round Winners</h3>
                 <div className="winners-grid">
-                  {roundWinners.map((winner) => (
-                    <div key={winner.id} className="winner-item">
-                      <img src={winner.src} alt={winner.name} />
-                      <p className="winner-name">{winner.name}</p>
-                    </div>
-                  ))}
-                </div>
+  {roundWinners.map((winner) => (
+    <div 
+      key={winner.id} 
+      className="winner-item"
+      onClick={() => openImageDetailsModal(winner)}
+      style={{ cursor: 'pointer' }}
+      title="Cliquez pour voir les détails"
+    >
+      <img src={winner.src} alt={winner.name} />
+      <p className="winner-name">{winner.name}</p>
+    </div>
+  ))}
+</div>
               </div>
             )}
           </div>
         )}
       </div>
+      <ImageDetailsModal
+  isOpen={imageDetailsModalOpen}
+  onClose={closeImageDetailsModal}
+  image={selectedImageDetails}
+/>
     </div>
   );  
 }  

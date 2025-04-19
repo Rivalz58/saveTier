@@ -258,94 +258,87 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   };
 
   // Soumettre le formulaire pour créer l'album et ajouter les images
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+// Soumettre le formulaire pour créer l'album et ajouter les images
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  // Valider le formulaire
+  if (!validateForm()) {
+    // Faire défiler jusqu'aux erreurs
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  
+  try {
+    setIsSubmitting(true);
+    setCurrentProgress(0);
+    setTotalImages(images.length);
     
-    // Valider le formulaire
-    if (!validateForm()) {
-      // Faire défiler jusqu'aux erreurs
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+    // 1. Créer l'album via le service
+    const albumData = {
+      name,
+      status: (isPublic ? "public" : "private") as "public" | "private",
+      description
+    };
+    
+    const albumResponse = await albumService.createAlbum(albumData);
+    
+    if (!albumResponse || !albumResponse.data) {
+      throw new Error("La création de l'album a échoué");
     }
     
-    try {
-      setIsSubmitting(true);
-      setCurrentProgress(0);
-      setTotalImages(images.length);
-      
-      // 1. Créer l'album via le service
-      const albumData = {
-        name,
-        status: (isPublic ? "public" : "private") as "public" | "private",
-        description
-      };
-      
-      const albumResponse = await albumService.createAlbum(albumData);
-      
-      if (!albumResponse || !albumResponse.data) {
-        throw new Error("La création de l'album a échoué");
-      }
-      
-      const albumId = albumResponse.data.id;
-      
-      // 2. Ajouter les images séquentiellement
-      let processedImages = 0;
-      
-      for (const image of images) {
-        try {
-          // Préparer les données pour chaque image
-          const imageData = {
-            file: image.file,
-            name: image.name,
-            description: image.description,
-            url: image.url,
-            id_album: albumId
-          };
-          
-          // Attendre que la requête précédente soit terminée avant d'envoyer la suivante
-          await albumService.addImageToAlbum(imageData);
-        } catch (imageError) {
-          console.error(`Erreur lors de l'ajout de l'image ${image.name}:`, imageError);
-          // Continuer avec les autres images même si une échoue
-        } finally {
-          // Mettre à jour la progression dans tous les cas
-          processedImages++;
-          setCurrentProgress(processedImages);
-        }
-      }
-      
-      // 3. Essayer d'ajouter les catégories à l'album
+    const albumId = albumResponse.data.id;
+    
+    // 2. Ajouter les images séquentiellement
+    let processedImages = 0;
+    
+    for (const image of images) {
       try {
-        // Appel pour récupérer toutes les catégories
-        const allCategories = await albumService.getCategories();
+        // Préparer les données pour chaque image
+        const imageData = {
+          file: image.file,
+          name: image.name,
+          description: image.description,
+          url: image.url,
+          id_album: albumId
+        };
         
-        // Filtrer les IDs des catégories sélectionnées
-        const categoryIds = allCategories
-          .filter(cat => selectedCategories.includes(cat.name))
-          .map(cat => cat.id);
-        
-        // Ajouter les catégories à l'album si des correspondances sont trouvées
-        if (categoryIds.length > 0) {
-          await albumService.addCategoriesToAlbum(albumId, categoryIds);
-        }
-      } catch (categoryError) {
-        console.warn("Erreur lors de l'ajout des catégories:", categoryError);
-        // On continue même si l'ajout des catégories échoue
+        // Attendre que la requête précédente soit terminée avant d'envoyer la suivante
+        await albumService.addImageToAlbum(imageData);
+      } catch (imageError) {
+        console.error(`Erreur lors de l'ajout de l'image ${image.name}:`, imageError);
+        // Continuer avec les autres images même si une échoue
+      } finally {
+        // Mettre à jour la progression dans tous les cas
+        processedImages++;
+        setCurrentProgress(processedImages);
       }
-      
-      // Afficher le message de succès
-      alert("Album créé avec succès !");
-      
-      // Rediriger vers la page d'accueil
-      navigate("/");
-      
-    } catch (error) {
-      console.error("Erreur lors de la création de l'album:", error);
-      alert("Une erreur est survenue lors de la création de l'album. Veuillez réessayer.");
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+    
+    // 3. Essayer d'ajouter les catégories à l'album
+    try {
+      // Utiliser directement les noms des catégories sélectionnées
+      if (selectedCategories.length > 0) {
+        await albumService.addCategoriesToAlbum(albumId, selectedCategories);
+      }
+    } catch (categoryError) {
+      console.warn("Erreur lors de l'ajout des catégories:", categoryError);
+      // On continue même si l'ajout des catégories échoue
+    }
+    
+    // Afficher le message de succès
+    alert("Album créé avec succès !");
+    
+    // Rediriger vers la page d'accueil
+    navigate("/");
+    
+  } catch (error) {
+    console.error("Erreur lors de la création de l'album:", error);
+    alert("Une erreur est survenue lors de la création de l'album. Veuillez réessayer.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Annuler et retourner à la page d'accueil
   const handleCancel = () => {
@@ -448,18 +441,6 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
               )}
             </div>
           </div>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Décrivez votre album..."
-            rows={4}
-            disabled={isSubmitting}
-          />
         </div>
         
         <div className="form-group">

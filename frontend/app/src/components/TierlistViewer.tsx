@@ -3,12 +3,28 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/TierListEditor.css'; // Réutilisation du CSS existant
 import tierlistService from '../services/tierlist-service';
-
+import ImageDetailsModal from "../components/ImageDetailsModal";
 interface TierlistViewerProps {
   user: string | null;
 }
 
 const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
+
+
+  // 2. Ajoutez ces états pour gérer le modal:
+  const [imageDetailsModalOpen, setImageDetailsModalOpen] = useState<boolean>(false);
+  const [selectedImageDetails, setSelectedImageDetails] = useState<AlbumImage | null>(null);
+  
+  // 3. Ajoutez ces fonctions pour ouvrir et fermer le modal:
+  const openImageDetailsModal = (image: AlbumImage) => {
+    setSelectedImageDetails(image);
+    setImageDetailsModalOpen(true);
+  };
+  
+  const closeImageDetailsModal = () => {
+    setImageDetailsModalOpen(false);
+    setSelectedImageDetails(null);
+  };
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   
@@ -197,22 +213,24 @@ const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
             </div>
             
             <div className="tier-content">
-              {tier.images.map((image: any) => (
-                <div
-                  key={image.id}
-                  className="tier-image"
-                  title={image.name}
-                >
-                  <img src={image.src} alt={image.name} />
-                  <div className="image-name">{image.name}</div>
-                </div>
-              ))}
-              {tier.images.length === 0 && (
-                <div className="empty-tier-message">
-                  Aucune image dans ce tier
-                </div>
-              )}
-            </div>
+  {tier.images.map((image: any) => (
+    <div
+      key={image.id}
+      className="tier-image"
+      title={`${image.name} (Cliquez pour voir les détails)`}
+      onClick={() => openImageDetailsModal(image)}
+      style={{ cursor: 'pointer' }}
+    >
+      <img src={image.src} alt={image.name} />
+      <div className="image-name">{image.name}</div>
+    </div>
+  ))}
+  {tier.images.length === 0 && (
+    <div className="empty-tier-message">
+      Aucune image dans ce tier
+    </div>
+  )}
+</div>
           </div>
         ))}
       </div>
@@ -222,19 +240,26 @@ const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
         <div className="unclassified-container">
           <h3>Images non classées</h3>
           <div className="unclassified-images">
-            {unclassifiedImages.map((image: any) => (
-              <div
-                key={image.id}
-                className="tier-image"
-                title={image.name}
-              >
-                <img src={image.src} alt={image.name} />
-                <div className="image-name">{image.name}</div>
-              </div>
-            ))}
-          </div>
+  {unclassifiedImages.map((image: any) => (
+    <div
+      key={image.id}
+      className="tier-image"
+      title={`${image.name} (Cliquez pour voir les détails)`}
+      onClick={() => openImageDetailsModal(image)}
+      style={{ cursor: 'pointer' }}
+    >
+      <img src={image.src} alt={image.name} />
+      <div className="image-name">{image.name}</div>
+    </div>
+  ))}
+</div>
         </div>
       )}
+      <ImageDetailsModal
+  isOpen={imageDetailsModalOpen}
+  onClose={closeImageDetailsModal}
+  image={selectedImageDetails}
+/>
     </div>
   );
 };

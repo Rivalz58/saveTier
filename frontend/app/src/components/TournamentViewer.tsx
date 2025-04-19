@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 //import '../styles/TournamentViewer.css'; // Nous créerons ce fichier de style
 import api from '../services/api';
 import { getAlbumInfoForContent } from '../services/album-api-extended';
+import ImageDetailsModal from "../components/ImageDetailsModal";
 
 interface TournamentViewerProps {
   user: string | null;
@@ -64,7 +65,23 @@ interface TournamentData {
 const TournamentViewer: React.FC<TournamentViewerProps> = ({ user }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [imageDetailsModalOpen, setImageDetailsModalOpen] = useState<boolean>(false);
+const [selectedImageDetails, setSelectedImageDetails] = useState<TournamentImage | null>(null);
+const openImageDetailsModal = (image: TournamentImage) => {
+  // Copier l'image et ajouter la propriété src
+  const adaptedImage = {
+    ...image,
+    src: image.path_image
+  };
   
+  setSelectedImageDetails(adaptedImage);
+  setImageDetailsModalOpen(true);
+};
+
+const closeImageDetailsModal = () => {
+  setImageDetailsModalOpen(false);
+  setSelectedImageDetails(null);
+};
   // États
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -257,9 +274,15 @@ const TournamentViewer: React.FC<TournamentViewerProps> = ({ user }) => {
           <div className="winner-card">
             <h3>Champion</h3>
             <div className="winner-image">
-              <img src={winner.path_image} alt={winner.name} />
-              <p className="winner-name">{winner.name}</p>
-            </div>
+  <img 
+    src={winner.path_image} 
+    alt={winner.name} 
+    onClick={() => openImageDetailsModal(winner)}
+    style={{ cursor: 'pointer' }}
+    title="Cliquez pour voir les détails"
+  />
+  <p className="winner-name">{winner.name}</p>
+</div>
           </div>
         )}
         
@@ -295,18 +318,29 @@ const TournamentViewer: React.FC<TournamentViewerProps> = ({ user }) => {
                     {roundTitle}
                   </h4>
                   <div className="images-group">
-                    {images.map(image => (
-                      <div key={image.id} className="result-image">
-                        <img src={image.path_image} alt={image.name} />
-                        <p>{image.name}</p>
-                      </div>
-                    ))}
-                  </div>
+  {images.map(image => (
+    <div 
+      key={image.id} 
+      className="result-image"
+      onClick={() => openImageDetailsModal(image)}
+      style={{ cursor: 'pointer' }}
+      title="Cliquez pour voir les détails"
+    >
+      <img src={image.path_image} alt={image.name} />
+      <p>{image.name}</p>
+    </div>
+  ))}
+</div>
                 </div>
               );
             })}
         </div>
       </div>
+      <ImageDetailsModal
+  isOpen={imageDetailsModalOpen}
+  onClose={closeImageDetailsModal}
+  image={selectedImageDetails}
+/>
     </div>
   );
 };

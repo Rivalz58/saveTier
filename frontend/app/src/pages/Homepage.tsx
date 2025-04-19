@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import AlbumModal from "../components/AlbumModal";
@@ -9,17 +9,23 @@ interface HomepageProps {
   user: string | null;
 }
 
+const INITIAL_CATEGORIES_TO_SHOW = 2; // Nombre initial de catégories à afficher
+const CATEGORIES_PER_LOAD = 2; // Nombre de catégories à charger à chaque fois
+
 const Homepage: React.FC<HomepageProps> = ({ user }) => {
   const navigate = useNavigate();
-  // État pour gérer la modal
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<AlbumUsageStats | null>(null);
   
   // États pour stocker les données d'albums
   const [popularAlbums, setPopularAlbums] = useState<AlbumUsageStats[]>([]);
-  const [categorySections, setCategorySections] = useState<{title: string, albums: AlbumUsageStats[]}[]>([]);
+  const [allCategorySections, setAllCategorySections] = useState<{title: string, albums: AlbumUsageStats[]}[]>([]);
+  const [visibleCategorySections, setVisibleCategorySections] = useState<{title: string, albums: AlbumUsageStats[]}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Référence pour l'observateur d'intersection
+  const loaderRef = useRef<HTMLDivElement>(null);
 
   // Chargement des données au montage du composant
   useEffect(() => {
@@ -44,7 +50,9 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
             }))
             .filter(section => section.albums.length > 0); // Filtrer les catégories vides
           
-          setCategorySections(sections);
+          setAllCategorySections(sections);
+          // Initialiser avec seulement les premières catégories
+          setVisibleCategorySections(sections.slice(0, INITIAL_CATEGORIES_TO_SHOW));
         } catch (categoryError) {
           console.error("Erreur lors de la récupération des albums par catégorie:", categoryError);
           // Ne pas bloquer l'affichage des albums populaires si les catégories échouent
@@ -60,6 +68,44 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
 
     fetchData();
   }, []);
+
+  // Fonction pour charger plus de catégories
+  const loadMoreCategories = useCallback(() => {
+    setVisibleCategorySections(prev => {
+      const currentLength = prev.length;
+      const nextCategories = allCategorySections.slice(
+        currentLength, 
+        currentLength + CATEGORIES_PER_LOAD
+      );
+      return [...prev, ...nextCategories];
+    });
+  }, [allCategorySections]);
+
+  // Configuration de l'Intersection Observer
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && visibleCategorySections.length < allCategorySections.length) {
+        loadMoreCategories();
+      }
+    }, options);
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
+    };
+  }, [loaderRef, visibleCategorySections.length, allCategorySections.length, loadMoreCategories]);
 
   // Fonction pour naviguer vers AllAlbum avec un filtrage de catégorie
   const navigateToCategory = (category: string | null) => {
@@ -129,8 +175,8 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
         <p className="no-items">Aucun album populaire disponible</p>
       )}
 
-      {/* Sections de catégories */}
-      {categorySections.map((section, index) => (
+      {/* Sections de catégories chargées progressivement */}
+      {visibleCategorySections.map((section, index) => (
         <div key={`section-${section.title}-${index}`}>
           <div className="section-header">
             <h3 className="section-title">{section.title}</h3>
@@ -153,9 +199,17 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
           </div>
         </div>
       ))}
+      
+      {/* Indicateur de chargement pour les catégories supplémentaires */}
+      {visibleCategorySections.length < allCategorySections.length && (
+        <div ref={loaderRef} className="category-loader">
+          <div className="loading-spinner-small"></div>
+          <p>Chargement de plus de catégories...</p>
+        </div>
+      )}
 
       {/* Afficher un message si aucune catégorie n'est disponible */}
-      {popularAlbums.length > 0 && categorySections.length === 0 && (
+      {popularAlbums.length > 0 && allCategorySections.length === 0 && (
         <div className="no-categories-message">
           <p>Aucune catégorie d'album n'est disponible pour le moment.</p>
         </div>

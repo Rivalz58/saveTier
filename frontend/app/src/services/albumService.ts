@@ -91,11 +91,11 @@ export const addImageToAlbum = async (imageData: AddImageRequest): Promise<AddIm
 };
 
 // Fonction pour ajouter des catégories à un album
-export const addCategoriesToAlbum = async (albumId: number, categoryIds: number[]): Promise<unknown> => {
+export const addCategoriesToAlbum = async (albumId: number, categoryNames: string[]): Promise<unknown> => {
   try {
     // On doit faire une requête par catégorie
-    const promises = categoryIds.map(categoryId => 
-      api.post(`/album/${albumId}/category`, { id_category: categoryId })
+    const promises = categoryNames.map(categoryName => 
+      api.post(`/album/${albumId}/category`, { name: categoryName })
     );
     
     // Attendre que toutes les requêtes soient terminées

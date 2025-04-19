@@ -62,7 +62,7 @@ const Login: React.FC<LoginProps> = ({ setUser, updateUserStatus }) => {
       <form onSubmit={handleLogin}>
         <input
           type="text"
-          placeholder="Nom d'utilisateur"
+          placeholder="Nom d'utilisateur ou Email"
           value={nametag}
           onChange={(e) => setNametag(e.target.value)}
           required

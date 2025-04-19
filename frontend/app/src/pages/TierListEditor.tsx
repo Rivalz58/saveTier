@@ -5,6 +5,7 @@ import Modal from 'react-modal';
 import '../styles/TierListEditor.css';
 import tierlistService, { TierlistImage, TierlistLine } from '../services/tierlist-service';
 import { useParams } from 'react-router-dom';
+import ImageDetailsModal from "../components/ImageDetailsModal";
 
 Modal.setAppElement('#root'); // Nécessaire pour l'accessibilité
 
@@ -1073,38 +1074,11 @@ const handleSaveTierlist = async () => {
       )}
       
       {/* Modal pour afficher les détails d'une image */}
-      <Modal
-        isOpen={imageDetailsModalOpen}
-        onRequestClose={closeImageDetailsModal}
-        className="image-details-modal"
-        overlayClassName="image-details-modal-overlay"
-      >
-        {selectedImageDetails && (
-          <div className="image-details">
-            <h2>{selectedImageDetails.name}</h2>
-            <img 
-              src={selectedImageDetails.src} 
-              alt={selectedImageDetails.alt} 
-              className="image-details-preview" 
-            />
-            {selectedImageDetails.description && (
-              <div className="image-description">
-                <h3>Description</h3>
-                <p>{selectedImageDetails.description}</p>
-              </div>
-            )}
-            {selectedImageDetails.url && (
-              <div className="image-url">
-                <h3>URL</h3>
-                <a href={selectedImageDetails.url} target="_blank" rel="noopener noreferrer">
-                  {selectedImageDetails.url}
-                </a>
-              </div>
-            )}
-            <button className="close-details-btn" onClick={closeImageDetailsModal}>Fermer</button>
-          </div>
-        )}
-      </Modal>
+      <ImageDetailsModal
+  isOpen={imageDetailsModalOpen}
+  onClose={closeImageDetailsModal}
+  image={selectedImageDetails}
+/>
 {/* Barre latérale pour les informations détaillées (cachée par défaut) */}
 <div className={`tierlist-sidebar ${showSidebar ? 'active' : ''}`}>
         <div className="sidebar-header">

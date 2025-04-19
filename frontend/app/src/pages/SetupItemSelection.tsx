@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/SetupItemSelection.css";
 import albumAccessService from "../services/albumAccessService.ts";
+import ImageDetailsModal from "../components/ImageDetailsModal";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface SetupItemSelectionProps {
   user: string | null;
@@ -28,6 +30,7 @@ type AlbumData = {
   authorName: string;
 };
 
+
 const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,7 +53,20 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
   // États de chargement et d'erreur
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+  const [imageDetailsModalOpen, setImageDetailsModalOpen] = useState<boolean>(false);
+const [selectedImageDetails, setSelectedImageDetails] = useState<AlbumImage | null>(null);
+
+// 3. Ajoutez ces fonctions pour ouvrir et fermer le modal:
+const openImageDetailsModal = (image: AlbumImage) => {
+  setSelectedImageDetails(image);
+  setImageDetailsModalOpen(true);
+};
+
+const closeImageDetailsModal = () => {
+  setImageDetailsModalOpen(false);
+  setSelectedImageDetails(null);
+};
+
   // Récupérer les paramètres de l'URL et charger les données
   useEffect(() => {
     const loadAlbumData = async () => {
@@ -286,11 +302,17 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
                   className={`setup-image-card ${image.selected ? 'selected' : ''} ${mainImage === image.id ? 'main-image' : ''}`}
                 >
                   <div className="image-container">
-                    <img src={image.src} alt={image.title} />
-                    {mainImage === image.id && (
-                      <div className="main-image-badge">Image principale</div>
-                    )}
-                  </div>
+  <img 
+    src={image.src} 
+    alt={image.title} 
+    onClick={() => openImageDetailsModal(image)}
+    style={{ cursor: 'pointer' }}
+    title="Cliquez pour voir les détails"
+  />
+  {mainImage === image.id && (
+    <div className="main-image-badge">Image principale</div>
+  )}
+</div>
                   <div className="image-title" title={image.description || ""}>{image.title}</div>
                   <div className="image-actions">
                     <button 
@@ -313,6 +335,11 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
           )}
         </div>
       </div>
+      <ImageDetailsModal
+  isOpen={imageDetailsModalOpen}
+  onClose={closeImageDetailsModal}
+  image={selectedImageDetails}
+/>
     </div>
   );
 };
