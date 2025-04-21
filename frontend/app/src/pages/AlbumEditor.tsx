@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "../styles/AlbumEditor.css";
+import albumService, { AddImageRequest, AddImageResponse } from "../services/albumService";
 import ImageEditModal from "../components/ImageEditModal";
 
 interface AlbumEditorProps {
@@ -31,7 +32,7 @@ interface Album {
   author: {
     id: number;
     username: string;
-    nametag: string; // Ajout du champ nametag
+    nametag: string;
   };
   image: Image[];
 }
@@ -106,7 +107,6 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
   useEffect(() => {
     if (album && user) {
       // Si l'utilisateur n'est pas l'auteur, rediriger vers la page de profil
-      // Modifié pour comparer avec le nametag au lieu du username
       console.log("Comparing author:", album.author);
       console.log("Current user:", user);
       
@@ -193,66 +193,82 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
 
   // Handle image selection for edit
   const handleEditImage = (image: Image) => {
-    // Create a fake File object from the image URL
-    fetch(image.path_image)
-      .then(res => res.blob())
-      .then(blob => {
-        const file = new File([blob], `image-${image.id}.jpg`, { type: 'image/jpeg' });
-        
-        setSelectedImage({
-          id: image.id.toString(),
-          file: file,
-          previewUrl: image.path_image,
-          name: image.name,
-          description: image.description || "",
-          url: image.url || ""
-        });
-        
-        setIsImageModalOpen(true);
-      })
-      .catch(err => {
-        console.error("Error preparing image for edit:", err);
-        alert("Could not prepare image for editing. Please try again.");
-      });
+    // Comme nous ne pouvons pas récupérer directement l'image à cause de CORS,
+    // nous allons simplement utiliser un objet File vide mais conserver tous les métadonnées
+    const file = new File([], image.name, { type: 'image/jpeg' });
+    
+    setSelectedImage({
+      id: image.id.toString(),
+      file: file,
+      previewUrl: image.path_image,
+      name: image.name,
+      description: image.description || "",
+      url: image.url || ""
+    });
+    
+    setIsImageModalOpen(true);
   };
 
   // Handle image update
-  const handleUpdateImage = async (updatedImage: any) => {
-    if (!updatedImage.id) return;
+// Modifiez la fonction handleUpdateImage dans AlbumEditor.tsx
+
+// Dans AlbumEditor.tsx, modifiez la fonction handleUpdateImage
+
+const handleUpdateImage = async (updatedImage: any) => {
+  if (!updatedImage.id) return;
+  
+  try {
+    // Créer un objet de base avec les champs obligatoires
+    const apiPayload: any = {
+      name: updatedImage.name,
+      description: updatedImage.description || ""
+    };
     
-    try {
-      // We can only update name, description, and URL (not the image file itself)
-      await api.put(`/image/${updatedImage.id}`, {
-        name: updatedImage.name,
-        description: updatedImage.description || null,
-        url: updatedImage.url || null
-      });
-      
-      // Update local album state
-      setAlbum(prev => {
-        if (!prev) return null;
-        
-        return {
-          ...prev,
-          image: prev.image.map(img => 
-            img.id.toString() === updatedImage.id 
-              ? {
-                  ...img,
-                  name: updatedImage.name,
-                  description: updatedImage.description || null,
-                  url: updatedImage.url || null
-                }
-              : img
-          )
-        };
-      });
-      
-      alert("Image updated successfully");
-    } catch (error) {
-      console.error("Error updating image:", error);
-      alert("Failed to update image. Please try again.");
+    // N'ajouter l'URL que si elle n'est pas vide ET qu'elle est valide
+    if (updatedImage.url && updatedImage.url.trim() !== "") {
+      // Vérifier si l'URL est valide en utilisant une regex simple pour URL
+      const urlPattern = /^(https?:\/\/)(www\.)?[a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
+      if (urlPattern.test(updatedImage.url)) {
+        apiPayload.url = updatedImage.url;
+      } else {
+        // Si l'URL est invalide mais non vide, afficher un message d'erreur
+        alert("L'URL fournie n'est pas valide. Le champ URL sera ignoré.");
+        // Continuer la mise à jour sans le champ URL
+      }
     }
-  };
+    // Si l'URL est vide, ne pas l'inclure du tout dans la requête
+    
+    console.log("Données envoyées à l'API:", apiPayload);
+    
+    // Envoi de la requête
+    const response = await api.put(`/image/${updatedImage.id}`, apiPayload);
+    
+    // Mise à jour locale après succès
+    setAlbum(prev => {
+      if (!prev) return null;
+      
+      return {
+        ...prev,
+        image: prev.image.map(img => 
+          img.id.toString() === updatedImage.id 
+            ? {
+                ...img,
+                name: updatedImage.name,
+                description: updatedImage.description || "",
+                // Conserver l'URL locale uniquement si elle est valide
+                url: apiPayload.url || null
+              }
+            : img
+        )
+      };
+    });
+    
+    alert("Image updated successfully");
+  } catch (error) {
+    console.error("Error updating image:", error);
+    alert("Failed to update image. Please try again.");
+  }
+};
 
   // Handle image deletion
   const handleConfirmImageDelete = async () => {
@@ -294,58 +310,69 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
     }
   };
 
-  // Handle image upload
+  
+
+  // …
+  
   const handleUploadImages = async () => {
     if (newImages.length === 0 || !album) return;
-    
+  
     setUploading(true);
     setUploadProgress(0);
-    
+  
     const totalImages = newImages.length;
     let successCount = 0;
-    
+  
     for (let i = 0; i < totalImages; i++) {
       try {
-        const formData = new FormData();
-        formData.append('file', newImages[i]);
-        formData.append('name', newImages[i].name.split('.')[0]); // Use filename without extension as name
-        formData.append('id_album', album.id.toString());
-        
-        // Upload the image
-        const response = await api.post('/image', formData);
-        
-        if (response.data && response.data.data) {
-          // Add the new image to the album locally
-          setAlbum(prev => {
-            if (!prev) return null;
-            
-            return {
-              ...prev,
-              image: [...prev.image, response.data.data]
-            };
-          });
-          
-          successCount++;
-        }
+        const file = newImages[i];
+        const baseName = file.name.split(".")[0];
+  
+        // Exemple si vous gériez description/url pour chaque File
+        // const desc = descriptions[i]; 
+        // const link = urls[i];
+  
+        // Construire l'objet sans jamais mettre de null
+        const imageData: AddImageRequest = {
+          file,
+          name: baseName,
+          id_album: album.id,
+          // n’ajoutez description que si ce n’est pas undefined et pas vide
+          // ...(desc ? { description: desc } : {}),
+          // n’ajoutez url que si ce n’est pas undefined et pas vide
+          // ...(link ? { url: link } : {}),
+        };
+  
+        const result: AddImageResponse = await albumService.addImageToAlbum(imageData);
+  
+        // Mettre à jour l’état local
+        setAlbum(prev =>
+          prev
+            ? { ...prev, image: [...prev.image, result.data] }
+            : prev
+        );
+        successCount++;
       } catch (error) {
-        console.error(`Error uploading image ${i + 1}:`, error);
+        console.error(`Erreur lors de l’upload de l’image ${i + 1}:`, error);
+      } finally {
+        setUploadProgress(Math.round(((i + 1) / totalImages) * 100));
       }
-      
-      // Update progress
-      setUploadProgress(Math.round(((i + 1) / totalImages) * 100));
     }
-    
+  
     setUploading(false);
     setNewImages([]);
-    
+  
+    // Message à l’utilisateur
     if (successCount === 0) {
-      alert("Failed to upload images. Please try again.");
+      alert("Échec de l'upload de toutes les images. Veuillez réessayer.");
     } else if (successCount < totalImages) {
-      alert(`Uploaded ${successCount} out of ${totalImages} images.`);
+      alert(`Upload partiel : ${successCount} sur ${totalImages} images reçues.`);
     } else {
-      alert("All images uploaded successfully!");
+      alert("Toutes les images ont été uploadées avec succès !");
     }
   };
+  
+  
 
   // If loading
   if (loading) {
@@ -416,7 +443,7 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
               {album.name}
               <button 
                 onClick={() => setIsNameEditing(true)} 
-                className="edit-button"
+                className="edit-info-button"
                 title="Edit album name"
               >
                 ✎
