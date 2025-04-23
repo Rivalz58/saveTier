@@ -113,11 +113,21 @@ const AdminUserManagement: React.FC = () => {
   const handleToggleStatus = async (user: User) => {
     try {
       setIsActionLoading(true);
-      const newStatus = user.status === 'active' ? 'quarantined' : 'active';
       
-      await api.put(`/user/${user.id}`, {
+      // Utiliser "desactive" au lieu de "quarantined" pour correspondre à l'API
+      const newStatus = user.status === 'active' ? 'desactive' : 'active';
+      
+      console.log(`Tentative de modification du statut pour l'utilisateur ${user.id}:`, {
+        ancienStatut: user.status,
+        nouveauStatut: newStatus
+      });
+      
+      // Envoyer la requête à l'API
+      const response = await api.put(`/user/${user.id}`, {
         status: newStatus
       });
+      
+      console.log('Réponse de l\'API pour changement de statut:', response.data);
       
       // Mettre à jour l'état local
       setUsers(users.map(u => 
@@ -127,6 +137,7 @@ const AdminUserManagement: React.FC = () => {
       alert(`Le statut de l'utilisateur ${user.username} a été modifié avec succès.`);
     } catch (err) {
       console.error('Erreur lors de la modification du statut de l\'utilisateur:', err);
+
       alert('Une erreur est survenue lors de la modification du statut.');
     } finally {
       setIsActionLoading(false);
@@ -180,9 +191,16 @@ const AdminUserManagement: React.FC = () => {
         return;
       }
       
+      console.log(`Tentative d'ajout du rôle ${roleId} pour l'utilisateur ${user.id}`, {
+        userId: user.id,
+        roleId: roleId,
+        endpoint: `/user/${user.id}/role/${roleId}`
+      });
+      
       try {
         // Faire l'appel API
-        await api.post(`/user/${user.id}/role/${roleId}`);
+        const response = await api.post(`/user/${user.id}/role/${roleId}`);
+        console.log('Réponse API pour ajout de rôle:', response.data);
         
         // Mettre à jour l'état local en cas de succès
         setUsers(users.map(u => {
@@ -198,6 +216,7 @@ const AdminUserManagement: React.FC = () => {
         alert(`Le rôle a été ajouté à l'utilisateur ${user.username} avec succès.`);
       } catch (apiError) {
         console.error('Erreur lors de l\'ajout du rôle:', apiError);
+        
         
         // Message indiquant que l'opération a peut-être réussi malgré l'erreur
         alert(`Une erreur s'est produite, mais le rôle a peut-être été ajouté. Nous actualisons la liste des utilisateurs.`);
@@ -226,8 +245,15 @@ const AdminUserManagement: React.FC = () => {
     try {
       setIsActionLoading(true);
       
+      console.log(`Tentative de suppression du rôle ${roleId} pour l'utilisateur ${user.id}`, {
+        userId: user.id,
+        roleId: roleId,
+        endpoint: `/user/${user.id}/role/${roleId}`
+      });
+      
       try {
-        await api.delete(`/user/${user.id}/role/${roleId}`);
+        const response = await api.delete(`/user/${user.id}/role/${roleId}`);
+        console.log('Réponse API pour suppression de rôle:', response.data);
         
         // Mettre à jour l'état local
         setUsers(users.map(u => {
@@ -243,6 +269,9 @@ const AdminUserManagement: React.FC = () => {
         alert(`Le rôle a été retiré de l'utilisateur ${user.username} avec succès.`);
       } catch (apiError) {
         console.error('Erreur lors de la suppression du rôle:', apiError);
+        
+        // Enregistrer les détails de l'erreur
+
         
         // Message indiquant que l'opération a peut-être réussi malgré l'erreur
         alert(`Une erreur s'est produite, mais le rôle a peut-être été retiré. Nous actualisons la liste des utilisateurs.`);
@@ -321,7 +350,7 @@ const AdminUserManagement: React.FC = () => {
           >
             <option value="all">Tous les statuts</option>
             <option value="active">Actifs</option>
-            <option value="quarantined">En quarantaine</option>
+            <option value="desactive">Désactivés</option>
           </select>
           
           <select 
@@ -378,7 +407,7 @@ const AdminUserManagement: React.FC = () => {
                 <td>{new Date(user.last_connection).toLocaleDateString()}</td>
                 <td>
                   <span className={`status-badge ${user.status}`}>
-                    {user.status === "active" ? "Actif" : "En quarantaine"}
+                    {user.status === "active" ? "Actif" : "Désactivé"}
                   </span>
                 </td>
                 <td>
@@ -412,7 +441,7 @@ const AdminUserManagement: React.FC = () => {
                     onClick={() => openConfirmationModal('quarantine', user)}
                     disabled={isActionLoading}
                   >
-                    {user.status === "quarantined" ? "Réactiver" : "Quarantaine"}
+                    {user.status === "desactive" ? "Réactiver" : "Désactiver"}
                   </button>
                   <button
                     className="admin-action-btn delete"
@@ -435,7 +464,7 @@ const AdminUserManagement: React.FC = () => {
             <h2>Confirmation</h2>
             {modalAction === 'quarantine' && (
               <p>
-                Êtes-vous sûr de vouloir {selectedUser?.status === 'quarantined' ? 'réactiver' : 'mettre en quarantaine'} l'utilisateur <strong>{selectedUser?.username}</strong> ?
+                Êtes-vous sûr de vouloir {selectedUser?.status === 'desactive' ? 'réactiver' : 'désactiver'} l'utilisateur <strong>{selectedUser?.username}</strong> ?
               </p>
             )}
             {modalAction === 'delete' && (

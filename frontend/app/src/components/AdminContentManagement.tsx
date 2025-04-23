@@ -126,7 +126,9 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
         const searchLower = searchQuery.toLowerCase();
         const matchesSearch = item.name.toLowerCase().includes(searchLower) || 
                           item.creator.toLowerCase().includes(searchLower) ||
-                          item.albumName.toLowerCase().includes(searchLower);
+                          item.albumName.toLowerCase().includes(searchLower) ||
+                          item.id.includes(searchLower) ||
+                          item.albumId.includes(searchLower);
         
         // Filtre de statut
         const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
@@ -241,7 +243,7 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
         <div className="admin-search-container">
           <input
             type="text"
-            placeholder={`Rechercher un ${contentTypeName.toLowerCase()}...`}
+            placeholder={`Rechercher un ${contentTypeName.toLowerCase()} par nom, créateur, album ou ID...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="admin-search"
@@ -292,7 +294,7 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
               <th>ID</th>
               <th>Nom</th>
               <th>Créateur</th>
-              <th>Album</th>
+              <th>Album (ID)</th>
               <th>Catégories</th>
               <th>Date de création</th>
               <th>Statut</th>
@@ -305,7 +307,10 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
                 <td className="id-cell">{item.id}</td>
                 <td title={item.description}>{item.name}</td>
                 <td>{item.creator}</td>
-                <td>{item.albumName}</td>
+                <td>
+                  {item.albumName} 
+                  <span className="album-id">#{item.albumId}</span>
+                </td>
                 <td>{renderCategoryTags(item.categories)}</td>
                 <td>{new Date(item.created).toLocaleDateString()}</td>
                 <td>

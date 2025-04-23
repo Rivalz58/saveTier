@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import "../styles/AlbumEditor.css";
 import albumService, { AddImageRequest, AddImageResponse } from "../services/albumService";
@@ -7,6 +9,7 @@ import ImageEditModal from "../components/ImageEditModal";
 
 interface AlbumEditorProps {
   user: string | null;
+  isAdmin?: boolean;
 }
 
 interface Image {
@@ -46,9 +49,13 @@ interface ImageToEdit {
   url: string;
 }
 
-const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
+const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Determine if we're coming from admin panel based on location.state or path
+  const isFromAdmin = Boolean(location.state?.fromAdmin) || isAdmin || location.pathname.includes('admin');
 
   // Album state
   const [album, setAlbum] = useState<Album | null>(null);
@@ -103,9 +110,9 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
     fetchAlbum();
   }, [id, user, navigate]);
 
-  // Check if user is the album owner
+  // Check if user is the album owner (skip check if admin)
   useEffect(() => {
-    if (album && user) {
+    if (album && user && !isAdmin && !isFromAdmin) {
       // Si l'utilisateur n'est pas l'auteur, rediriger vers la page de profil
       console.log("Comparing author:", album.author);
       console.log("Current user:", user);
@@ -116,7 +123,7 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
         navigate("/profile");
       }
     }
-  }, [album, user, navigate]);
+  }, [album, user, navigate, isAdmin, isFromAdmin]);
 
   // Handle album name update
   const handleUpdateAlbumName = async () => {
@@ -181,7 +188,11 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
     try {
       await api.delete(`/album/${album.id}`);
       alert("Album deleted successfully");
-      navigate("/profile");
+      if (isFromAdmin) {
+        navigate("/admin", { state: { activeTab: "albums" } });
+      } else {
+        navigate("/profile");
+      }
     } catch (error) {
       console.error("Error deleting album:", error);
       alert("Failed to delete album. Please try again.");
@@ -210,69 +221,73 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user }) => {
   };
 
   // Handle image update
-// Modifiez la fonction handleUpdateImage dans AlbumEditor.tsx
-
-// Dans AlbumEditor.tsx, modifiez la fonction handleUpdateImage
-
-const handleUpdateImage = async (updatedImage: any) => {
-  if (!updatedImage.id) return;
-  
-  try {
-    // Créer un objet de base avec les champs obligatoires
-    const apiPayload: any = {
-      name: updatedImage.name,
-      description: updatedImage.description || ""
-    };
+  const handleUpdateImage = async (updatedImage: any) => {
+    if (!updatedImage.id) return;
     
-    // N'ajouter l'URL que si elle n'est pas vide ET qu'elle est valide
-    if (updatedImage.url && updatedImage.url.trim() !== "") {
-      // Vérifier si l'URL est valide en utilisant une regex simple pour URL
-      const urlPattern = /^(https?:\/\/)(www\.)?[a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
-      if (urlPattern.test(updatedImage.url)) {
-        apiPayload.url = updatedImage.url;
-      } else {
-        // Si l'URL est invalide mais non vide, afficher un message d'erreur
-        alert("L'URL fournie n'est pas valide. Le champ URL sera ignoré.");
-        // Continuer la mise à jour sans le champ URL
-      }
-    }
-    // Si l'URL est vide, ne pas l'inclure du tout dans la requête
-    
-    console.log("Données envoyées à l'API:", apiPayload);
-    
-    // Envoi de la requête
-    const response = await api.put(`/image/${updatedImage.id}`, apiPayload);
-    
-    // Mise à jour locale après succès
-    setAlbum(prev => {
-      if (!prev) return null;
-      
-      return {
-        ...prev,
-        image: prev.image.map(img => 
-          img.id.toString() === updatedImage.id 
-            ? {
-                ...img,
-                name: updatedImage.name,
-                description: updatedImage.description || "",
-                // Conserver l'URL locale uniquement si elle est valide
-                url: apiPayload.url || null
-              }
-            : img
-        )
+    try {
+      // Créer un objet de base avec les champs obligatoires
+      const apiPayload: any = {
+        name: updatedImage.name,
+        description: updatedImage.description || ""
       };
-    });
-    
-    alert("Image updated successfully");
-  } catch (error) {
-    console.error("Error updating image:", error);
-    alert("Failed to update image. Please try again.");
-  }
-};
+      
+      // N'ajouter l'URL que si elle n'est pas vide ET qu'elle est valide
+      if (updatedImage.url && updatedImage.url.trim() !== "") {
+        // Vérifier si l'URL est valide en utilisant une regex simple pour URL
+        const urlPattern = /^(https?:\/\/)(www\.)?[a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)$/;
+        if (urlPattern.test(updatedImage.url)) {
+          apiPayload.url = updatedImage.url;
+        } else {
+          // Si l'URL est invalide mais non vide, afficher un message d'erreur
+          alert("L'URL fournie n'est pas valide. Le champ URL sera ignoré.");
+          // Continuer la mise à jour sans le champ URL
+        }
+      }
+      // Si l'URL est vide, ne pas l'inclure du tout dans la requête
+      
+      console.log("Données envoyées à l'API:", apiPayload);
+      
+      // Envoi de la requête
+      const response = await api.put(`/image/${updatedImage.id}`, apiPayload);
+      
+      // Mise à jour locale après succès
+      setAlbum(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          image: prev.image.map(img => 
+            img.id.toString() === updatedImage.id 
+              ? {
+                  ...img,
+                  name: updatedImage.name,
+                  description: updatedImage.description || "",
+                  // Conserver l'URL locale uniquement si elle est valide
+                  url: apiPayload.url || null
+                }
+              : img
+          )
+        };
+      });
+      
+      alert("Image updated successfully");
+    } catch (error) {
+      console.error("Error updating image:", error);
+      alert("Failed to update image. Please try again.");
+    }
+  };
 
   // Handle image deletion
   const handleConfirmImageDelete = async () => {
-    if (!imageToDelete) return;
+    if (!imageToDelete || !album) return;
+    
+    // Vérifier si c'est la dernière image de l'album
+    if (album.image.length <= 1) {
+      alert("Impossible de supprimer la dernière image de l'album. Un album doit contenir au moins une image.");
+      setShowImageDeleteModal(false);
+      setImageToDelete(null);
+      return;
+    }
     
     try {
       await api.delete(`/image/${imageToDelete.id}`);
@@ -299,6 +314,12 @@ const handleUpdateImage = async (updatedImage: any) => {
 
   // Handle opening delete image modal
   const openDeleteImageModal = (image: Image) => {
+    // Vérifier s'il ne reste qu'une seule image
+    if (album && album.image.length <= 1) {
+      alert("Impossible de supprimer la dernière image de l'album. Un album doit contenir au moins une image.");
+      return;
+    }
+    
     setImageToDelete(image);
     setShowImageDeleteModal(true);
   };
@@ -310,10 +331,7 @@ const handleUpdateImage = async (updatedImage: any) => {
     }
   };
 
-  
-
-  // …
-  
+  // Handle upload images
   const handleUploadImages = async () => {
     if (newImages.length === 0 || !album) return;
   
@@ -326,26 +344,23 @@ const handleUpdateImage = async (updatedImage: any) => {
     for (let i = 0; i < totalImages; i++) {
       try {
         const file = newImages[i];
-        const baseName = file.name.split(".")[0];
+        let baseName = file.name.split(".")[0];
+        
+        // Limiter le nom à 32 caractères maximum pour respecter la contrainte de l'API
+        if (baseName.length > 32) {
+          baseName = baseName.substring(0, 32);
+        }
   
-        // Exemple si vous gériez description/url pour chaque File
-        // const desc = descriptions[i]; 
-        // const link = urls[i];
-  
-        // Construire l'objet sans jamais mettre de null
+        // Construire l'objet de données
         const imageData: AddImageRequest = {
           file,
           name: baseName,
-          id_album: album.id,
-          // n’ajoutez description que si ce n’est pas undefined et pas vide
-          // ...(desc ? { description: desc } : {}),
-          // n’ajoutez url que si ce n’est pas undefined et pas vide
-          // ...(link ? { url: link } : {}),
+          id_album: album.id
         };
   
-        const result: AddImageResponse = await albumService.addImageToAlbum(imageData);
+        const result = await albumService.addImageToAlbum(imageData);
   
-        // Mettre à jour l’état local
+        // Mettre à jour l'état local
         setAlbum(prev =>
           prev
             ? { ...prev, image: [...prev.image, result.data] }
@@ -353,7 +368,7 @@ const handleUpdateImage = async (updatedImage: any) => {
         );
         successCount++;
       } catch (error) {
-        console.error(`Erreur lors de l’upload de l’image ${i + 1}:`, error);
+        console.error(`Erreur lors de l'upload de l'image ${i + 1}:`, error);
       } finally {
         setUploadProgress(Math.round(((i + 1) / totalImages) * 100));
       }
@@ -362,7 +377,7 @@ const handleUpdateImage = async (updatedImage: any) => {
     setUploading(false);
     setNewImages([]);
   
-    // Message à l’utilisateur
+    // Message à l'utilisateur
     if (successCount === 0) {
       alert("Échec de l'upload de toutes les images. Veuillez réessayer.");
     } else if (successCount < totalImages) {
@@ -371,8 +386,17 @@ const handleUpdateImage = async (updatedImage: any) => {
       alert("Toutes les images ont été uploadées avec succès !");
     }
   };
-  
-  
+
+  // Handle navigation back
+  const handleNavigateBack = () => {
+    if (isFromAdmin) {
+      // Return to admin panel if coming from there
+      navigate("/admin", { state: { activeTab: "albums" } });
+    } else {
+      // Return to profile otherwise
+      navigate("/profile");
+    }
+  };
 
   // If loading
   if (loading) {
@@ -393,8 +417,8 @@ const handleUpdateImage = async (updatedImage: any) => {
         <div className="error-message">
           <h2>Error</h2>
           <p>{error}</p>
-          <button onClick={() => navigate("/profile")} className="primary-button">
-            Return to Profile
+          <button onClick={handleNavigateBack} className="primary-button">
+            {isFromAdmin ? "Return to Admin Panel" : "Return to Profile"}
           </button>
         </div>
       </div>
@@ -408,8 +432,8 @@ const handleUpdateImage = async (updatedImage: any) => {
         <div className="error-message">
           <h2>Album Not Found</h2>
           <p>The album you're looking for doesn't exist or you don't have permission to view it.</p>
-          <button onClick={() => navigate("/profile")} className="primary-button">
-            Return to Profile
+          <button onClick={handleNavigateBack} className="primary-button">
+            {isFromAdmin ? "Return to Admin Panel" : "Return to Profile"}
           </button>
         </div>
       </div>
@@ -469,8 +493,8 @@ const handleUpdateImage = async (updatedImage: any) => {
         </div>
         
         <div className="album-actions">
-          <button onClick={() => navigate(`/profile`)} className="back-button">
-            Back to Profile
+          <button onClick={handleNavigateBack} className="back-button">
+            {isFromAdmin ? "Back to Admin Panel" : "Back to Profile"}
           </button>
           <button onClick={() => setShowDeleteModal(true)} className="delete-button">
             Delete Album

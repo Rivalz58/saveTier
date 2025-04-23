@@ -62,19 +62,28 @@ export const addImageToAlbum = async (imageData: AddImageRequest): Promise<AddIm
   try {
     // Créer un FormData pour l'envoi de fichier
     const formData = new FormData();
+    
     formData.append('file', imageData.file);
     formData.append('name', imageData.name);
     
     // Ajouter les champs optionnels s'ils sont définis
     if (imageData.description) {
       formData.append('description', imageData.description);
+    } else {
+      console.log("Le champ description n'est pas défini");
     }
     
     if (imageData.url) {
       formData.append('url', imageData.url);
+    } else {
+      console.log("Le champ url n'est pas défini");
     }
     
     formData.append('id_album', imageData.id_album.toString());
+    
+    for (const pair of formData.entries()) {
+      console.log(pair[0], ':', pair[1]);
+    }
     
     // Envoyer la requête
     const response = await api.post<AddImageResponse>('/image', formData, {
@@ -86,6 +95,7 @@ export const addImageToAlbum = async (imageData: AddImageRequest): Promise<AddIm
     return response.data;
   } catch (error) {
     console.error('Erreur lors de l\'ajout de l\'image:', error);
+    
     throw error;
   }
 };

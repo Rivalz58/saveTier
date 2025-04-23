@@ -169,16 +169,25 @@ function App() {
             path="/profile" 
             element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/login" />} 
           />
+          
+          {/* Routes pour l'administration */}
           <Route 
             path="/admin" 
             element={user && isAdmin ? <Admin user={user} isAdmin={isAdmin} /> : <Navigate to="/" />} 
           />
+          
+          {/* Route pour l'édition d'album depuis le panneau d'administration */}
+          <Route 
+            path="/admin/album/edit/:id" 
+            element={user && isAdmin ? <AlbumEditor user={user} isAdmin={isAdmin} /> : <Navigate to="/" />} 
+          />
+          
           <Route 
             path="/add-album" 
             element={user ? <AddAlbum user={user} /> : <Navigate to="/login" />} 
           />
           
-          {/* Nouvelle route pour l'édition d'album */}
+          {/* Route pour l'édition d'album depuis le profil utilisateur */}
           <Route 
             path="/album/edit/:id" 
             element={user ? <AlbumEditor user={user} /> : <Navigate to="/login" />} 

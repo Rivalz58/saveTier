@@ -26,16 +26,6 @@ const Footer: React.FC = () => {
           </ul>
         </div>
         
-        <div className="footer-section account">
-          <h3>Compte</h3>
-          <ul>
-            <li><Link to="/login">Connexion</Link></li>
-            <li><Link to="/register">Inscription</Link></li>
-            <li><Link to="/profile">Mon profil</Link></li>
-            <li><Link to="/add-album">Créer un album</Link></li>
-          </ul>
-        </div>
-        
         <div className="footer-section contact">
           <h3>Contact</h3>
           <p>Des questions ou suggestions ?</p>

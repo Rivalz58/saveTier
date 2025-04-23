@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import '../styles/Admin.css';
 import CategoryCard from '../components/CategoryCard';
@@ -57,6 +58,7 @@ interface StatsCache {
 }
 
 const AdminAlbumManagement: React.FC = () => {
+  const navigate = useNavigate();
   const [albums, setAlbums] = useState<AlbumFormatted[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +74,11 @@ const AdminAlbumManagement: React.FC = () => {
   const [modalAction, setModalAction] = useState<'status' | 'delete'>('status');
   const [selectedAlbum, setSelectedAlbum] = useState<AlbumFormatted | null>(null);
   const [newStatus, setNewStatus] = useState<'public' | 'private' | 'quarantined'>('public');
+
+  // Gérer la navigation vers l'éditeur d'album
+  const handleEditAlbum = (albumId: string) => {
+    navigate(`/album/edit/${albumId}`, { state: { fromAdmin: true } });
+  };
 
   // Formatter les données des albums
   const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
@@ -218,7 +225,8 @@ const AdminAlbumManagement: React.FC = () => {
         // Filtre de recherche
         const searchLower = searchQuery.toLowerCase();
         const matchesSearch = album.name.toLowerCase().includes(searchLower) || 
-                          album.creator.toLowerCase().includes(searchLower);
+                          album.creator.toLowerCase().includes(searchLower) ||
+                          album.id.includes(searchLower);
         
         // Filtre de statut
         const matchesStatus = statusFilter === 'all' || album.status === statusFilter;
@@ -337,12 +345,12 @@ const AdminAlbumManagement: React.FC = () => {
   }
 
   return (
-    <div className="admin-content">
+    <div className="admin-table-container">
       <div className="admin-toolbar">
         <div className="admin-search-container">
           <input
             type="text"
-            placeholder="Rechercher un album..."
+            placeholder="Rechercher un album par nom, créateur ou ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="admin-search"
@@ -389,54 +397,78 @@ const AdminAlbumManagement: React.FC = () => {
           <p>Aucun album ne correspond à votre recherche</p>
         </div>
       ) : (
-        <>
-          <h3 className="admin-section-title">Albums ({filteredAlbums.length})</h3>
-          <div className="admin-albums-grid">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Miniature</th>
+              <th>Nom</th>
+              <th>Créateur</th>
+              <th>Catégories</th>
+              <th>Nb Images</th>
+              <th>Utilisations</th>
+              <th>Date de création</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
             {filteredAlbums.map((album) => (
-              <div key={album.id} className="admin-album-card">
-                <div className="album-id-badge">{album.id}</div>
-                <CategoryCard name={album.name} image={album.image} />
-                <div className="admin-album-overlay">
-                  <div className="album-overlay-header">
-                    <span className={`status-badge ${album.status}`}>
-                      {album.status === "public"
-                        ? "Public"
-                        : album.status === "private"
-                        ? "Privé"
-                        : "En quarantaine"}
+              <tr key={album.id}>
+                <td className="id-cell">{album.id}</td>
+                <td>
+                  <div className="admin-album-thumbnail">
+                    <img src={album.image} alt={album.name} width="50" height="50" />
+                  </div>
+                </td>
+                <td>{album.name}</td>
+                <td>{album.creator}</td>
+                <td>{renderCategoryTags(album.categories)}</td>
+                <td>{album.itemCount}</td>
+                <td>
+                  <div className="usage-stats">
+                    <span className="usage-total">{usageStats[album.id]?.total || 0}</span>
+                    <span className="usage-details">
+                      (T: {usageStats[album.id]?.tierlists || 0}, 
+                      To: {usageStats[album.id]?.tournaments || 0}, 
+                      C: {usageStats[album.id]?.rankings || 0})
                     </span>
                   </div>
-                  <div className="album-overlay-info">
-                    <p><strong>Créateur:</strong> {album.creator}</p>
-                    <p><strong>Catégories:</strong></p>
-                    {renderCategoryTags(album.categories)}
-                    <p><strong>Images:</strong> {album.itemCount}</p>
-                    <p><strong>Utilisations:</strong> {usageStats[album.id]?.total || 0}</p>
-                    <p><strong>Détails:</strong></p>
-                    <p>Tierlists: {usageStats[album.id]?.tierlists || 0}</p>
-                    <p>Tournois: {usageStats[album.id]?.tournaments || 0}</p>
-                    <p>Classements: {usageStats[album.id]?.rankings || 0}</p>
-                    <p><strong>Créé le:</strong> {new Date(album.created).toLocaleDateString()}</p>
-                  </div>
-                  <div className="admin-album-actions">
-                    <button
-                      className="admin-action-btn delete"
-                      onClick={() => openDeleteModal(album)}
-                    >
-                      Supprimer
-                    </button>
-                    <button
-                      className="admin-action-btn status"
-                      onClick={() => openStatusModal(album)}
-                    >
-                      Changer le statut
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </td>
+                <td>{new Date(album.created).toLocaleDateString()}</td>
+                <td>
+                  <span className={`status-badge ${album.status}`}>
+                    {album.status === "public"
+                      ? "Public"
+                      : album.status === "private"
+                      ? "Privé"
+                      : "En quarantaine"}
+                  </span>
+                </td>
+                <td className="actions-cell">
+                  <button
+                    className="admin-action-btn edit"
+                    onClick={() => handleEditAlbum(album.id)}
+                  >
+                    Éditer
+                  </button>
+                  <button
+                    className="admin-action-btn status"
+                    onClick={() => openStatusModal(album)}
+                  >
+                    Changer statut
+                  </button>
+                  <button
+                    className="admin-action-btn delete"
+                    onClick={() => openDeleteModal(album)}
+                  >
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
             ))}
-          </div>
-        </>
+          </tbody>
+        </table>
       )}
       
       {/* Modal de confirmation */}
