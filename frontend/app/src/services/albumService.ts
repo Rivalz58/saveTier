@@ -1,5 +1,4 @@
-import api from './api';
-
+import api, { isTokenValid } from './api';
 // Interface pour créer un nouvel album
 export interface CreateAlbumRequest {
   name: string;
@@ -58,8 +57,14 @@ export const createAlbum = async (albumData: CreateAlbumRequest): Promise<Create
 };
 
 // Fonction pour ajouter une image à un album
+// Fonction pour ajouter une image à un album
 export const addImageToAlbum = async (imageData: AddImageRequest): Promise<AddImageResponse> => {
   try {
+    // Vérifier si le token est valide avant de tenter l'upload
+    if (!isTokenValid()) {
+      throw new Error("Session expirée - Impossible d'ajouter l'image");
+    }
+    
     // Créer un FormData pour l'envoi de fichier
     const formData = new FormData();
     
@@ -69,34 +74,36 @@ export const addImageToAlbum = async (imageData: AddImageRequest): Promise<AddIm
     // Ajouter les champs optionnels s'ils sont définis
     if (imageData.description) {
       formData.append('description', imageData.description);
-    } else {
-      console.log("Le champ description n'est pas défini");
     }
     
     if (imageData.url) {
       formData.append('url', imageData.url);
-    } else {
-      console.log("Le champ url n'est pas défini");
     }
     
     formData.append('id_album', imageData.id_album.toString());
     
-    for (const pair of formData.entries()) {
-      console.log(pair[0], ':', pair[1]);
-    }
-    
-    // Envoyer la requête
+    // Envoyer la requête avec un timeout plus long pour les grands fichiers
     const response = await api.post<AddImageResponse>('/image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      timeout: 60000 // Timeout de 60 secondes pour les uploads
     });
     
     return response.data;
-  } catch (error) {
-    console.error('Erreur lors de l\'ajout de l\'image:', error);
-    
-    throw error;
+  } catch (error: any) {
+    // Amélioration de la gestion des erreurs
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      // Erreur d'authentification
+      throw new Error("Session expirée pendant l'upload. Veuillez vous reconnecter.");
+    } else if (error.code === 'ECONNABORTED') {
+      // Timeout
+      throw new Error("L'upload a pris trop de temps et a été interrompu. Veuillez réessayer avec une image plus petite.");
+    } else {
+      // Autres erreurs
+      console.error('Erreur lors de l\'ajout de l\'image:', error);
+      throw error;
+    }
   }
 };
 

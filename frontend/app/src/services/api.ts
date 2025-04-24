@@ -17,6 +17,7 @@ api.interceptors.request.use((config) => {
 });
 
 // Intercepteur pour gérer les erreurs d'authentification
+// Intercepteur pour gérer les erreurs d'authentification
 api.interceptors.response.use(
   (response) => {
     return response;

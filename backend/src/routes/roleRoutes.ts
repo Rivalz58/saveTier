@@ -73,22 +73,22 @@ export async function roleRoutes(fastify: FastifyInstance) {
         roleController.addRole,
     );
 
-    // fastify.post(
-    //     "/user/:param/role/:param2",
-    //     {
-    //         schema: {
-    //             response: {
-    //                 201: z.object({
-    //                     status: z.string(),
-    //                     message: z.string(),
-    //                     data: roleSchemas.SOutputRole,
-    //                 }),
-    //             },
-    //         },
-    //         onRequest: [isAuthenticate, isAllowed(["Admin"])],
-    //     },
-    //     roleController.addUserRole,
-    // );
+    fastify.post(
+        "/user/:param/role/:param2",
+        {
+            // schema: {
+            //     response: {
+            //         201: z.object({
+            //             status: z.string(),
+            //             message: z.string(),
+            //             data: roleSchemas.SOutputRole,
+            //         }),
+            //     },
+            // },
+            onRequest: [isAuthenticate, isAllowed(["Admin"])],
+        },
+        roleController.addUserRole,
+    );
 
     fastify.put(
         "/role/:param",

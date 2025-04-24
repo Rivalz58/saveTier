@@ -73,15 +73,15 @@ export async function categoryRoutes(fastify: FastifyInstance) {
     fastify.post(
         "/album/:param/category",
         {
-            schema: {
-                response: {
-                    201: z.object({
-                        status: z.string(),
-                        message: z.string(),
-                        data: categorySchemas.SOutputCategory,
-                    }),
-                },
-            },
+            // schema: {
+            //     response: {
+            //         201: z.object({
+            //             status: z.string(),
+            //             message: z.string(),
+            //             data: categorySchemas.SOutputCategory,
+            //         }),
+            //     },
+            // },
             onRequest: [isAuthenticate, isAllowed(["Admin"])],
         },
         categoryController.addAlbumCategory,
