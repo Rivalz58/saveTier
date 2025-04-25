@@ -82,7 +82,7 @@ export async function categoryRoutes(fastify: FastifyInstance) {
             //         }),
             //     },
             // },
-            onRequest: [isAuthenticate, isAllowed(["Admin"])],
+            onRequest: [isAuthenticate, isAllowed(["User"])],
         },
         categoryController.addAlbumCategory,
     );

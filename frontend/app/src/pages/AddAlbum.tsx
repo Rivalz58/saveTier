@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AddAlbum.css";
 import ImageEditModal from "../components/ImageEditModal";
-import albumService from "../services/albumService";
+import albumService, { ProcessImageResult } from "../services/albumService";
+import imageService from "../services/imageService";
 
 interface AddAlbumProps {
   user: string | null;
@@ -17,6 +18,8 @@ interface UploadedImage {
   description: string;
   url: string;
   isEditingName: boolean;
+  status?: 'pending' | 'processing' | 'success' | 'error';
+  errorMessage?: string;
 }
 
 // Constante pour la limite de caractères du nom d'image
@@ -38,6 +41,15 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentProgress, setCurrentProgress] = useState(0);
   const [totalImages, setTotalImages] = useState(0);
+  const [uploadResults, setUploadResults] = useState<{
+    successful: number;
+    failed: number;
+    failedImages: {name: string, reason: string}[];
+  }>({
+    successful: 0,
+    failed: 0,
+    failedImages: []
+  });
   
   // États pour le modal d'édition d'image
   const [selectedImage, setSelectedImage] = useState<UploadedImage | null>(null);
@@ -47,6 +59,9 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const [availableCategories, setAvailableCategories] = useState<string[]>([
     "Films", "Animation", "Manga", "Jeux Vidéo", "Musique", "Sport", "Autres"
   ]);
+
+  // État pour le chargement du modèle NSFW
+  const [isNSFWModelLoaded, setIsNSFWModelLoaded] = useState(false);
 
   // Redirection si non connecté
   useEffect(() => {
@@ -65,8 +80,20 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         // Garder les catégories par défaut en cas d'erreur
       }
     };
+
+    // Charger le modèle NSFW
+    const loadNSFWModel = async () => {
+      try {
+        await imageService.loadNSFWModel();
+        setIsNSFWModelLoaded(true);
+        console.log("Modèle NSFW chargé avec succès");
+      } catch (error) {
+        console.warn("Impossible de charger le modèle NSFW:", error);
+      }
+    };
     
     loadCategories();
+    loadNSFWModel();
   }, [user, navigate]);
 
   // Fonction utilitaire : extraire le nom du fichier sans l'extension
@@ -105,7 +132,8 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         name: formatFileName(file.name),
         description: "",
         url: "",
-        isEditingName: false
+        isEditingName: false,
+        status: 'pending'
       }));
       
       setImages(prev => [...prev, ...newImages]);
@@ -146,7 +174,8 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         name: formatFileName(file.name),
         description: "",
         url: "",
-        isEditingName: false
+        isEditingName: false,
+        status: 'pending'
       }));
       
       setImages(prev => [...prev, ...newImages]);
@@ -258,97 +287,227 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
     return errors.length === 0;
   };
 
-  // Soumettre le formulaire pour créer l'album et ajouter les images
-// Soumettre le formulaire pour créer l'album et ajouter les images
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  // Valider le formulaire
-  if (!validateForm()) {
-    // Faire défiler jusqu'aux erreurs
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-  
-  try {
-    setIsSubmitting(true);
-    setCurrentProgress(0);
-    setTotalImages(images.length);
-    
-    // 1. Créer l'album via le service
-    const albumData = {
-      name,
-      status: (isPublic ? "public" : "private") as "public" | "private",
-      description
-    };
-    
-    const albumResponse = await albumService.createAlbum(albumData);
-    
-    if (!albumResponse || !albumResponse.data) {
-      throw new Error("La création de l'album a échoué");
-    }
-    
-    const albumId = albumResponse.data.id;
-    
-    // 2. Ajouter les images séquentiellement
-    let processedImages = 0;
-    
-    for (const image of images) {
-      try {
-        // Préparer les données pour chaque image
-        const imageData = {
-          file: image.file,
-          name: image.name,
-          description: image.description,
-          url: image.url,
-          id_album: albumId
-        };
-        
-        // Attendre que la requête précédente soit terminée avant d'envoyer la suivante
-        await albumService.addImageToAlbum(imageData);
-      } catch (imageError) {
-        console.error(`Erreur lors de l'ajout de l'image ${image.name}:`, imageError);
-        // Continuer avec les autres images même si une échoue
-      } finally {
-        // Mettre à jour la progression dans tous les cas
-        processedImages++;
-        setCurrentProgress(processedImages);
-      }
-    }
-    
-    // 3. Essayer d'ajouter les catégories à l'album
+  // Traiter une image pour l'upload
+  const processAndUploadImage = async (
+    image: UploadedImage, 
+    index: number, 
+    albumId: number
+  ): Promise<{success: boolean, errorMessage?: string}> => {
     try {
-      // Utiliser directement les noms des catégories sélectionnées
-      if (selectedCategories.length > 0) {
-        await albumService.addCategoriesToAlbum(albumId, selectedCategories);
+      // Mettre à jour le statut de l'image
+      setImages(prev => 
+        prev.map((img, i) => 
+          i === index 
+            ? { ...img, status: 'processing' } 
+            : img
+        )
+      );
+
+      // Traiter l'image (vérification NSFW, compression, etc.)
+      const processResult = await albumService.processImageBeforeUpload(image.file, index);
+
+      if (!processResult.success || !processResult.file) {
+        // Mettre à jour le statut de l'image avec l'erreur
+        setImages(prev => 
+          prev.map((img, i) => 
+            i === index 
+              ? { ...img, status: 'error', errorMessage: processResult.errorMessage } 
+              : img
+          )
+        );
+
+        return { 
+          success: false, 
+          errorMessage: processResult.errorMessage || "Erreur lors du traitement de l'image" 
+        };
       }
-    } catch (categoryError) {
-      console.warn("Erreur lors de l'ajout des catégories:", categoryError);
-      // On continue même si l'ajout des catégories échoue
+
+      // Préparer les données pour l'upload
+      const imageData = {
+        file: processResult.file,
+        name: image.name,
+        description: image.description,
+        url: image.url,
+        id_album: albumId
+      };
+
+      // Uploader l'image
+      await albumService.addImageToAlbum(imageData);
+
+      // Mettre à jour le statut de l'image
+      setImages(prev => 
+        prev.map((img, i) => 
+          i === index 
+            ? { ...img, status: 'success' } 
+            : img
+        )
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      const errorMessage = error.message || "Erreur lors de l'upload de l'image";
+      
+      // Mettre à jour le statut de l'image avec l'erreur
+      setImages(prev => 
+        prev.map((img, i) => 
+          i === index 
+            ? { ...img, status: 'error', errorMessage } 
+            : img
+        )
+      );
+
+      return { success: false, errorMessage };
+    } finally {
+      // Incrémenter le compteur de progression
+      setCurrentProgress(prev => prev + 1);
+    }
+  };
+
+  // Soumettre le formulaire pour créer l'album et ajouter les images
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Valider le formulaire
+    if (!validateForm()) {
+      // Faire défiler jusqu'aux erreurs
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
     
-    // Afficher le message de succès
-    alert("Album créé avec succès !");
-    
-    // Rediriger vers la page d'accueil
-    navigate("/");
-    
-  } catch (error) {
-    console.error("Erreur lors de la création de l'album:", error);
-    alert("Une erreur est survenue lors de la création de l'album. Veuillez réessayer.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      setIsSubmitting(true);
+      setCurrentProgress(0);
+      setTotalImages(images.length);
+      setUploadResults({
+        successful: 0,
+        failed: 0,
+        failedImages: []
+      });
+      
+      // 1. Créer l'album via le service
+      const albumData = {
+        name,
+        status: (isPublic ? "public" : "private") as "public" | "private",
+        description
+      };
+      
+      const albumResponse = await albumService.createAlbum(albumData);
+      
+      if (!albumResponse || !albumResponse.data) {
+        throw new Error("La création de l'album a échoué");
+      }
+      
+      const albumId = albumResponse.data.id;
+      
+      // 2. Ajouter les images par lots pour limiter la charge
+      const batchSize = 3; // Traiter 3 images simultanément
+      let successful = 0;
+      let failed = 0;
+      const failedImages: {name: string, reason: string}[] = [];
+      
+      // Traiter les images par lots
+      for (let i = 0; i < images.length; i += batchSize) {
+        const batch = images.slice(i, i + batchSize);
+        const batchPromises = batch.map((image, batchIndex) => 
+          processAndUploadImage(image, i + batchIndex, albumId)
+        );
+        
+        // Attendre que le lot soit traité
+        const batchResults = await Promise.all(batchPromises);
+        
+        // Comptabiliser les résultats
+        batchResults.forEach((result, index) => {
+          if (result.success) {
+            successful++;
+          } else {
+            failed++;
+            failedImages.push({
+              name: batch[index].name,
+              reason: result.errorMessage || "Erreur inconnue"
+            });
+          }
+        });
+        
+        // Mettre à jour les résultats en temps réel
+        setUploadResults({
+          successful,
+          failed,
+          failedImages
+        });
+      }
+      
+      // 3. Essayer d'ajouter les catégories à l'album
+      try {
+        if (selectedCategories.length > 0) {
+          await albumService.addCategoriesToAlbum(albumId, selectedCategories);
+        }
+      } catch (categoryError) {
+        console.warn("Erreur lors de l'ajout des catégories:", categoryError);
+        // On continue même si l'ajout des catégories échoue
+      }
+      
+      // 4. Déterminer le message de fin basé sur les résultats
+      let finalMessage = "";
+      if (successful > 0 && failed === 0) {
+        finalMessage = `Album créé avec succès ! ${successful} image${successful > 1 ? 's' : ''} ajoutée${successful > 1 ? 's' : ''}.`;
+      } else if (successful > 0 && failed > 0) {
+        finalMessage = `Album créé avec ${successful} image${successful > 1 ? 's' : ''} mais ${failed} image${failed > 1 ? 's ont' : ' a'} échoué.`;
+      } else if (successful === 0 && failed > 0) {
+        finalMessage = `L'album a été créé mais aucune image n'a pu être ajoutée.`;
+      }
+      
+      // Afficher le message de fin
+      alert(finalMessage);
+      
+      // Redirection vers la page d'accueil seulement si des images ont été ajoutées
+      if (successful > 0) {
+        navigate("/");
+      }
+      
+    } catch (error) {
+      console.error("Erreur lors de la création de l'album:", error);
+      alert("Une erreur est survenue lors de la création de l'album. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Annuler et retourner à la page d'accueil
   const handleCancel = () => {
     // Nettoyer les URL des images avant de quitter
-    images.forEach(image => {
+    images.forEach((image) => {
       URL.revokeObjectURL(image.previewUrl);
     });
-    
+
     navigate("/");
+  };
+
+  // Obtenir la couleur du statut de l'image
+  const getStatusColor = (status?: string): string => {
+    switch (status) {
+      case 'processing':
+        return '#e6a700'; // Orange
+      case 'success':
+        return '#00a65a'; // Vert
+      case 'error':
+        return '#dd4b39'; // Rouge
+      default:
+        return 'transparent';
+    }
+  };
+
+  // Obtenir l'icône du statut de l'image
+  const getStatusIcon = (status?: string): string => {
+    switch (status) {
+      case 'processing':
+        return '⏳'; // Sablier
+      case 'success':
+        return '✓'; // Coche
+      case 'error':
+        return '✗'; // Croix
+      default:
+        return '';
+    }
   };
 
   if (!user) {
@@ -374,13 +533,44 @@ const handleSubmit = async (e: React.FormEvent) => {
       {/* Barre de progression pendant la soumission */}
       {isSubmitting && (
         <div className="submission-progress">
-          <p>Création de l'album en cours... ({currentProgress}/{totalImages} images)</p>
+          <p>
+            Création de l'album en cours... ({currentProgress}/{totalImages}{" "}
+            images)
+          </p>
           <div className="progress-bar-container">
-            <div 
-              className="progress-bar" 
+            <div
+              className="progress-bar"
               style={{ width: `${(currentProgress / totalImages) * 100}%` }}
             ></div>
           </div>
+          
+          {/* Affichage des résultats en temps réel */}
+          {(uploadResults.successful > 0 || uploadResults.failed > 0) && (
+            <div className="upload-results">
+              <p>
+                <span className="success-count">{uploadResults.successful} réussie{uploadResults.successful > 1 ? 's' : ''}</span>
+                {uploadResults.failed > 0 && (
+                  <span className="failed-count"> • {uploadResults.failed} échouée{uploadResults.failed > 1 ? 's' : ''}</span>
+                )}
+              </p>
+              
+              {/* Liste des images échouées */}
+              {uploadResults.failedImages.length > 0 && (
+                <div className="failed-images">
+                  <details>
+                    <summary>Voir les images échouées</summary>
+                    <ul>
+                      {uploadResults.failedImages.map((img, idx) => (
+                        <li key={idx}>
+                          <strong>{img.name}</strong>: {img.reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       
@@ -445,6 +635,18 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
         
         <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Décrivez votre album..."
+            rows={4}
+            disabled={isSubmitting}
+          />
+        </div>
+        
+        <div className="form-group">
           <label>Images</label>
           <div 
             className={`drop-zone ${isDragging ? 'active' : ''}`}
@@ -499,12 +701,26 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div className="image-previews">
               {images.map((image, index) => (
                 <div key={index} className="preview-container">
-                  <img 
-                    src={image.previewUrl} 
-                    alt={`Preview ${index + 1}`} 
-                    className="image-preview" 
-                  />
+                  {/* Indicateur de statut */}
+                  {image.status && (
+                    <div 
+                      className="image-status" 
+                      style={{
+                        backgroundColor: getStatusColor(image.status),
+                        display: image.status !== 'pending' ? 'flex' : 'none'
+                      }}
+                      title={image.errorMessage || ''}
+                    >
+                      {getStatusIcon(image.status)}
+                    </div>
+                  )}
                   
+                  <img
+                    src={image.previewUrl}
+                    alt={`Preview ${index + 1}`}
+                    className="image-preview"
+                  />
+
                   {/* Nom modifiable de l'image */}
                   <div className="image-name-container">
                     {image.isEditingName ? (
@@ -513,34 +729,45 @@ const handleSubmit = async (e: React.FormEvent) => {
                         value={image.name}
                         onChange={(e) => updateImageName(index, e.target.value)}
                         onBlur={() => finishEditingImageName(index)}
-                        onKeyDown={(e) => e.key === 'Enter' && finishEditingImageName(index)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && finishEditingImageName(index)
+                        }
                         autoFocus
                         className="image-name-input"
                         maxLength={IMAGE_NAME_MAX_LENGTH}
                         disabled={isSubmitting}
                       />
                     ) : (
-                      <div 
-                        className="image-name" 
-                        onClick={() => !isSubmitting && startEditingImageName(index)}
+                      <div
+                        className="image-name"
+                        onClick={() =>
+                          !isSubmitting && startEditingImageName(index)
+                        }
                         title="Cliquez pour modifier le nom"
                       >
                         {image.name || "Cliquez pour nommer cette image"}
                       </div>
                     )}
+                    
+                    {/* Message d'erreur éventuel */}
+                    {image.status === 'error' && image.errorMessage && (
+                      <div className="image-error-message">
+                        {image.errorMessage}
+                      </div>
+                    )}
                   </div>
-                  
-                  <button 
-                    type="button" 
+
+                  <button
+                    type="button"
                     className="remove-image"
                     onClick={() => !isSubmitting && removeImage(index)}
                     disabled={isSubmitting}
                   >
                     ×
                   </button>
-                  
-                  <button 
-                    type="button" 
+
+                  <button
+                    type="button"
                     className="edit-image-name"
                     onClick={() => !isSubmitting && openImageEditModal(index)}
                     title="Modifier les détails"

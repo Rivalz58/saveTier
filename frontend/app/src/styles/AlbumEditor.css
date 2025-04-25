@@ -1,4 +1,3 @@
-
 /* Styles spécifiques pour l'éditeur d'album */
 .album-editor-container {
   max-width: 1400px;
@@ -101,7 +100,7 @@
   color: var(--text-secondary);
 }
 
-.upload-button {
+.upload-button, .upload-actions button {
   background-color: var(--primary-color);
   color: white;
   border: none;
@@ -112,14 +111,29 @@
   transition: all 0.3s ease;
 }
 
-.upload-button:hover:not(:disabled) {
+.upload-button:hover:not(:disabled), .upload-actions button:hover:not(:disabled) {
   background-color: var(--primary-hover);
   transform: translateY(-2px);
 }
 
-.upload-button:disabled {
+.upload-button:disabled, .upload-actions button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.upload-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-upload-button {
+  background-color: var(--bg-input) !important;
+  color: var(--text-color) !important;
+}
+
+.cancel-upload-button:hover:not(:disabled) {
+  background-color: var(--error-color) !important;
+  color: white !important;
 }
 
 /* Barre de progression */
@@ -434,6 +448,12 @@ input:checked + .slider:before {
   transform: translateY(-2px);
 }
 
+.confirm-delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* États de chargement et d'erreur */
 .loading-container, 
 .error-message {
@@ -480,6 +500,123 @@ input:checked + .slider:before {
   background-color: var(--primary-hover);
 }
 
+/* Styles pour les aperçus d'images en cours d'upload */
+.uploading-images-preview {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.uploading-image-item {
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 2px 5px var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.image-status-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 12px;
+  z-index: 5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.uploading-image-item .image-preview {
+  height: 140px;
+}
+
+.image-details {
+  padding: 10px;
+}
+
+.image-name {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-progress-bar {
+  height: 4px;
+  background-color: var(--bg-input);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.image-progress {
+  height: 100%;
+  background-color: var(--primary-color);
+  transition: width 0.3s;
+}
+
+.error-message {
+  color: var(--error-color);
+  font-size: 0.8rem;
+  margin: 5px 0 0 0;
+}
+
+/* Résultats d'upload */
+.upload-results-summary {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.success-count {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.failed-count {
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+.failed-images-list {
+  margin-top: 10px;
+}
+
+.failed-images-list summary {
+  cursor: pointer;
+  color: var(--error-color);
+  font-weight: 500;
+  margin-bottom: 5px;
+  outline: none;
+}
+
+.failed-images-list summary:hover {
+  text-decoration: underline;
+}
+
+.failed-images-list ul {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+  color: var(--text-color);
+}
+
+.failed-images-list li {
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
   .album-editor-header {
@@ -495,13 +632,17 @@ input:checked + .slider:before {
   .images-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
+
+  .uploading-images-preview {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
   
   .file-upload {
     flex-direction: column;
     align-items: flex-start;
   }
   
-  .file-upload-label, .upload-button {
+  .file-upload-label, .upload-button, .upload-actions button {
     width: 100%;
     text-align: center;
   }
@@ -514,6 +655,10 @@ input:checked + .slider:before {
 
 @media (max-width: 480px) {
   .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .uploading-images-preview {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
   

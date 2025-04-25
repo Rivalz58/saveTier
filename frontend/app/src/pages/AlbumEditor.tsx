@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import "../styles/AlbumEditor.css";
-import albumService, { AddImageRequest, AddImageResponse } from "../services/albumService";
+import albumService, { AddImageRequest, AddImageResponse, ProcessImageResult } from "../services/albumService";
+import imageService from "../services/imageService";
 import ImageEditModal from "../components/ImageEditModal";
 
 interface AlbumEditorProps {
@@ -49,6 +50,16 @@ interface ImageToEdit {
   url: string;
 }
 
+// Interface pour les informations des images en cours d'upload
+interface UploadingImage {
+  file: File;
+  name: string;
+  previewUrl: string;
+  status: 'pending' | 'processing' | 'success' | 'error';
+  progress: number;
+  errorMessage?: string;
+}
+
 const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -77,8 +88,23 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
 
   // New image upload
   const [newImages, setNewImages] = useState<File[]>([]);
+  const [uploadingImages, setUploadingImages] = useState<UploadingImage[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  
+  // État pour les résultats d'upload
+  const [uploadResults, setUploadResults] = useState<{
+    successful: number;
+    failed: number;
+    failedImages: {name: string, reason: string}[];
+  }>({
+    successful: 0,
+    failed: 0,
+    failedImages: []
+  });
+
+  // État pour le chargement du modèle NSFW
+  const [isNSFWModelLoaded, setIsNSFWModelLoaded] = useState(false);
 
   // Load album data
   useEffect(() => {
@@ -107,7 +133,19 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
       }
     };
 
+    // Charger le modèle NSFW
+    const loadNSFWModel = async () => {
+      try {
+        await imageService.loadNSFWModel();
+        setIsNSFWModelLoaded(true);
+        console.log("Modèle NSFW chargé avec succès");
+      } catch (error) {
+        console.warn("Impossible de charger le modèle NSFW:", error);
+      }
+    };
+
     fetchAlbum();
+    loadNSFWModel();
   }, [id, user, navigate]);
 
   // Check if user is the album owner (skip check if admin)
@@ -324,58 +362,198 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
     setShowImageDeleteModal(true);
   };
 
+  // Fonction utilitaire : extraire le nom du fichier sans l'extension
+  const getFileNameWithoutExtension = (fileName: string): string => {
+    return fileName.replace(/\.[^/.]+$/, "");
+  };
+  
+  // Fonction utilitaire : formater le nom de fichier pour qu'il soit présentable
+  const formatFileName = (fileName: string): string => {
+    // Supprimer l'extension
+    let formatted = getFileNameWithoutExtension(fileName);
+    
+    // Remplacer les underscores et tirets par des espaces
+    formatted = formatted.replace(/[_-]/g, " ");
+    
+    // Mettre en majuscule la première lettre de chaque mot
+    formatted = formatted.replace(/\b\w/g, char => char.toUpperCase());
+    
+    // Limiter la longueur du nom (à 25 caractères comme dans AddAlbum)
+    const maxLength = 25;
+    if (formatted.length > maxLength) {
+      formatted = formatted.substring(0, maxLength);
+    }
+    
+    return formatted;
+  };
+
   // Handle image selection for upload
   const handleImageSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setNewImages(Array.from(e.target.files));
+      const fileArray = Array.from(e.target.files);
+      setNewImages(fileArray);
+      
+      // Créer des aperçus pour chaque image
+      const uploading: UploadingImage[] = fileArray.map(file => ({
+        file,
+        name: formatFileName(file.name),
+        previewUrl: URL.createObjectURL(file),
+        status: 'pending',
+        progress: 0
+      }));
+      
+      setUploadingImages(uploading);
+    }
+  };
+
+  // Traiter une image pour l'upload
+  const processAndUploadImage = async (
+    image: UploadingImage, 
+    index: number
+  ): Promise<{success: boolean, errorMessage?: string}> => {
+    try {
+      if (!album) {
+        return { 
+          success: false, 
+          errorMessage: "Album non trouvé" 
+        };
+      }
+      
+      // Mettre à jour le statut de l'image
+      setUploadingImages(prev => 
+        prev.map((img, i) => 
+          i === index 
+            ? { ...img, status: 'processing', progress: 10 } 
+            : img
+        )
+      );
+
+      // Traiter l'image (vérification NSFW, compression, etc.)
+      const processResult = await albumService.processImageBeforeUpload(image.file, index);
+
+      if (!processResult.success || !processResult.file) {
+        // Mettre à jour le statut de l'image avec l'erreur
+        setUploadingImages(prev => 
+          prev.map((img, i) => 
+            i === index 
+              ? { ...img, status: 'error', errorMessage: processResult.errorMessage, progress: 100 } 
+              : img
+          )
+        );
+
+        return { 
+          success: false, 
+          errorMessage: processResult.errorMessage || "Erreur lors du traitement de l'image" 
+        };
+      }
+
+      // Mettre à jour le statut et le progrès
+      setUploadingImages(prev => 
+        prev.map((img, i) => 
+          i === index 
+            ? { ...img, progress: 50 } 
+            : img
+        )
+      );
+
+      // Préparer les données pour l'upload
+      const imageData: AddImageRequest = {
+        file: processResult.file,
+        name: image.name,
+        id_album: album.id
+      };
+
+      // Uploader l'image
+      const uploadResponse = await albumService.addImageToAlbum(imageData);
+
+      // Mettre à jour le statut de l'image
+      setUploadingImages(prev => 
+        prev.map((img, i) => 
+          i === index 
+            ? { ...img, status: 'success', progress: 100 } 
+            : img
+        )
+      );
+
+      // Mettre à jour l'état de l'album avec la nouvelle image
+      setAlbum(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          image: [...prev.image, uploadResponse.data]
+        };
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      const errorMessage = error.message || "Erreur lors de l'upload de l'image";
+      
+      // Mettre à jour le statut de l'image avec l'erreur
+      setUploadingImages(prev => 
+        prev.map((img, i) => 
+          i === index 
+            ? { ...img, status: 'error', errorMessage, progress: 100 } 
+            : img
+        )
+      );
+
+      return { success: false, errorMessage };
     }
   };
 
   // Handle upload images
   const handleUploadImages = async () => {
-    if (newImages.length === 0 || !album) return;
+    if (uploadingImages.length === 0 || !album) return;
   
     setUploading(true);
     setUploadProgress(0);
   
-    const totalImages = newImages.length;
+    const totalImages = uploadingImages.length;
     let successCount = 0;
+    let failCount = 0;
+    const failedImages: {name: string, reason: string}[] = [];
   
-    for (let i = 0; i < totalImages; i++) {
-      try {
-        const file = newImages[i];
-        let baseName = file.name.split(".")[0];
-        
-        // Limiter le nom à 32 caractères maximum pour respecter la contrainte de l'API
-        if (baseName.length > 32) {
-          baseName = baseName.substring(0, 32);
+    // Traiter les images par lots pour limiter la charge
+    const batchSize = 3; // Traiter 3 images simultanément
+    
+    for (let i = 0; i < totalImages; i += batchSize) {
+      const batch = uploadingImages.slice(i, Math.min(i + batchSize, totalImages));
+      const batchPromises = batch.map((image, batchIndex) => 
+        processAndUploadImage(image, i + batchIndex)
+      );
+      
+      // Attendre que le lot soit traité
+      const batchResults = await Promise.all(batchPromises);
+      
+      // Comptabiliser les résultats
+      batchResults.forEach((result, index) => {
+        const currentIndex = i + index;
+        if (currentIndex < uploadingImages.length) {
+          if (result.success) {
+            successCount++;
+          } else {
+            failCount++;
+            failedImages.push({
+              name: uploadingImages[currentIndex].name,
+              reason: result.errorMessage || "Erreur inconnue"
+            });
+          }
         }
-  
-        // Construire l'objet de données
-        const imageData: AddImageRequest = {
-          file,
-          name: baseName,
-          id_album: album.id
-        };
-  
-        const result = await albumService.addImageToAlbum(imageData);
-  
-        // Mettre à jour l'état local
-        setAlbum(prev =>
-          prev
-            ? { ...prev, image: [...prev.image, result.data] }
-            : prev
-        );
-        successCount++;
-      } catch (error) {
-        console.error(`Erreur lors de l'upload de l'image ${i + 1}:`, error);
-      } finally {
-        setUploadProgress(Math.round(((i + 1) / totalImages) * 100));
-      }
+      });
+      
+      // Mettre à jour le progrès global
+      const newProgress = Math.round(((i + batch.length) / totalImages) * 100);
+      setUploadProgress(newProgress);
+      
+      // Mettre à jour les résultats en temps réel
+      setUploadResults({
+        successful: successCount,
+        failed: failCount,
+        failedImages
+      });
     }
   
     setUploading(false);
-    setNewImages([]);
   
     // Message à l'utilisateur
     if (successCount === 0) {
@@ -384,6 +562,9 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
       alert(`Upload partiel : ${successCount} sur ${totalImages} images reçues.`);
     } else {
       alert("Toutes les images ont été uploadées avec succès !");
+      // Réinitialiser les états après un upload réussi
+      setNewImages([]);
+      setUploadingImages([]);
     }
   };
 
@@ -395,6 +576,52 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
     } else {
       // Return to profile otherwise
       navigate("/profile");
+    }
+  };
+
+  // Nettoyer les ressources et annuler l'upload
+  const handleCancelUpload = () => {
+    // Nettoyer les URL des aperçus avant d'annuler
+    uploadingImages.forEach((image) => {
+      URL.revokeObjectURL(image.previewUrl);
+    });
+    
+    setUploadingImages([]);
+    setNewImages([]);
+    setUploading(false);
+    setUploadProgress(0);
+    setUploadResults({
+      successful: 0,
+      failed: 0,
+      failedImages: []
+    });
+  };
+
+  // Obtenir la couleur du statut de l'image
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'processing':
+        return '#e6a700'; // Orange
+      case 'success':
+        return '#00a65a'; // Vert
+      case 'error':
+        return '#dd4b39'; // Rouge
+      default:
+        return 'transparent';
+    }
+  };
+
+  // Obtenir l'icône du statut de l'image
+  const getStatusIcon = (status: string): string => {
+    switch (status) {
+      case 'processing':
+        return '⏳'; // Sablier
+      case 'success':
+        return '✓'; // Coche
+      case 'error':
+        return '✗'; // Croix
+      default:
+        return '';
     }
   };
 
@@ -516,20 +743,90 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
               multiple
               onChange={handleImageSelection}
               style={{ display: 'none' }}
+              disabled={uploading}
             />
             <span className="selected-files">
               {newImages.length > 0 ? `${newImages.length} files selected` : 'No files selected'}
             </span>
             {newImages.length > 0 && (
-              <button onClick={handleUploadImages} className="upload-button" disabled={uploading}>
-                {uploading ? `Uploading (${uploadProgress}%)` : 'Upload Images'}
-              </button>
+              <div className="upload-actions">
+                <button onClick={handleUploadImages} className="upload-button" disabled={uploading}>
+                  {uploading ? `Uploading (${uploadProgress}%)` : 'Upload Images'}
+                </button>
+                <button onClick={handleCancelUpload} className="cancel-upload-button" disabled={uploading}>
+                  Cancel
+                </button>
+              </div>
             )}
           </div>
           
           {uploading && (
             <div className="progress-bar-container">
               <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+            </div>
+          )}
+          
+          {/* Upload results summary */}
+          {(uploadResults.successful > 0 || uploadResults.failed > 0) && (
+            <div className="upload-results-summary">
+              <p>
+                <span className="success-count">{uploadResults.successful} successful</span>
+                {uploadResults.failed > 0 && (
+                  <span className="failed-count"> • {uploadResults.failed} failed</span>
+                )}
+              </p>
+              
+              {/* List of failed images */}
+              {uploadResults.failedImages.length > 0 && (
+                <div className="failed-images-list">
+                  <details>
+                    <summary>View failed uploads</summary>
+                    <ul>
+                      {uploadResults.failedImages.map((img, idx) => (
+                        <li key={idx}>
+                          <strong>{img.name}</strong>: {img.reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Preview of images being uploaded */}
+          {uploadingImages.length > 0 && (
+            <div className="uploading-images-preview">
+              {uploadingImages.map((image, index) => (
+                <div key={index} className="uploading-image-item">
+                  <div 
+                    className="image-status-indicator" 
+                    style={{ backgroundColor: getStatusColor(image.status) }}
+                    title={image.status}
+                  >
+                    {getStatusIcon(image.status)}
+                  </div>
+                  
+                  <div className="image-preview">
+                    <img src={image.previewUrl} alt={`Preview of ${image.name}`} />
+                  </div>
+                  
+                  <div className="image-details">
+                    <p className="image-name">{image.name}</p>
+                    {image.status === 'processing' && (
+                      <div className="image-progress-bar">
+                        <div 
+                          className="image-progress" 
+                          style={{ width: `${image.progress}%` }}
+                        ></div>
+                      </div>
+                    )}
+                    {image.status === 'error' && image.errorMessage && (
+                      <p className="error-message">{image.errorMessage}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

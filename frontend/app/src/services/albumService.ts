@@ -1,4 +1,6 @@
 import api, { isTokenValid } from './api';
+import imageService, { ImageVerificationResult } from './imageService';
+
 // Interface pour créer un nouvel album
 export interface CreateAlbumRequest {
   name: string;
@@ -45,6 +47,15 @@ export interface AddImageResponse {
   };
 }
 
+// Interface pour les résultats de traitement d'image
+export interface ProcessImageResult {
+  success: boolean;
+  file?: File;
+  originalFileName: string;
+  originalIndex: number;
+  errorMessage?: string;
+}
+
 // Fonction pour créer un nouvel album
 export const createAlbum = async (albumData: CreateAlbumRequest): Promise<CreateAlbumResponse> => {
   try {
@@ -56,7 +67,6 @@ export const createAlbum = async (albumData: CreateAlbumRequest): Promise<Create
   }
 };
 
-// Fonction pour ajouter une image à un album
 // Fonction pour ajouter une image à un album
 export const addImageToAlbum = async (imageData: AddImageRequest): Promise<AddImageResponse> => {
   try {
@@ -108,12 +118,17 @@ export const addImageToAlbum = async (imageData: AddImageRequest): Promise<AddIm
 };
 
 // Fonction pour ajouter des catégories à un album
-export const addCategoriesToAlbum = async (albumId: number, categoryNames: string[]): Promise<unknown> => {
+export const addCategoriesToAlbum = async (albumId: number, categoryIds: (string | number)[]): Promise<unknown> => {
   try {
     // On doit faire une requête par catégorie
-    const promises = categoryNames.map(categoryName => 
-      api.post(`/album/${albumId}/category`, { name: categoryName })
-    );
+    const promises = categoryIds.map(categoryId => {
+      // Vérifier si categoryId est un string (nom) ou un number (id)
+      if (typeof categoryId === 'string') {
+        return api.post(`/album/${albumId}/category`, { name: categoryId });
+      } else {
+        return api.post(`/album/${albumId}/category`, { id_category: categoryId });
+      }
+    });
     
     // Attendre que toutes les requêtes soient terminées
     const results = await Promise.all(promises);
@@ -135,9 +150,45 @@ export const getCategories = async (): Promise<{id: number, name: string}[]> => 
   }
 };
 
+// Fonction pour traiter une image avant upload (avec gestion des erreurs)
+export const processImageBeforeUpload = async (
+  imageFile: File, 
+  index: number
+): Promise<ProcessImageResult> => {
+  try {
+    const result: ImageVerificationResult = await imageService.processImage(imageFile);
+    
+    if (!result.isValid || !result.file) {
+      return {
+        success: false,
+        originalFileName: imageFile.name,
+        originalIndex: index,
+        errorMessage: result.errorMessage || 'Erreur inconnue lors du traitement de l\'image.'
+      };
+    }
+    
+    return {
+      success: true,
+      file: result.file,
+      originalFileName: imageFile.name,
+      originalIndex: index
+    };
+  } catch (error) {
+    console.error(`Erreur lors du traitement de l'image ${imageFile.name}:`, error);
+    
+    return {
+      success: false,
+      originalFileName: imageFile.name,
+      originalIndex: index,
+      errorMessage: 'Une erreur est survenue lors du traitement de l\'image.'
+    };
+  }
+};
+
 export default {
   createAlbum,
   addImageToAlbum,
   addCategoriesToAlbum,
-  getCategories
+  getCategories,
+  processImageBeforeUpload
 };
