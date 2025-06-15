@@ -5,13 +5,18 @@ type CategoryProps = {
   name: string;
   image: string;
   categories?: string[]; // Tableau de catégories de l'album
-  authorName?: string;   // Nom de l'auteur de l'album (optionnel)
+  authorName?: string; // Nom de l'auteur de l'album (optionnel)
 };
 
-const CategoryCard: React.FC<CategoryProps> = ({ name, image, categories = [], authorName }) => {
+const CategoryCard: React.FC<CategoryProps> = ({
+  name,
+  image,
+  categories = [],
+  authorName,
+}) => {
   // Vérifier si l'URL de l'image est valide
   const isValidImageUrl = (url: string) => {
-    return url && (url.startsWith('http') || url.startsWith('/'));
+    return url && (url.startsWith("http") || url.startsWith("/"));
   };
 
   // Image par défaut en cas d'URL invalide
@@ -21,7 +26,9 @@ const CategoryCard: React.FC<CategoryProps> = ({ name, image, categories = [], a
   const imageUrl = isValidImageUrl(image) ? image : defaultImage;
 
   // Gestion des erreurs lors du chargement de l'image
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleImageError = (
+    e: React.SyntheticEvent<HTMLImageElement, Event>,
+  ) => {
     e.currentTarget.src = defaultImage;
   };
 
@@ -29,26 +36,30 @@ const CategoryCard: React.FC<CategoryProps> = ({ name, image, categories = [], a
     <div className="category-card">
       <img src={imageUrl} alt={name} onError={handleImageError} />
       <h3>{name}</h3>
-      
+
       {/* Afficher les badges de catégories si elles sont fournies */}
       {categories && categories.length > 0 && (
         <div className="card-categories">
           {categories.slice(0, 2).map((category, index) => (
-            <span key={index} className="card-category-badge">{category}</span>
+            <span key={index} className="card-category-badge">
+              {category}
+            </span>
           ))}
           {categories.length > 2 && (
-            <span className="card-category-badge">+{categories.length - 2}</span>
+            <span className="card-category-badge">
+              +{categories.length - 2}
+            </span>
           )}
         </div>
       )}
-      
+
       {/* Afficher le nom de l'auteur si fourni */}
       {authorName && (
         <div className="card-author">
           <span>Par {authorName}</span>
         </div>
       )}
-      
+
       {/* Espace pour les futurs compteurs de vues/utilisations */}
       <div className="card-stats">
         {/* 

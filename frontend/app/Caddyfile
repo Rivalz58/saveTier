@@ -1,6 +1,26 @@
 :80 {
-    root * /srv
-    encode zstd gzip
-    file_server
-    reverse_proxy /api/* http://backend:8080
+  redir https://tierhub.online{uri}
+}
+
+www.tierhub.online {
+  redir https://tierhub.online{uri}
+}
+
+tierhub.online {
+  root * /srv
+  encode zstd gzip
+  file_server
+
+  handle_path /image/* {
+    reverse_proxy https://{$S3_BUCKET_NAME}.s3.{$S3_REGION}.io.cloud.ovh.net {
+      header_up Host {$S3_BUCKET_NAME}.s3.{$S3_REGION}.io.cloud.ovh.net
+    }
+  }
+}
+
+api.tierhub.online {
+  handle {
+    rewrite * /api{uri}
+    reverse_proxy backend:8080
+  }
 }

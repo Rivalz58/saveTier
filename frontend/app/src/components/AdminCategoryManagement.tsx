@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
-import '../styles/Admin.css';
+import React, { useState, useEffect } from "react";
+import api from "../services/api";
+import "../styles/Admin.css";
 
 interface Category {
   id: number;
@@ -18,11 +18,15 @@ const AdminCategoryManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // États pour la modal
   const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState<'create' | 'edit' | 'delete'>('create');
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [modalAction, setModalAction] = useState<"create" | "edit" | "delete">(
+    "create",
+  );
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
   const [categoryName, setCategoryName] = useState("");
 
   // Charger les catégories
@@ -31,27 +35,29 @@ const AdminCategoryManagement: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        
-        const response = await api.get<CategoriesResponse>('/category');
+
+        const response = await api.get<CategoriesResponse>("/category");
         setCategories(response.data.data);
       } catch (err) {
-        console.error('Erreur lors du chargement des catégories:', err);
-        setError('Impossible de charger les catégories. Veuillez réessayer plus tard.');
+        console.error("Erreur lors du chargement des catégories:", err);
+        setError(
+          "Impossible de charger les catégories. Veuillez réessayer plus tard.",
+        );
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchCategories();
   }, []);
 
   // Filtrer les catégories
   const getFilteredCategories = () => {
     if (!searchQuery.trim()) return categories;
-    
+
     const query = searchQuery.toLowerCase();
-    return categories.filter(category => 
-      category.name.toLowerCase().includes(query)
+    return categories.filter((category) =>
+      category.name.toLowerCase().includes(query),
     );
   };
 
@@ -59,20 +65,20 @@ const AdminCategoryManagement: React.FC = () => {
   const handleCreateCategory = async () => {
     try {
       if (!categoryName.trim()) {
-        alert('Le nom de la catégorie ne peut pas être vide.');
+        alert("Le nom de la catégorie ne peut pas être vide.");
         return;
       }
-      
-      const response = await api.post('/category', { name: categoryName });
-      
+
+      const response = await api.post("/category", { name: categoryName });
+
       // Ajouter la nouvelle catégorie à l'état local
       if (response.data && response.data.data) {
         setCategories([...categories, response.data.data]);
         alert(`La catégorie "${categoryName}" a été créée avec succès.`);
       }
     } catch (err) {
-      console.error('Erreur lors de la création de la catégorie:', err);
-      alert('Une erreur est survenue lors de la création de la catégorie.');
+      console.error("Erreur lors de la création de la catégorie:", err);
+      alert("Une erreur est survenue lors de la création de la catégorie.");
     } finally {
       setShowModal(false);
       setCategoryName("");
@@ -83,24 +89,28 @@ const AdminCategoryManagement: React.FC = () => {
   const handleUpdateCategory = async () => {
     try {
       if (!selectedCategory) return;
-      
+
       if (!categoryName.trim()) {
-        alert('Le nom de la catégorie ne peut pas être vide.');
+        alert("Le nom de la catégorie ne peut pas être vide.");
         return;
       }
-      
-      const response = await api.put(`/category/${selectedCategory.id}`, { name: categoryName });
-      
+
+      const response = await api.put(`/category/${selectedCategory.id}`, {
+        name: categoryName,
+      });
+
       // Mettre à jour l'état local
       if (response.data && response.data.data) {
-        setCategories(categories.map(cat => 
-          cat.id === selectedCategory.id ? response.data.data : cat
-        ));
+        setCategories(
+          categories.map((cat) =>
+            cat.id === selectedCategory.id ? response.data.data : cat,
+          ),
+        );
         alert(`La catégorie a été renommée en "${categoryName}" avec succès.`);
       }
     } catch (err) {
-      console.error('Erreur lors de la modification de la catégorie:', err);
-      alert('Une erreur est survenue lors de la modification de la catégorie.');
+      console.error("Erreur lors de la modification de la catégorie:", err);
+      alert("Une erreur est survenue lors de la modification de la catégorie.");
     } finally {
       setShowModal(false);
       setCategoryName("");
@@ -112,15 +122,17 @@ const AdminCategoryManagement: React.FC = () => {
   const handleDeleteCategory = async () => {
     try {
       if (!selectedCategory) return;
-      
+
       await api.delete(`/category/${selectedCategory.id}`);
-      
+
       // Mettre à jour l'état local
-      setCategories(categories.filter(cat => cat.id !== selectedCategory.id));
-      alert(`La catégorie "${selectedCategory.name}" a été supprimée avec succès.`);
+      setCategories(categories.filter((cat) => cat.id !== selectedCategory.id));
+      alert(
+        `La catégorie "${selectedCategory.name}" a été supprimée avec succès.`,
+      );
     } catch (err) {
-      console.error('Erreur lors de la suppression de la catégorie:', err);
-      alert('Une erreur est survenue lors de la suppression de la catégorie.');
+      console.error("Erreur lors de la suppression de la catégorie:", err);
+      alert("Une erreur est survenue lors de la suppression de la catégorie.");
     } finally {
       setShowModal(false);
       setSelectedCategory(null);
@@ -129,7 +141,7 @@ const AdminCategoryManagement: React.FC = () => {
 
   // Ouvrir la modal pour créer une catégorie
   const openCreateModal = () => {
-    setModalAction('create');
+    setModalAction("create");
     setCategoryName("");
     setSelectedCategory(null);
     setShowModal(true);
@@ -137,7 +149,7 @@ const AdminCategoryManagement: React.FC = () => {
 
   // Ouvrir la modal pour modifier une catégorie
   const openEditModal = (category: Category) => {
-    setModalAction('edit');
+    setModalAction("edit");
     setSelectedCategory(category);
     setCategoryName(category.name);
     setShowModal(true);
@@ -145,7 +157,7 @@ const AdminCategoryManagement: React.FC = () => {
 
   // Ouvrir la modal pour supprimer une catégorie
   const openDeleteModal = (category: Category) => {
-    setModalAction('delete');
+    setModalAction("delete");
     setSelectedCategory(category);
     setShowModal(true);
   };
@@ -153,13 +165,13 @@ const AdminCategoryManagement: React.FC = () => {
   // Gérer l'action confirmée dans la modal
   const handleConfirmAction = () => {
     switch (modalAction) {
-      case 'create':
+      case "create":
         handleCreateCategory();
         break;
-      case 'edit':
+      case "edit":
         handleUpdateCategory();
         break;
-      case 'delete':
+      case "delete":
         handleDeleteCategory();
         break;
     }
@@ -169,7 +181,11 @@ const AdminCategoryManagement: React.FC = () => {
   const filteredCategories = getFilteredCategories();
 
   if (loading) {
-    return <div className="loading-container"><div className="loading-spinner"></div></div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -189,15 +205,12 @@ const AdminCategoryManagement: React.FC = () => {
           />
         </div>
         <div className="admin-filters">
-          <button 
-            className="admin-action-btn add" 
-            onClick={openCreateModal}
-          >
+          <button className="admin-action-btn add" onClick={openCreateModal}>
             Ajouter une catégorie
           </button>
         </div>
       </div>
-      
+
       {filteredCategories.length === 0 ? (
         <div className="no-results">
           <p>Aucune catégorie ne correspond à votre recherche</p>
@@ -235,26 +248,32 @@ const AdminCategoryManagement: React.FC = () => {
           </tbody>
         </table>
       )}
-      
+
       {/* Modal */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>
-              {modalAction === 'create' ? 'Créer une catégorie' : 
-               modalAction === 'edit' ? 'Modifier la catégorie' : 
-               'Supprimer la catégorie'}
+              {modalAction === "create"
+                ? "Créer une catégorie"
+                : modalAction === "edit"
+                  ? "Modifier la catégorie"
+                  : "Supprimer la catégorie"}
             </h2>
-            
-            {modalAction === 'delete' ? (
+
+            {modalAction === "delete" ? (
               <p>
-                Êtes-vous sûr de vouloir supprimer la catégorie <strong>{selectedCategory?.name}</strong> ? 
-                Cette action est irréversible et supprimera cette catégorie de tous les albums associés.
+                Êtes-vous sûr de vouloir supprimer la catégorie{" "}
+                <strong>{selectedCategory?.name}</strong> ? Cette action est
+                irréversible et supprimera cette catégorie de tous les albums
+                associés.
               </p>
             ) : (
               <>
                 <p>
-                  {modalAction === 'create' ? 'Entrez le nom de la nouvelle catégorie :' : 'Modifiez le nom de la catégorie :'}
+                  {modalAction === "create"
+                    ? "Entrez le nom de la nouvelle catégorie :"
+                    : "Modifiez le nom de la catégorie :"}
                 </p>
                 <input
                   type="text"
@@ -265,17 +284,19 @@ const AdminCategoryManagement: React.FC = () => {
                 />
               </>
             )}
-            
+
             <div className="modal-actions">
               <button onClick={() => setShowModal(false)}>Annuler</button>
-              <button 
-                className={`confirm-${modalAction}`} 
+              <button
+                className={`confirm-${modalAction}`}
                 onClick={handleConfirmAction}
-                disabled={modalAction !== 'delete' && !categoryName.trim()}
+                disabled={modalAction !== "delete" && !categoryName.trim()}
               >
-                {modalAction === 'create' ? 'Créer' : 
-                 modalAction === 'edit' ? 'Modifier' : 
-                 'Supprimer'}
+                {modalAction === "create"
+                  ? "Créer"
+                  : modalAction === "edit"
+                    ? "Modifier"
+                    : "Supprimer"}
               </button>
             </div>
           </div>

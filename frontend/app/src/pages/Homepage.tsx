@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import AlbumModal from "../components/AlbumModal";
 import "../styles/Homepage.css";
-import { getPopularAlbumsByCategory, getAlbumsByPopularity, AlbumUsageStats } from "../services/album-api-popularity";
+import {
+  getPopularAlbumsByCategory,
+  getAlbumsByPopularity,
+  AlbumUsageStats,
+} from "../services/album-api-popularity";
 
 interface HomepageProps {
   user: string | null;
@@ -15,15 +19,21 @@ const CATEGORIES_PER_LOAD = 2; // Nombre de catégories à charger à chaque foi
 const Homepage: React.FC<HomepageProps> = ({ user }) => {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState<AlbumUsageStats | null>(null);
-  
+  const [selectedAlbum, setSelectedAlbum] = useState<AlbumUsageStats | null>(
+    null,
+  );
+
   // États pour stocker les données d'albums
   const [popularAlbums, setPopularAlbums] = useState<AlbumUsageStats[]>([]);
-  const [allCategorySections, setAllCategorySections] = useState<{title: string, albums: AlbumUsageStats[]}[]>([]);
-  const [visibleCategorySections, setVisibleCategorySections] = useState<{title: string, albums: AlbumUsageStats[]}[]>([]);
+  const [allCategorySections, setAllCategorySections] = useState<
+    { title: string; albums: AlbumUsageStats[] }[]
+  >([]);
+  const [visibleCategorySections, setVisibleCategorySections] = useState<
+    { title: string; albums: AlbumUsageStats[] }[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Référence pour l'observateur d'intersection
   const loaderRef = useRef<HTMLDivElement>(null);
 
@@ -33,35 +43,42 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // Récupérer les albums les plus populaires (triés par nombre d'utilisations)
         const popularAlbumsData = await getAlbumsByPopularity(7);
         setPopularAlbums(popularAlbumsData);
-        
+
         try {
           // Récupérer tous les albums par catégorie, triés par popularité
           const albumsByCategory = await getPopularAlbumsByCategory();
-          
+
           // Créer les sections de catégories
           const sections = Array.from(albumsByCategory.entries())
             .map(([title, albums]) => ({
               title,
-              albums
+              albums,
             }))
-            .filter(section => section.albums.length > 0); // Filtrer les catégories vides
-          
+            .filter((section) => section.albums.length > 0); // Filtrer les catégories vides
+
           setAllCategorySections(sections);
           // Initialiser avec seulement les premières catégories
-          setVisibleCategorySections(sections.slice(0, INITIAL_CATEGORIES_TO_SHOW));
+          setVisibleCategorySections(
+            sections.slice(0, INITIAL_CATEGORIES_TO_SHOW),
+          );
         } catch (categoryError) {
-          console.error("Erreur lors de la récupération des albums par catégorie:", categoryError);
+          console.error(
+            "Erreur lors de la récupération des albums par catégorie:",
+            categoryError,
+          );
           // Ne pas bloquer l'affichage des albums populaires si les catégories échouent
         }
-        
+
         setIsLoading(false);
       } catch (err) {
         console.error("Erreur lors de la récupération des albums:", err);
-        setError("Impossible de charger les albums. Veuillez réessayer plus tard.");
+        setError(
+          "Impossible de charger les albums. Veuillez réessayer plus tard.",
+        );
         setIsLoading(false);
       }
     };
@@ -71,11 +88,11 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
 
   // Fonction pour charger plus de catégories
   const loadMoreCategories = useCallback(() => {
-    setVisibleCategorySections(prev => {
+    setVisibleCategorySections((prev) => {
       const currentLength = prev.length;
       const nextCategories = allCategorySections.slice(
-        currentLength, 
-        currentLength + CATEGORIES_PER_LOAD
+        currentLength,
+        currentLength + CATEGORIES_PER_LOAD,
       );
       return [...prev, ...nextCategories];
     });
@@ -85,13 +102,16 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
   useEffect(() => {
     const options = {
       root: null,
-      rootMargin: '0px',
-      threshold: 0.1
+      rootMargin: "0px",
+      threshold: 0.1,
     };
 
     const observer = new IntersectionObserver((entries) => {
       const [entry] = entries;
-      if (entry.isIntersecting && visibleCategorySections.length < allCategorySections.length) {
+      if (
+        entry.isIntersecting &&
+        visibleCategorySections.length < allCategorySections.length
+      ) {
         loadMoreCategories();
       }
     }, options);
@@ -105,7 +125,12 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
         observer.unobserve(loaderRef.current);
       }
     };
-  }, [loaderRef, visibleCategorySections.length, allCategorySections.length, loadMoreCategories]);
+  }, [
+    loaderRef,
+    visibleCategorySections.length,
+    allCategorySections.length,
+    loadMoreCategories,
+  ]);
 
   // Fonction pour naviguer vers AllAlbum avec un filtrage de catégorie
   const navigateToCategory = (category: string | null) => {
@@ -152,19 +177,26 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
       {/* Section Albums Populaires */}
       <div className="album-populaire-header">
         <h2 className="section-title">Albums Populaires</h2>
-        <button className="view-more" onClick={() => navigateToCategory(null)}>Voir tout</button>
+        <button className="view-more" onClick={() => navigateToCategory(null)}>
+          Voir tout
+        </button>
       </div>
-      
+
       {popularAlbums.length > 0 ? (
         <div className="categories">
           {popularAlbums.map((album, index) => (
-            <div key={`popular-${album.id}-${index}`} onClick={() => handleAlbumClick(album)} className="category-container">
+            <div
+              key={`popular-${album.id}-${index}`}
+              onClick={() => handleAlbumClick(album)}
+              className="category-container"
+            >
               <div className="album-usage-count">
-                {album.totalUsageCount} {album.totalUsageCount === 1 ? 'utilisation' : 'utilisations'}
+                {album.totalUsageCount}{" "}
+                {album.totalUsageCount === 1 ? "utilisation" : "utilisations"}
               </div>
-              <CategoryCard 
-                name={album.name} 
-                image={album.imagePath} 
+              <CategoryCard
+                name={album.name}
+                image={album.imagePath}
                 categories={album.categories}
                 authorName={album.authorName}
               />
@@ -180,17 +212,27 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
         <div key={`section-${section.title}-${index}`}>
           <div className="section-header">
             <h3 className="section-title">{section.title}</h3>
-            <button onClick={() => navigateToCategory(section.title)} className="view-more">Voir Plus</button>
+            <button
+              onClick={() => navigateToCategory(section.title)}
+              className="view-more"
+            >
+              Voir Plus
+            </button>
           </div>
           <div className="categories">
             {section.albums.map((album, idx) => (
-              <div key={`category-${album.id}-${idx}`} onClick={() => handleAlbumClick(album)} className="category-container">
+              <div
+                key={`category-${album.id}-${idx}`}
+                onClick={() => handleAlbumClick(album)}
+                className="category-container"
+              >
                 <div className="album-usage-count">
-                  {album.totalUsageCount} {album.totalUsageCount === 1 ? 'utilisation' : 'utilisations'}
+                  {album.totalUsageCount}{" "}
+                  {album.totalUsageCount === 1 ? "utilisation" : "utilisations"}
                 </div>
-                <CategoryCard 
-                  name={album.name} 
-                  image={album.imagePath} 
+                <CategoryCard
+                  name={album.name}
+                  image={album.imagePath}
                   categories={album.categories}
                   authorName={album.authorName}
                 />
@@ -199,7 +241,7 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
           </div>
         </div>
       ))}
-      
+
       {/* Indicateur de chargement pour les catégories supplémentaires */}
       {visibleCategorySections.length < allCategorySections.length && (
         <div ref={loaderRef} className="category-loader">

@@ -7,7 +7,13 @@ import AdminContentManagement from "../components/AdminContentManagement";
 import AdminAlbumManagement from "../components/AdminAlbumManagement";
 import AlbumEditor from "../pages/AlbumEditor";
 
-type TabType = "users" | "tierlists" | "tournaments" | "rankings" | "albums" | "categories";
+type TabType =
+  | "users"
+  | "tierlists"
+  | "tournaments"
+  | "rankings"
+  | "albums"
+  | "categories";
 
 interface AdminProps {
   user: string | null;
@@ -40,11 +46,26 @@ const Admin: React.FC<AdminProps> = ({ user, isAdmin }) => {
       case "categories":
         return <AdminCategoryManagement />;
       case "tierlists":
-        return <AdminContentManagement contentType="tierlist" contentTypeName="Tierlist" />;
+        return (
+          <AdminContentManagement
+            contentType="tierlist"
+            contentTypeName="Tierlist"
+          />
+        );
       case "tournaments":
-        return <AdminContentManagement contentType="tournament" contentTypeName="Tournoi" />;
+        return (
+          <AdminContentManagement
+            contentType="tournament"
+            contentTypeName="Tournoi"
+          />
+        );
       case "rankings":
-        return <AdminContentManagement contentType="ranking" contentTypeName="Classement" />;
+        return (
+          <AdminContentManagement
+            contentType="ranking"
+            contentTypeName="Classement"
+          />
+        );
       case "albums":
         return <AdminAlbumManagement />;
       default:
@@ -58,55 +79,59 @@ const Admin: React.FC<AdminProps> = ({ user, isAdmin }) => {
 
   return (
     <Routes>
-      <Route path="/" element={
-        <div className="admin-container">
-          <h1 className="admin-title">Panneau d'Administration</h1>
-          <div className="admin-tabs">
-            <button
-              className={`admin-tab ${activeTab === "users" ? "active" : ""}`}
-              onClick={() => setActiveTab("users")}
-            >
-              Utilisateurs
-            </button>
-            <button
-              className={`admin-tab ${activeTab === "categories" ? "active" : ""}`}
-              onClick={() => setActiveTab("categories")}
-            >
-              Catégories
-            </button>
-            <button
-              className={`admin-tab ${activeTab === "tierlists" ? "active" : ""}`}
-              onClick={() => setActiveTab("tierlists")}
-            >
-              Tierlists
-            </button>
-            <button
-              className={`admin-tab ${activeTab === "tournaments" ? "active" : ""}`}
-              onClick={() => setActiveTab("tournaments")}
-            >
-              Tournois
-            </button>
-            <button
-              className={`admin-tab ${activeTab === "rankings" ? "active" : ""}`}
-              onClick={() => setActiveTab("rankings")}
-            >
-              Classements
-            </button>
-            <button
-              className={`admin-tab ${activeTab === "albums" ? "active" : ""}`}
-              onClick={() => setActiveTab("albums")}
-            >
-              Albums
-            </button>
+      <Route
+        path="/"
+        element={
+          <div className="admin-container">
+            <h1 className="admin-title">Panneau d'Administration</h1>
+            <div className="admin-tabs">
+              <button
+                className={`admin-tab ${activeTab === "users" ? "active" : ""}`}
+                onClick={() => setActiveTab("users")}
+              >
+                Utilisateurs
+              </button>
+              <button
+                className={`admin-tab ${activeTab === "categories" ? "active" : ""}`}
+                onClick={() => setActiveTab("categories")}
+              >
+                Catégories
+              </button>
+              <button
+                className={`admin-tab ${activeTab === "tierlists" ? "active" : ""}`}
+                onClick={() => setActiveTab("tierlists")}
+              >
+                Tierlists
+              </button>
+              <button
+                className={`admin-tab ${activeTab === "tournaments" ? "active" : ""}`}
+                onClick={() => setActiveTab("tournaments")}
+              >
+                Tournois
+              </button>
+              <button
+                className={`admin-tab ${activeTab === "rankings" ? "active" : ""}`}
+                onClick={() => setActiveTab("rankings")}
+              >
+                Classements
+              </button>
+              <button
+                className={`admin-tab ${activeTab === "albums" ? "active" : ""}`}
+                onClick={() => setActiveTab("albums")}
+              >
+                Albums
+              </button>
+            </div>
+            <div className="admin-content">{renderTabContent()}</div>
           </div>
-          <div className="admin-content">
-            {renderTabContent()}
-          </div>
-        </div>
-      } />
-      
+        }
+      />
+
       {/* Route pour l'éditeur d'album depuis l'admin */}
-      <Route path="/album/edit/:id" element={<AlbumEditor user={user} isAdmin={isAdmin} />} />
+      <Route
+        path="/album/edit/:id"
+        element={<AlbumEditor user={user} isAdmin={isAdmin} />}
+      />
     </Routes>
   );
 };

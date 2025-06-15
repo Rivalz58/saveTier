@@ -1,12 +1,24 @@
 /* Import Google Fonts properly with multiple weights */
-@import './styles/font.css';
+@import "./styles/font.css";
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
   font-size: 16px;
@@ -19,11 +31,27 @@ html, body {
 /* Ensure consistent font rendering across browsers */
 * {
   box-sizing: border-box;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 /* Heading styles */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   margin-top: 0;
 }
@@ -41,7 +69,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Structure de la page pour placer le footer en bas */
 .page-content {
-  min-height: calc(100vh - 140px); /* Hauteur minimale pour pousser le footer en bas */
+  min-height: calc(
+    100vh - 140px
+  ); /* Hauteur minimale pour pousser le footer en bas */
   padding-top: 140px; /* Espace pour la navbar */
   overflow-x: hidden;
 }
@@ -52,7 +82,8 @@ h1, h2, h3, h4, h5, h6 {
 .profile-container,
 .add-album-container,
 .setup-container,
-.homepage { /* Force l'espacement pour ces conteneurs spécifiques */
+.homepage {
+  /* Force l'espacement pour ces conteneurs spécifiques */
   padding-bottom: 80px; /* Ajouter espace en bas pour le footer */
 }
 
@@ -68,18 +99,17 @@ h1, h2, h3, h4, h5, h6 {
   html {
     font-size: 14px;
   }
-  
+
   .container {
     padding-top: 120px;
     max-width: 100%;
     padding-left: 10px;
     padding-right: 10px;
   }
-  
+
   .page-content {
     padding-top: 120px;
   }
-  
 }
 
 /* Chargement de l'application */
@@ -103,7 +133,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 50px;
   border: 4px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  border-top-color: #328AF1;
+  border-top-color: #328af1;
   animation: spin 1s linear infinite;
   margin-bottom: 20px;
 }

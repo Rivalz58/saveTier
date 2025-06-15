@@ -5,26 +5,64 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Ajout pour supporter les cookies CSRF
 });
 
-// Intercepteur pour ajouter le token à chaque requête
-api.interceptors.request.use((config) => {
+// Variable pour stocker le token CSRF
+let csrfToken: string | null = null;
+
+// Fonction pour récupérer un nouveau token CSRF
+const fetchCsrfToken = async () => {
+  try {
+    const response = await axios.get(`${api.defaults.baseURL}/csrf-token`, {
+      withCredentials: true,
+    });
+    csrfToken = response.data.csrfToken;
+    return csrfToken;
+  } catch (error) {
+    console.error("Erreur lors de la récupération du token CSRF:", error);
+    return null;
+  }
+};
+
+// Récupérer le token CSRF au démarrage de l'application
+fetchCsrfToken();
+
+// Intercepteur pour ajouter le token JWT et CSRF à chaque requête
+api.interceptors.request.use(async (config) => {
+  // Ajout du token JWT d'authentification
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Ajout du token CSRF pour les méthodes qui modifient des données
+  if (["post", "put", "delete"].includes(config.method?.toLowerCase() || "")) {
+    // Si nous n'avons pas encore de token CSRF, on en récupère un
+    if (!csrfToken) {
+      csrfToken = await fetchCsrfToken();
+    }
+
+    // Ajout du token CSRF à l'en-tête
+    if (csrfToken) {
+      config.headers["x-csrf-token"] = csrfToken;
+    }
+  }
+
   return config;
 });
 
-// Intercepteur pour gérer les erreurs d'authentification
 // Intercepteur pour gérer les erreurs d'authentification
 api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
     // Si l'erreur est due à une expiration de token ou à une authentification invalide
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
       console.log("Session expirée ou authentification invalide");
       // Supprimer le token du localStorage
       localStorage.removeItem("token");
@@ -39,9 +77,32 @@ api.interceptors.response.use(
         window.location.href = "/login";
       }
     }
+    
+    // Gestion spécifique des erreurs CSRF
+    if (
+      error.response &&
+      error.response.status === 403 &&
+      error.response.data?.message?.includes("csrf")
+    ) {
+      // On récupère un nouveau token CSRF et on réessaie la requête
+      csrfToken = await fetchCsrfToken();
+
+      // On récupère la configuration de la requête originale
+      const originalRequest = error.config;
+      if (csrfToken) {
+        originalRequest.headers["x-csrf-token"] = csrfToken;
+        return axios(originalRequest);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
+
+// Fonction pour rafraîchir manuellement le token CSRF
+export const refreshCsrfToken = async () => {
+  return await fetchCsrfToken();
+};
 
 // Fonction de connexion
 export const login = async (identifier: string, password: string) => {

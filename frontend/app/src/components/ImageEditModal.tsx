@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import Modal from 'react-modal';
-import '../styles/AlbumModal.css';
-import '../styles/ImageEditModal.css';
+import React, { useState } from "react";
+import Modal from "react-modal";
+import "../styles/AlbumModal.css";
+import "../styles/ImageEditModal.css";
 
-Modal.setAppElement('#root'); // Nécessaire pour l'accessibilité
+Modal.setAppElement("#root"); // Nécessaire pour l'accessibilité
 
 interface ImageEditModalProps {
   isOpen: boolean;
@@ -26,22 +26,22 @@ interface ImageEditModalProps {
   }) => void;
 }
 
-const ImageEditModal: React.FC<ImageEditModalProps> = ({ 
-  isOpen, 
-  onClose, 
+const ImageEditModal: React.FC<ImageEditModalProps> = ({
+  isOpen,
+  onClose,
   image,
-  onSave
+  onSave,
 }) => {
   // États locaux pour les champs modifiables
   const [name, setName] = useState(image.name);
-  const [description, setDescription] = useState(image.description || '');
-  const [url, setUrl] = useState(image.url || '');
+  const [description, setDescription] = useState(image.description || "");
+  const [url, setUrl] = useState(image.url || "");
 
   // Fonction pour réinitialiser les valeurs en cas d'annulation
   const handleCancel = () => {
     setName(image.name);
-    setDescription(image.description || '');
-    setUrl(image.url || '');
+    setDescription(image.description || "");
+    setUrl(image.url || "");
     onClose();
   };
 
@@ -58,7 +58,7 @@ const ImageEditModal: React.FC<ImageEditModalProps> = ({
       ...image,
       name: name.trim(),
       description: description.trim(),
-      url: url.trim()
+      url: url.trim(),
     };
 
     // Appeler la fonction de callback pour enregistrer les modifications
@@ -75,15 +75,17 @@ const ImageEditModal: React.FC<ImageEditModalProps> = ({
     >
       <div className="album-modal-header">
         <h2>Modifier l'image</h2>
-        <button className="close-button" onClick={handleCancel}>×</button>
+        <button className="close-button" onClick={handleCancel}>
+          ×
+        </button>
       </div>
-      
+
       <div className="image-edit-content">
         <div className="image-preview-container">
           <img src={image.previewUrl} alt={name} className="image-preview" />
           <p className="file-name">{image.file.name}</p>
         </div>
-        
+
         <div className="image-edit-form">
           <div className="form-group">
             <label htmlFor="image-name">Nom de l'image</label>
@@ -96,7 +98,7 @@ const ImageEditModal: React.FC<ImageEditModalProps> = ({
               maxLength={25}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="image-description">Description (optionnelle)</label>
             <textarea
@@ -108,7 +110,7 @@ const ImageEditModal: React.FC<ImageEditModalProps> = ({
               maxLength={500}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="image-url">URL (optionnelle)</label>
             <input
@@ -121,10 +123,14 @@ const ImageEditModal: React.FC<ImageEditModalProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="album-modal-actions">
-        <button className="cancel-button" onClick={handleCancel}>Annuler</button>
-        <button className="create-button" onClick={handleSave}>Enregistrer</button>
+        <button className="cancel-button" onClick={handleCancel}>
+          Annuler
+        </button>
+        <button className="create-button" onClick={handleSave}>
+          Enregistrer
+        </button>
       </div>
     </Modal>
   );

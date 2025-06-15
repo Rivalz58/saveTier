@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Function to request a password reset (forgot password)
 export const requestPasswordReset = async (email: string): Promise<unknown> => {
@@ -12,7 +12,10 @@ export const requestPasswordReset = async (email: string): Promise<unknown> => {
 };
 
 // Function to reset password with token (from email link)
-export const resetPassword = async (token: string, password: string): Promise<unknown> => {
+export const resetPassword = async (
+  token: string,
+  password: string,
+): Promise<unknown> => {
   try {
     const response = await api.post("/reset-password", { token, password });
     return response.data;
@@ -23,11 +26,14 @@ export const resetPassword = async (token: string, password: string): Promise<un
 };
 
 // Function to change password when logged in
-export const changePassword = async (currentPassword: string, newPassword: string): Promise<unknown> => {
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string,
+): Promise<unknown> => {
   try {
     const response = await api.put("/new-password", {
       current_password: currentPassword,
-      new_password: newPassword
+      new_password: newPassword,
     });
     return response.data;
   } catch (error) {

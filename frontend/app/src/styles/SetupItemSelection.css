@@ -194,7 +194,8 @@
   padding: 0 10px 10px 10px;
 }
 
-.select-button, .main-button {
+.select-button,
+.main-button {
   border: none;
   padding: 8px;
   border-radius: 4px;
@@ -224,11 +225,13 @@
   color: white;
 }
 
-.select-button:hover:not(:disabled), .main-button:hover:not(:disabled) {
+.select-button:hover:not(:disabled),
+.main-button:hover:not(:disabled) {
   filter: brightness(1.1);
 }
 
-.select-button:disabled, .main-button:disabled {
+.select-button:disabled,
+.main-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -253,8 +256,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error message */
@@ -278,13 +285,13 @@
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
   }
-  
+
   .setup-actions {
     position: static;
     justify-content: center;
     margin-top: 20px;
   }
-  
+
   .setup-button {
     width: 100%;
   }
@@ -295,16 +302,16 @@
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
   }
-  
+
   .image-container {
     height: 120px;
   }
-  
+
   .main-image-badge {
     font-size: 0.65rem;
     padding: 3px 6px;
   }
-  
+
   .image-title {
     font-size: 0.8rem;
     padding: 8px;

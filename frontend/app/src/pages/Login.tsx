@@ -23,15 +23,15 @@ const Login: React.FC<LoginProps> = ({ setUser, updateUserStatus }) => {
     try {
       // Appel à l'API de connexion
       const response = await login(nametag, password);
-      
+
       // Vérifier si la connexion est réussie
       if (response && response.status === "success") {
         // Stocker le token dans localStorage
-        localStorage.setItem('token', response.token);
-        
+        localStorage.setItem("token", response.token);
+
         // Définir l'utilisateur avec son nametag
         setUser(nametag);
-        
+
         // Mettre à jour le statut admin si la fonction est disponible
         if (updateUserStatus) {
           await updateUserStatus();
@@ -40,16 +40,19 @@ const Login: React.FC<LoginProps> = ({ setUser, updateUserStatus }) => {
           const isAdmin = await checkIsAdmin();
           console.log("User logged in, admin status:", isAdmin);
         }
-        
+
         // Rediriger vers la page d'accueil
         navigate("/");
       } else {
         setError("Une erreur est survenue lors de la connexion.");
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
-      setError(error.response?.data?.message || "Identifiants incorrects ou serveur indisponible");
+      setError(
+        error.response?.data?.message ||
+          "Identifiants incorrects ou serveur indisponible",
+      );
     } finally {
       setIsLoading(false);
     }

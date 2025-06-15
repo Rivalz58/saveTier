@@ -1,5 +1,5 @@
 .admin-container {
-/* Modifié : réduit de 90px à 40px */
+  /* Modifié : réduit de 90px à 40px */
   max-width: 1400px;
   color: #fff;
   padding-bottom: 40px; /* Ajout : padding en bas pour permettre le défilement */
@@ -43,7 +43,7 @@
 }
 
 .admin-tab.active {
-  background: #328AF1;
+  background: #328af1;
 }
 
 /* Table styles */
@@ -135,7 +135,8 @@
   margin-bottom: 20px; /* Ajout : marge en bas */
 }
 
-.admin-table th, .admin-table td {
+.admin-table th,
+.admin-table td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #3b3e51;
@@ -439,29 +440,29 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .admin-search-container {
     max-width: none;
   }
-  
+
   .admin-filters {
     justify-content: space-between;
   }
-  
+
   .admin-filter-select {
     flex: 1;
     min-width: 0;
   }
-  
+
   .admin-action-btn.add {
     width: 100%;
     margin-top: 10px;
   }
-  
+
   .admin-albums-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
-  
+
   .admin-table {
     display: block;
     overflow-x: auto;
@@ -473,7 +474,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .admin-albums-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
@@ -487,7 +488,7 @@
 }
 
 .user-role {
-  background-color: #328AF1;
+  background-color: #328af1;
   color: white;
   font-size: 0.8rem;
   padding: 2px 8px;
@@ -610,7 +611,7 @@
 }
 
 .confirm-edit {
-  background-color: #328AF1 !important;
+  background-color: #328af1 !important;
 }
 
 .confirm-edit:hover {
@@ -642,7 +643,7 @@
 }
 
 .confirm-role {
-  background-color: #328AF1 !important;
+  background-color: #328af1 !important;
 }
 
 .confirm-role:hover {
@@ -654,11 +655,11 @@
   .user-roles {
     flex-direction: column;
   }
-  
+
   .user-role {
     justify-content: space-between;
   }
-  
+
   .admin-tabs {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -674,7 +675,7 @@
 }
 
 .category-tag {
-  background: #328AF1;
+  background: #328af1;
   color: white;
   font-size: 0.75rem;
   padding: 2px 6px;
@@ -697,7 +698,7 @@
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  border-top-color: #328AF1;
+  border-top-color: #328af1;
   animation: spin 1s ease-in-out infinite;
   margin-bottom: 20px;
 }
@@ -717,4 +718,3 @@
   margin: 20px 0;
   color: #e63946;
 }
-

@@ -31,7 +31,7 @@ fi
 
 # Build and start containers
 log_info "Building and starting containers..."
-if docker compose --env-file .env up -d --build; then
+if docker compose up -d --build; then
     log_success "Containers have been successfully built and started."
 else
     log_error "Failed to build or start containers."

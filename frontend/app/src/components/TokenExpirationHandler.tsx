@@ -11,7 +11,10 @@ interface TokenExpirationHandlerProps {
  * Ce composant n'affiche rien, il écoute simplement les événements d'expiration du token
  * et met à jour l'état de l'application en conséquence.
  */
-const TokenExpirationHandler: React.FC<TokenExpirationHandlerProps> = ({ setUser, setIsAdmin }) => {
+const TokenExpirationHandler: React.FC<TokenExpirationHandlerProps> = ({
+  setUser,
+  setIsAdmin,
+}) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,12 +23,12 @@ const TokenExpirationHandler: React.FC<TokenExpirationHandlerProps> = ({ setUser
       console.log("Événement d'expiration du token détecté");
       setUser(null);
       setIsAdmin(false);
-      
+
       // Rediriger vers la page de connexion si nécessaire
       const currentPath = window.location.pathname;
       if (
-        currentPath.includes("/profile") || 
-        currentPath.includes("/admin") || 
+        currentPath.includes("/profile") ||
+        currentPath.includes("/admin") ||
         currentPath.includes("/add-album")
       ) {
         navigate("/login", { replace: true });

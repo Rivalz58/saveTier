@@ -32,16 +32,18 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // États pour stocker les données formatées
   const [allTierlists, setAllTierlists] = useState<FormattedTierlist[]>([]);
-  const [tierlistCategories, setTierlistCategories] = useState<Map<string, FormattedTierlist[]>>(new Map());
+  const [tierlistCategories, setTierlistCategories] = useState<
+    Map<string, FormattedTierlist[]>
+  >(new Map());
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   // Détecter si on arrive via un "Voir plus" spécifique à une catégorie
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const category = params.get('category');
+    const category = params.get("category");
     if (category) {
       setSelectedCategory(category);
     }
@@ -52,19 +54,19 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
     const loadTierlists = async () => {
       try {
         setIsLoading(true);
-        
+
         // Récupérer les tierlists publiques
         const publicTierlists = await getPublicTierlists();
-        
+
         // Formater les données et récupérer les infos d'album
         const formattedTierlists: FormattedTierlist[] = [];
         const categoriesMap = new Map<string, FormattedTierlist[]>();
         const allCategories = new Set<string>();
-        
+
         for (const tierlist of publicTierlists) {
           // Récupérer les catégories et l'image de l'album
           const albumInfo = await getAlbumInfoForContent(tierlist.album.id);
-          
+
           // Créer un objet tierlist formaté
           const formattedTierlist: FormattedTierlist = {
             id: tierlist.id.toString(),
@@ -75,58 +77,65 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
             categories: albumInfo.categories,
             createdAt: tierlist.createdAt,
           };
-          
+
           formattedTierlists.push(formattedTierlist);
-          
+
           // Ajouter aux catégories
-          albumInfo.categories.forEach(category => {
+          albumInfo.categories.forEach((category) => {
             allCategories.add(category);
-            
+
             if (!categoriesMap.has(category)) {
               categoriesMap.set(category, []);
             }
             categoriesMap.get(category)?.push(formattedTierlist);
           });
         }
-        
+
         // Trier les tierlists par nom dans chaque catégorie
         categoriesMap.forEach((tierlists, category) => {
-          categoriesMap.set(category, tierlists.sort((a, b) => a.name.localeCompare(b.name)));
+          categoriesMap.set(
+            category,
+            tierlists.sort((a, b) => a.name.localeCompare(b.name)),
+          );
         });
-        
+
         // Mettre à jour les états
-        setAllTierlists(formattedTierlists.sort((a, b) => a.name.localeCompare(b.name)));
+        setAllTierlists(
+          formattedTierlists.sort((a, b) => a.name.localeCompare(b.name)),
+        );
         setTierlistCategories(categoriesMap);
         setAvailableCategories(Array.from(allCategories));
-        
       } catch (err) {
         console.error("Erreur lors du chargement des tierlists:", err);
-        setError("Impossible de charger les tierlists. Veuillez réessayer plus tard.");
+        setError(
+          "Impossible de charger les tierlists. Veuillez réessayer plus tard.",
+        );
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     loadTierlists();
   }, []);
 
   // Filtrer les tierlists en fonction de la recherche et de la catégorie
   const getFilteredTierlists = (): FormattedTierlist[] => {
     const searchLower = searchQuery.toLowerCase();
-    
+
     // Filtrer par texte de recherche
-    let filtered = allTierlists.filter(tierlist => 
-      tierlist.name.toLowerCase().includes(searchLower) || 
-      tierlist.creator.toLowerCase().includes(searchLower)
+    let filtered = allTierlists.filter(
+      (tierlist) =>
+        tierlist.name.toLowerCase().includes(searchLower) ||
+        tierlist.creator.toLowerCase().includes(searchLower),
     );
-    
+
     // Filtrer par catégorie si une est sélectionnée
     if (selectedCategory) {
-      filtered = filtered.filter(tierlist => 
-        tierlist.categories.includes(selectedCategory)
+      filtered = filtered.filter((tierlist) =>
+        tierlist.categories.includes(selectedCategory),
       );
     }
-    
+
     return filtered;
   };
 
@@ -174,7 +183,7 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
   return (
     <div className="all-album-container">
       <h1 className="all-album-title">Toutes les Tierlists</h1>
-      
+
       <div className="album-filters">
         <div className="search-container">
           <input
@@ -185,19 +194,19 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
             className="album-search"
           />
         </div>
-        
+
         <div className="category-filters">
-          <button 
-            className={`category-filter ${selectedCategory === null ? 'active' : ''}`}
+          <button
+            className={`category-filter ${selectedCategory === null ? "active" : ""}`}
             onClick={() => setSelectedCategory(null)}
           >
             Toutes les Tierlists
           </button>
-          
+
           {availableCategories.map((title, index) => (
             <button
               key={index}
-              className={`category-filter ${selectedCategory === title ? 'active' : ''}`}
+              className={`category-filter ${selectedCategory === title ? "active" : ""}`}
               onClick={() => setSelectedCategory(title)}
             >
               {title}
@@ -205,7 +214,7 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
           ))}
         </div>
       </div>
-      
+
       {filteredTierlists.length === 0 ? (
         <div className="no-results">
           <p>Aucune tierlist ne correspond à votre recherche</p>
@@ -213,17 +222,19 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
       ) : (
         <div className="all-albums-section">
           <div>
-            <h2 className="category-title">{selectedCategory || "Toutes les Tierlists"}</h2>
+            <h2 className="category-title">
+              {selectedCategory || "Toutes les Tierlists"}
+            </h2>
             <div className="all-albums-grid">
               {filteredTierlists.map((tierlist, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="album-card-container"
                   onClick={() => handleTierlistClick(tierlist)}
                 >
-                  <CategoryCard 
-                    name={tierlist.name} 
-                    image={tierlist.image} 
+                  <CategoryCard
+                    name={tierlist.name}
+                    image={tierlist.image}
                     categories={tierlist.categories}
                     authorName={tierlist.creator}
                   />
@@ -233,13 +244,10 @@ const Tierlists: React.FC<TierlistsProps> = ({ user }) => {
           </div>
         </div>
       )}
-      
+
       <div className="create-album-prompt">
         <p>Vous souhaitez créer votre propre Tierlist ?</p>
-        <button 
-          className="create-album-btn"
-          onClick={handleCreateTierlist}
-        >
+        <button className="create-album-btn" onClick={handleCreateTierlist}>
           Créer une nouvelle Tierlist
         </button>
       </div>

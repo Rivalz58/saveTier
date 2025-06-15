@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import '../styles/Admin.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import "../styles/Admin.css";
 
 interface AlbumImage {
   id: number;
@@ -18,7 +18,7 @@ interface AlbumCategory {
 interface Album {
   id: number;
   name: string;
-  status: 'public' | 'private' | 'quarantined';
+  status: "public" | "private" | "quarantined";
   createdAt: string;
   updatedAt: string;
   author: {
@@ -26,7 +26,7 @@ interface Album {
     username: string;
   };
   categories: AlbumCategory[];
-  image: AlbumImage[];
+  images: AlbumImage[];  // CHANGÉ: images au lieu de image
 }
 
 interface AlbumFormatted {
@@ -36,7 +36,7 @@ interface AlbumFormatted {
   creator: string;
   creatorId: string;
   categories: string[];
-  status: 'public' | 'private' | 'quarantined';
+  status: "public" | "private" | "quarantined";
   created: string;
   itemCount: number;
 }
@@ -53,7 +53,7 @@ interface StatsCache {
     tournaments: number;
     rankings: number;
     total: number;
-  }
+  };
 }
 
 const AdminAlbumManagement: React.FC = () => {
@@ -67,12 +67,16 @@ const AdminAlbumManagement: React.FC = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [usageStats, setUsageStats] = useState<StatsCache>({});
-  
+
   // États pour la modal
   const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState<'status' | 'delete'>('status');
-  const [selectedAlbum, setSelectedAlbum] = useState<AlbumFormatted | null>(null);
-  const [newStatus, setNewStatus] = useState<'public' | 'private' | 'quarantined'>('public');
+  const [modalAction, setModalAction] = useState<"status" | "delete">("status");
+  const [selectedAlbum, setSelectedAlbum] = useState<AlbumFormatted | null>(
+    null,
+  );
+  const [newStatus, setNewStatus] = useState<
+    "public" | "private" | "quarantined"
+  >("public");
 
   // Gérer la navigation vers l'éditeur d'album
   const handleEditAlbum = (albumId: string) => {
@@ -80,97 +84,122 @@ const AdminAlbumManagement: React.FC = () => {
   };
 
   // Formatter les données des albums
-  const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
-    const formattedAlbums: AlbumFormatted[] = [];
-    const allCategories = new Set<string>();
-    
-    for (const album of albums) {
-      // Ajouter les catégories au set global
-      album.categories.forEach(category => allCategories.add(category.name));
-      
-      // Créer l'objet formaté
-      formattedAlbums.push({
-        id: album.id.toString(),
-        name: album.name,
-        image: album.image && album.image.length > 0 ? album.image[0].path_image : '/default-image.jpg',
-        creator: album.author.username,
-        creatorId: album.author.id.toString(),
-        categories: album.categories.map(cat => cat.name),
-        status: album.status,
-        created: album.createdAt,
-        itemCount: album.image.length
-      });
-    }
-    
-    // Mettre à jour les catégories disponibles
-    setAvailableCategories(Array.from(allCategories));
-    
-    return formattedAlbums;
-  };
+const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
+  const formattedAlbums: AlbumFormatted[] = [];
+  const allCategories = new Set<string>();
+
+  for (const album of albums) {
+    // Ajouter les catégories au set global
+    album.categories.forEach((category) => allCategories.add(category.name));
+
+    // CORRECTION : Utiliser 'images' au lieu de 'image'
+    formattedAlbums.push({
+      id: album.id.toString(),
+      name: album.name,
+      image:
+        album.images && album.images.length > 0  // CHANGÉ: images au lieu de image
+          ? album.images[0].path_image            // CHANGÉ: images au lieu de image
+          : "/default-image.jpg",
+      creator: album.author.username,
+      creatorId: album.author.id.toString(),
+      categories: album.categories.map((cat) => cat.name),
+      status: album.status,
+      created: album.createdAt,
+      itemCount: album.images.length,            // CHANGÉ: images au lieu de image
+    });
+  }
+
+  // Mettre à jour les catégories disponibles
+  setAvailableCategories(Array.from(allCategories));
+
+  return formattedAlbums;
+};
 
   // Fonction pour récupérer les statistiques d'utilisation d'un album de manière sécurisée
-  const fetchAlbumStats = async (albumId: string): Promise<{
-    tierlists: number,
-    tournaments: number,
-    rankings: number,
-    total: number
+  const fetchAlbumStats = async (
+    albumId: string,
+  ): Promise<{
+    tierlists: number;
+    tournaments: number;
+    rankings: number;
+    total: number;
   }> => {
-    const defaultStats = { tierlists: 0, tournaments: 0, rankings: 0, total: 0 };
-    
+    const defaultStats = {
+      tierlists: 0,
+      tournaments: 0,
+      rankings: 0,
+      total: 0,
+    };
+
     try {
       // Récupérer le nombre de tierlists
       try {
         const tierlistsResponse = await api.get(`/album/${albumId}/tierlist`);
         defaultStats.tierlists = (tierlistsResponse.data.data || []).length;
       } catch (err) {
-        console.log(`Impossible de charger les tierlists pour l'album ${albumId}`);
+        console.log(
+          `Impossible de charger les tierlists pour l'album ${albumId}`,
+        );
         // La valeur reste à 0
       }
-      
+
       // Récupérer le nombre de tournois
       try {
-        const tournamentsResponse = await api.get(`/album/${albumId}/tournament`);
+        const tournamentsResponse = await api.get(
+          `/album/${albumId}/tournament`,
+        );
         defaultStats.tournaments = (tournamentsResponse.data.data || []).length;
       } catch (err) {
-        console.log(`Impossible de charger les tournois pour l'album ${albumId}`);
+        console.log(
+          `Impossible de charger les tournois pour l'album ${albumId}`,
+        );
         // La valeur reste à 0
       }
-      
+
       // Récupérer le nombre de classements
       try {
         const rankingsResponse = await api.get(`/album/${albumId}/ranking`);
         defaultStats.rankings = (rankingsResponse.data.data || []).length;
       } catch (err) {
-        console.log(`Impossible de charger les classements pour l'album ${albumId}`);
+        console.log(
+          `Impossible de charger les classements pour l'album ${albumId}`,
+        );
         // La valeur reste à 0
       }
-      
+
       // Calculer le nombre total d'utilisations
-      defaultStats.total = defaultStats.tierlists + defaultStats.tournaments + defaultStats.rankings;
-      
+      defaultStats.total =
+        defaultStats.tierlists +
+        defaultStats.tournaments +
+        defaultStats.rankings;
+
       // Si aucune utilisation trouvée, simuler une valeur pour l'affichage
       if (defaultStats.total === 0) {
         // Générer un nombre aléatoire entre 1 et 50 pour simuler des statistiques
         const simulatedTotal = Math.floor(Math.random() * 50) + 1;
-        
+
         // Répartir ce total entre les différents types
-        defaultStats.tierlists = Math.floor(simulatedTotal * 0.5);  // 50% tierlists
-        defaultStats.tournaments = Math.floor(simulatedTotal * 0.3);  // 30% tournois
-        defaultStats.rankings = simulatedTotal - defaultStats.tierlists - defaultStats.tournaments;  // reste pour les classements
+        defaultStats.tierlists = Math.floor(simulatedTotal * 0.5); // 50% tierlists
+        defaultStats.tournaments = Math.floor(simulatedTotal * 0.3); // 30% tournois
+        defaultStats.rankings =
+          simulatedTotal - defaultStats.tierlists - defaultStats.tournaments; // reste pour les classements
         defaultStats.total = simulatedTotal;
       }
-      
+
       return defaultStats;
     } catch (error) {
-      console.error(`Erreur lors de la récupération des statistiques pour l'album ${albumId}:`, error);
-      
+      console.error(
+        `Erreur lors de la récupération des statistiques pour l'album ${albumId}:`,
+        error,
+      );
+
       // Générer des valeurs factices pour ne pas bloquer l'interface
       const simulatedTotal = Math.floor(Math.random() * 50) + 1;
       return {
         tierlists: Math.floor(simulatedTotal * 0.5),
         tournaments: Math.floor(simulatedTotal * 0.3),
         rankings: Math.floor(simulatedTotal * 0.2),
-        total: simulatedTotal
+        total: simulatedTotal,
       };
     }
   };
@@ -181,74 +210,86 @@ const AdminAlbumManagement: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        
-        const response = await api.get<AlbumsResponse>('/album');
+
+        const response = await api.get<AlbumsResponse>("/album");
         const formattedData = formatAlbumData(response.data.data);
         setAlbums(formattedData);
-        
+
         // Charger les statistiques d'utilisation pour chaque album
         const stats: StatsCache = {};
-        
+
         for (const album of formattedData) {
           try {
             const albumStats = await fetchAlbumStats(album.id);
             stats[album.id] = albumStats;
           } catch (err) {
-            console.error(`Erreur lors du chargement des statistiques pour l'album ${album.id}:`, err);
+            console.error(
+              `Erreur lors du chargement des statistiques pour l'album ${album.id}:`,
+              err,
+            );
             // Utiliser des valeurs factices en cas d'erreur
             stats[album.id] = {
               tierlists: Math.floor(Math.random() * 20),
               tournaments: Math.floor(Math.random() * 15),
               rankings: Math.floor(Math.random() * 15),
-              total: Math.floor(Math.random() * 50)
+              total: Math.floor(Math.random() * 50),
             };
           }
         }
-        
+
         setUsageStats(stats);
       } catch (err) {
-        console.error('Erreur lors du chargement des albums:', err);
-        setError('Impossible de charger les albums. Veuillez réessayer plus tard.');
+        console.error("Erreur lors du chargement des albums:", err);
+        setError(
+          "Impossible de charger les albums. Veuillez réessayer plus tard.",
+        );
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchAlbums();
   }, []);
 
   // Filtrer et trier les albums
   const getFilteredAlbums = () => {
     return albums
-      .filter(album => {
+      .filter((album) => {
         // Filtre de recherche
         const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = album.name.toLowerCase().includes(searchLower) || 
-                          album.creator.toLowerCase().includes(searchLower) ||
-                          album.id.includes(searchLower);
-        
+        const matchesSearch =
+          album.name.toLowerCase().includes(searchLower) ||
+          album.creator.toLowerCase().includes(searchLower) ||
+          album.id.includes(searchLower);
+
         // Filtre de statut
-        const matchesStatus = statusFilter === 'all' || album.status === statusFilter;
-        
+        const matchesStatus =
+          statusFilter === "all" || album.status === statusFilter;
+
         // Filtre de catégorie
-        const matchesCategory = categoryFilter === 'all' || 
-                              album.categories.includes(categoryFilter);
-        
+        const matchesCategory =
+          categoryFilter === "all" || album.categories.includes(categoryFilter);
+
         return matchesSearch && matchesStatus && matchesCategory;
       })
       .sort((a, b) => {
         // Tri
         switch (sortBy) {
-          case 'newest':
-            return new Date(b.created).getTime() - new Date(a.created).getTime();
-          case 'oldest':
-            return new Date(a.created).getTime() - new Date(b.created).getTime();
-          case 'alphabetical':
+          case "newest":
+            return (
+              new Date(b.created).getTime() - new Date(a.created).getTime()
+            );
+          case "oldest":
+            return (
+              new Date(a.created).getTime() - new Date(b.created).getTime()
+            );
+          case "alphabetical":
             return a.name.localeCompare(b.name);
-          case 'popular':
-            { const aUsage = usageStats[a.id]?.total || 0;
+          case "popular": {
+            const aUsage = usageStats[a.id]?.total || 0;
             const bUsage = usageStats[b.id]?.total || 0;
-            return bUsage - aUsage; }
+            return bUsage - aUsage;
+          }
           default:
             return 0;
         }
@@ -259,20 +300,26 @@ const AdminAlbumManagement: React.FC = () => {
   const handleChangeStatus = async () => {
     try {
       if (!selectedAlbum || !newStatus) return;
-      
+
       await api.put(`/album/${selectedAlbum.id}`, {
-        status: newStatus
+        status: newStatus,
       });
-      
+
       // Mettre à jour l'état local
-      setAlbums(albums.map(album => 
-        album.id === selectedAlbum.id ? { ...album, status: newStatus } : album
-      ));
-      
-      alert(`Le statut de l'album "${selectedAlbum.name}" a été modifié en "${newStatus}".`);
+      setAlbums(
+        albums.map((album) =>
+          album.id === selectedAlbum.id
+            ? { ...album, status: newStatus }
+            : album,
+        ),
+      );
+
+      alert(
+        `Le statut de l'album "${selectedAlbum.name}" a été modifié en "${newStatus}".`,
+      );
     } catch (err) {
-      console.error('Erreur lors de la modification du statut:', err);
-      alert('Une erreur est survenue lors de la modification du statut.');
+      console.error("Erreur lors de la modification du statut:", err);
+      alert("Une erreur est survenue lors de la modification du statut.");
     } finally {
       setShowModal(false);
       setSelectedAlbum(null);
@@ -283,16 +330,16 @@ const AdminAlbumManagement: React.FC = () => {
   const handleDeleteAlbum = async () => {
     try {
       if (!selectedAlbum) return;
-      
+
       await api.delete(`/album/${selectedAlbum.id}`);
-      
+
       // Mettre à jour l'état local
-      setAlbums(albums.filter(album => album.id !== selectedAlbum.id));
-      
+      setAlbums(albums.filter((album) => album.id !== selectedAlbum.id));
+
       alert(`L'album "${selectedAlbum.name}" a été supprimé avec succès.`);
     } catch (err) {
-      console.error('Erreur lors de la suppression de l\'album:', err);
-      alert('Une erreur est survenue lors de la suppression de l\'album.');
+      console.error("Erreur lors de la suppression de l'album:", err);
+      alert("Une erreur est survenue lors de la suppression de l'album.");
     } finally {
       setShowModal(false);
       setSelectedAlbum(null);
@@ -303,22 +350,22 @@ const AdminAlbumManagement: React.FC = () => {
   const openStatusModal = (album: AlbumFormatted) => {
     setSelectedAlbum(album);
     setNewStatus(album.status);
-    setModalAction('status');
+    setModalAction("status");
     setShowModal(true);
   };
 
   // Ouvrir la modal de suppression
   const openDeleteModal = (album: AlbumFormatted) => {
     setSelectedAlbum(album);
-    setModalAction('delete');
+    setModalAction("delete");
     setShowModal(true);
   };
 
   // Gérer l'action confirmée dans la modal
   const handleConfirmAction = () => {
-    if (modalAction === 'status') {
+    if (modalAction === "status") {
       handleChangeStatus();
-    } else if (modalAction === 'delete') {
+    } else if (modalAction === "delete") {
       handleDeleteAlbum();
     }
   };
@@ -327,7 +374,9 @@ const AdminAlbumManagement: React.FC = () => {
   const renderCategoryTags = (categories: string[]) => (
     <div className="category-tags">
       {categories.map((category, index) => (
-        <span key={index} className="category-tag">{category}</span>
+        <span key={index} className="category-tag">
+          {category}
+        </span>
       ))}
     </div>
   );
@@ -336,7 +385,11 @@ const AdminAlbumManagement: React.FC = () => {
   const filteredAlbums = getFilteredAlbums();
 
   if (loading) {
-    return <div className="loading-container"><div className="loading-spinner"></div></div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -356,9 +409,9 @@ const AdminAlbumManagement: React.FC = () => {
           />
         </div>
         <div className="admin-filters">
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)} 
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="admin-filter-select"
           >
             <option value="all">Tous les statuts</option>
@@ -366,21 +419,23 @@ const AdminAlbumManagement: React.FC = () => {
             <option value="private">Privé</option>
             <option value="quarantined">En quarantaine</option>
           </select>
-          
-          <select 
-            value={categoryFilter} 
-            onChange={(e) => setCategoryFilter(e.target.value)} 
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
             className="admin-filter-select"
           >
             <option value="all">Toutes les catégories</option>
             {availableCategories.map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </select>
-          
-          <select 
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)} 
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
             className="admin-filter-select"
           >
             <option value="popular">Plus utilisés</option>
@@ -390,7 +445,7 @@ const AdminAlbumManagement: React.FC = () => {
           </select>
         </div>
       </div>
-      
+
       {filteredAlbums.length === 0 ? (
         <div className="no-results">
           <p>Aucun album ne correspond à votre recherche</p>
@@ -417,7 +472,12 @@ const AdminAlbumManagement: React.FC = () => {
                 <td className="id-cell">{album.id}</td>
                 <td>
                   <div className="admin-album-thumbnail">
-                    <img src={album.image} alt={album.name} width="50" height="50" />
+                    <img
+                      src={album.image}
+                      alt={album.name}
+                      width="50"
+                      height="50"
+                    />
                   </div>
                 </td>
                 <td>{album.name}</td>
@@ -426,11 +486,13 @@ const AdminAlbumManagement: React.FC = () => {
                 <td>{album.itemCount}</td>
                 <td>
                   <div className="usage-stats">
-                    <span className="usage-total">{usageStats[album.id]?.total || 0}</span>
+                    <span className="usage-total">
+                      {usageStats[album.id]?.total || 0}
+                    </span>
                     <span className="usage-details">
-                      (T: {usageStats[album.id]?.tierlists || 0}, 
-                      To: {usageStats[album.id]?.tournaments || 0}, 
-                      C: {usageStats[album.id]?.rankings || 0})
+                      (T: {usageStats[album.id]?.tierlists || 0}, To:{" "}
+                      {usageStats[album.id]?.tournaments || 0}, C:{" "}
+                      {usageStats[album.id]?.rankings || 0})
                     </span>
                   </div>
                 </td>
@@ -440,8 +502,8 @@ const AdminAlbumManagement: React.FC = () => {
                     {album.status === "public"
                       ? "Public"
                       : album.status === "private"
-                      ? "Privé"
-                      : "En quarantaine"}
+                        ? "Privé"
+                        : "En quarantaine"}
                   </span>
                 </td>
                 <td className="actions-cell">
@@ -469,20 +531,25 @@ const AdminAlbumManagement: React.FC = () => {
           </tbody>
         </table>
       )}
-      
+
       {/* Modal de confirmation */}
       {showModal && selectedAlbum && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>Confirmation</h2>
-            {modalAction === 'status' ? (
+            {modalAction === "status" ? (
               <>
                 <p>
-                  Modifier le statut de l'album <strong>{selectedAlbum.name}</strong>:
+                  Modifier le statut de l'album{" "}
+                  <strong>{selectedAlbum.name}</strong>:
                 </p>
-                <select 
-                  value={newStatus} 
-                  onChange={(e) => setNewStatus(e.target.value as 'public' | 'private' | 'quarantined')} 
+                <select
+                  value={newStatus}
+                  onChange={(e) =>
+                    setNewStatus(
+                      e.target.value as "public" | "private" | "quarantined",
+                    )
+                  }
                   className="status-select"
                 >
                   <option value="public">Public</option>
@@ -492,13 +559,15 @@ const AdminAlbumManagement: React.FC = () => {
               </>
             ) : (
               <p>
-                Êtes-vous sûr de vouloir supprimer l'album <strong>{selectedAlbum.name}</strong> ? Cette action est irréversible.
+                Êtes-vous sûr de vouloir supprimer l'album{" "}
+                <strong>{selectedAlbum.name}</strong> ? Cette action est
+                irréversible.
               </p>
             )}
             <div className="modal-actions">
               <button onClick={() => setShowModal(false)}>Annuler</button>
-              <button 
-                className={`confirm-${modalAction}`} 
+              <button
+                className={`confirm-${modalAction}`}
                 onClick={handleConfirmAction}
               >
                 Confirmer

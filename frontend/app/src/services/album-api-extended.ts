@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Types existants
 export interface AlbumImage {
@@ -34,12 +34,12 @@ export interface AlbumAuthor {
 export interface Album {
   id: number;
   name: string;
-  status: 'public' | 'private' | 'quarantined';
+  status: "public" | "private" | "quarantined";
   createdAt: string;
   updatedAt: string;
   categories: AlbumCategory[];
   author: AlbumAuthor;
-  image: AlbumImage[];
+  images: AlbumImage[];
   stats?: AlbumStats;
 }
 
@@ -74,39 +74,42 @@ export const getAlbumById = async (id: number): Promise<Album | null> => {
 };
 
 // Fonction pour extraire des informations d'album pour les tierlists, tournois et classements
-export const getAlbumInfoForContent = async (albumId: number): Promise<{
+export const getAlbumInfoForContent = async (
+  albumId: number,
+): Promise<{
   categories: string[];
   imagePath: string;
 }> => {
   try {
     const defaultResult = {
       categories: [],
-      imagePath: '/default-image.jpg'
+      imagePath: "/default-image.jpg",
     };
-    
+
     if (!albumId) return defaultResult;
-    
+
     const album = await getAlbumById(albumId);
-    
+
     if (!album) return defaultResult;
-    
+
     // Extraire les catégories
-    const categories = album.categories.map(cat => cat.name);
-    
+    const categories = album.categories.map((cat) => cat.name);
+
     // Obtenir la première image ou utiliser une image par défaut
-    const imagePath = album.image && album.image.length > 0 
-      ? album.image[0].path_image 
-      : '/default-image.jpg';
-    
+    const imagePath =
+      album.images && album.images.length > 0
+        ? album.images[0].path_image
+        : "/default-image.jpg";
+
     return {
       categories,
-      imagePath
+      imagePath,
     };
   } catch (error) {
     console.error(`Error getting album info for album ${albumId}:`, error);
     return {
       categories: [],
-      imagePath: '/default-image.jpg'
+      imagePath: "/default-image.jpg",
     };
   }
 };

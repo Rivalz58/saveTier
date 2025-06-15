@@ -1,4 +1,5 @@
-.all-album-container {/* Force l'espacement pour ce conteneur */
+.all-album-container {
+  /* Force l'espacement pour ce conteneur */
   max-width: 1400px;
   margin: 0 auto;
   color: #fff;
@@ -11,7 +12,18 @@
   font-size: 1.8rem;
   text-align: center;
   margin-top: 10px;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 /* Search and filters */
@@ -31,12 +43,23 @@
   background: #22232b;
   color: white;
   font-size: 1rem;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 .album-search:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #328AF1;
+  box-shadow: 0 0 0 2px #328af1;
 }
 
 /* Filtres de catégories */
@@ -75,7 +98,18 @@
   font-size: 0.9rem;
   transition: all 0.3s ease;
   white-space: nowrap;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 .category-filter:hover {
@@ -83,7 +117,7 @@
 }
 
 .category-filter.active {
-  background: #328AF1;
+  background: #328af1;
 }
 
 .category-count {
@@ -130,7 +164,18 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 /* Titres de catégorie */
@@ -138,7 +183,18 @@
   font-size: 1.5rem;
   margin: 15px 0;
   color: #fff;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 /* Bouton charger plus */
@@ -149,7 +205,7 @@
 }
 
 .load-more-button {
-  background: #328AF1;
+  background: #328af1;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -161,7 +217,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 .load-more-button:hover {
@@ -205,7 +272,7 @@
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  border-top-color: #328AF1;
+  border-top-color: #328af1;
   animation: spin 1s ease-in-out infinite;
   margin-bottom: 20px;
 }
@@ -222,7 +289,18 @@
 .no-results p {
   font-size: 1.1rem;
   color: #aaa;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 /* Error message */
@@ -236,7 +314,7 @@
 }
 
 .error-message button {
-  background: #328AF1;
+  background: #328af1;
   color: white;
   border: none;
   padding: 8px 15px;
@@ -244,7 +322,18 @@
   margin-top: 10px;
   cursor: pointer;
   font-weight: bold;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 /* Create album prompt */
@@ -261,11 +350,22 @@
 .create-album-prompt p {
   margin-bottom: 15px;
   font-size: 1.1rem;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 .create-album-btn {
-  background: #328AF1;
+  background: #328af1;
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -274,7 +374,18 @@
   font-weight: bold;
   font-size: 1rem;
   transition: background 0.3s ease;
-  font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
 }
 
 .create-album-btn:hover {
@@ -292,25 +403,25 @@
   .all-album-container {
     padding-top: 120px !important;
   }
-  
+
   .all-albums-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
   }
-  
+
   .category-filters {
     padding-bottom: 10px;
   }
-  
+
   .album-usage-count {
     font-size: 0.65rem;
     padding: 2px 6px;
   }
-  
+
   .all-album-title {
     font-size: 1.6rem;
   }
-  
+
   .category-title {
     font-size: 1.3rem;
   }
@@ -321,21 +432,21 @@
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
   }
-  
+
   .all-album-title {
     font-size: 1.5rem;
   }
-  
+
   .category-filter {
     padding: 6px 12px;
     font-size: 0.8rem;
   }
-  
+
   .load-more-button {
     padding: 8px 15px;
     font-size: 0.9rem;
   }
-  
+
   .category-title {
     font-size: 1.2rem;
   }

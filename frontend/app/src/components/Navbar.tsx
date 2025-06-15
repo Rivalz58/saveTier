@@ -51,16 +51,16 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, isAdmin }) => {
   const handleLogout = () => {
     onLogout();
     // Forcer un rechargement complet de l'application
-    window.location.href = '/';
+    window.location.href = "/";
   };
-  
+
   return (
     <div className="navbar-bg">
       <div className="navbar">
-        <img 
-          src={logo} 
-          alt="TierHub Logo" 
-          className="logo" 
+        <img
+          src={logo}
+          alt="TierHub Logo"
+          className="logo"
           onClick={() => navigate("/")}
         />
         <div className={`nav-links ${showMobileMenu ? "active" : ""}`}>
@@ -119,7 +119,9 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, isAdmin }) => {
                     <p className="dropdown-username">{user}</p>
                     <p>{isAdmin ? "Administrateur" : "Utilisateur"}</p>
                   </div>
-                  <button onClick={() => navigate("/profile")}>Mon profil</button>
+                  <button onClick={() => navigate("/profile")}>
+                    Mon profil
+                  </button>
                   <button onClick={() => navigate("/add-album")}>
                     Ajouter un album
                   </button>

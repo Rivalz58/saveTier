@@ -27,16 +27,18 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // États pour stocker les données formatées
   const [allRankings, setAllRankings] = useState<FormattedRanking[]>([]);
-  const [rankingCategories, setRankingCategories] = useState<Map<string, FormattedRanking[]>>(new Map());
+  const [rankingCategories, setRankingCategories] = useState<
+    Map<string, FormattedRanking[]>
+  >(new Map());
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   // Détecter si on arrive via un "Voir plus" spécifique à une catégorie
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const category = params.get('category');
+    const category = params.get("category");
     if (category) {
       setSelectedCategory(category);
     }
@@ -47,19 +49,19 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
     const loadRankings = async () => {
       try {
         setIsLoading(true);
-        
+
         // Récupérer les classements publics
         const publicRankings = await getPublicRankings();
-        
+
         // Formater les données et récupérer les infos d'album
         const formattedRankings: FormattedRanking[] = [];
         const categoriesMap = new Map<string, FormattedRanking[]>();
         const allCategories = new Set<string>();
-        
+
         for (const ranking of publicRankings) {
           // Récupérer les catégories et l'image de l'album
           const albumInfo = await getAlbumInfoForContent(ranking.album.id);
-          
+
           // Créer un objet ranking formaté
           const formattedRanking: FormattedRanking = {
             id: ranking.id.toString(),
@@ -70,58 +72,65 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
             categories: albumInfo.categories,
             createdAt: ranking.createdAt,
           };
-          
+
           formattedRankings.push(formattedRanking);
-          
+
           // Ajouter aux catégories
-          albumInfo.categories.forEach(category => {
+          albumInfo.categories.forEach((category) => {
             allCategories.add(category);
-            
+
             if (!categoriesMap.has(category)) {
               categoriesMap.set(category, []);
             }
             categoriesMap.get(category)?.push(formattedRanking);
           });
         }
-        
+
         // Trier les classements par nom dans chaque catégorie
         categoriesMap.forEach((rankings, category) => {
-          categoriesMap.set(category, rankings.sort((a, b) => a.name.localeCompare(b.name)));
+          categoriesMap.set(
+            category,
+            rankings.sort((a, b) => a.name.localeCompare(b.name)),
+          );
         });
-        
+
         // Mettre à jour les états
-        setAllRankings(formattedRankings.sort((a, b) => a.name.localeCompare(b.name)));
+        setAllRankings(
+          formattedRankings.sort((a, b) => a.name.localeCompare(b.name)),
+        );
         setRankingCategories(categoriesMap);
         setAvailableCategories(Array.from(allCategories));
-        
       } catch (err) {
         console.error("Erreur lors du chargement des classements:", err);
-        setError("Impossible de charger les classements. Veuillez réessayer plus tard.");
+        setError(
+          "Impossible de charger les classements. Veuillez réessayer plus tard.",
+        );
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     loadRankings();
   }, []);
 
   // Filtrer les classements en fonction de la recherche et de la catégorie
   const getFilteredRankings = (): FormattedRanking[] => {
     const searchLower = searchQuery.toLowerCase();
-    
+
     // Filtrer par texte de recherche
-    let filtered = allRankings.filter(ranking => 
-      ranking.name.toLowerCase().includes(searchLower) || 
-      ranking.creator.toLowerCase().includes(searchLower)
+    let filtered = allRankings.filter(
+      (ranking) =>
+        ranking.name.toLowerCase().includes(searchLower) ||
+        ranking.creator.toLowerCase().includes(searchLower),
     );
-    
+
     // Filtrer par catégorie si une est sélectionnée
     if (selectedCategory) {
-      filtered = filtered.filter(ranking => 
-        ranking.categories.includes(selectedCategory)
+      filtered = filtered.filter((ranking) =>
+        ranking.categories.includes(selectedCategory),
       );
     }
-    
+
     return filtered;
   };
 
@@ -169,7 +178,7 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
   return (
     <div className="all-album-container">
       <h1 className="all-album-title">Tous les Classements</h1>
-      
+
       <div className="album-filters">
         <div className="search-container">
           <input
@@ -180,19 +189,19 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
             className="album-search"
           />
         </div>
-        
+
         <div className="category-filters">
-          <button 
-            className={`category-filter ${selectedCategory === null ? 'active' : ''}`}
+          <button
+            className={`category-filter ${selectedCategory === null ? "active" : ""}`}
             onClick={() => setSelectedCategory(null)}
           >
             Tous les Classements
           </button>
-          
+
           {availableCategories.map((title, index) => (
             <button
               key={index}
-              className={`category-filter ${selectedCategory === title ? 'active' : ''}`}
+              className={`category-filter ${selectedCategory === title ? "active" : ""}`}
               onClick={() => setSelectedCategory(title)}
             >
               {title}
@@ -200,7 +209,7 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
           ))}
         </div>
       </div>
-      
+
       {filteredRankings.length === 0 ? (
         <div className="no-results">
           <p>Aucun classement ne correspond à votre recherche</p>
@@ -208,16 +217,18 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
       ) : (
         <div className="all-albums-section">
           <div>
-            <h2 className="category-title">{selectedCategory || "Tous les Classements"}</h2>
+            <h2 className="category-title">
+              {selectedCategory || "Tous les Classements"}
+            </h2>
             <div className="all-albums-grid">
               {filteredRankings.map((ranking, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="album-card-container"
                   onClick={() => handleRankingClick(ranking)}
                 >
-                  <CategoryCard 
-                    name={ranking.name} 
+                  <CategoryCard
+                    name={ranking.name}
                     image={ranking.image}
                     categories={ranking.categories}
                     authorName={ranking.creator}
@@ -228,13 +239,10 @@ const Classements: React.FC<ClassementsProps> = ({ user }) => {
           </div>
         </div>
       )}
-      
+
       <div className="create-album-prompt">
         <p>Vous souhaitez créer votre propre Classement ?</p>
-        <button 
-          className="create-album-btn"
-          onClick={handleCreateRanking}
-        >
+        <button className="create-album-btn" onClick={handleCreateRanking}>
           Créer un nouveau Classement
         </button>
       </div>

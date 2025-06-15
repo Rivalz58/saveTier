@@ -14,39 +14,43 @@ const ResetPassword: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(true);
   const [isResetSuccessful, setIsResetSuccessful] = useState(false);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
 
   // Extract token from URL when component mounts
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const resetToken = searchParams.get('token');
-    
+    const resetToken = searchParams.get("token");
+
     if (!resetToken) {
       setIsTokenValid(false);
       setIsError(true);
-      setMessage("Lien de réinitialisation invalide ou expiré. Veuillez demander un nouveau lien.");
+      setMessage(
+        "Lien de réinitialisation invalide ou expiré. Veuillez demander un nouveau lien.",
+      );
       return;
     }
-    
+
     setToken(resetToken);
-    
+
     // Optionally verify token validity with the server
     const verifyToken = async () => {
       try {
         // This would be a real API call in production
         // await api.get(`/verify-reset-token?token=${resetToken}`);
-        
+
         // For demo/development, we assume the token is valid
         setIsTokenValid(true);
       } catch (error) {
         setIsTokenValid(false);
         setIsError(true);
-        setMessage("Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.");
+        setMessage(
+          "Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.",
+        );
       }
     };
-    
+
     verifyToken();
   }, [location]);
 
@@ -54,32 +58,32 @@ const ResetPassword: React.FC = () => {
     e.preventDefault();
     setMessage("");
     setIsError(false);
-    
+
     // Validate passwords
     if (password !== confirmPassword) {
       setIsError(true);
       setMessage("Les mots de passe ne correspondent pas.");
       return;
     }
-    
+
     if (password.length < 8) {
       setIsError(true);
       setMessage("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       // This would be a real API call in production
       // await api.post("/reset-password", { token, password });
-      
+
       // For demo/development, simulate a successful password reset
       console.log("Password would be reset with token:", token);
-      
+
       setIsResetSuccessful(true);
       setMessage("Votre mot de passe a été réinitialisé avec succès !");
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate("/login");
@@ -87,7 +91,10 @@ const ResetPassword: React.FC = () => {
     } catch (error: any) {
       console.error("Error resetting password:", error);
       setIsError(true);
-      setMessage(error.response?.data?.message || "Une erreur est survenue lors de la réinitialisation du mot de passe.");
+      setMessage(
+        error.response?.data?.message ||
+          "Une erreur est survenue lors de la réinitialisation du mot de passe.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +106,10 @@ const ResetPassword: React.FC = () => {
       <div className="auth-container">
         <h2>Réinitialisation de mot de passe</h2>
         <p className="error-message">{message}</p>
-        <button onClick={() => navigate("/forgot-password")} className="primary-button">
+        <button
+          onClick={() => navigate("/forgot-password")}
+          className="primary-button"
+        >
           Demander un nouveau lien
         </button>
         <p>
@@ -126,9 +136,13 @@ const ResetPassword: React.FC = () => {
   return (
     <div className="auth-container">
       <h2>Réinitialisation de mot de passe</h2>
-      
-      {message && <p className={isError ? "error-message" : "success-message"}>{message}</p>}
-      
+
+      {message && (
+        <p className={isError ? "error-message" : "success-message"}>
+          {message}
+        </p>
+      )}
+
       <form onSubmit={handleSubmit}>
         <input
           type="password"
@@ -139,7 +153,7 @@ const ResetPassword: React.FC = () => {
           disabled={isLoading}
           minLength={8}
         />
-        
+
         <input
           type="password"
           placeholder="Confirmer le nouveau mot de passe"
@@ -149,12 +163,14 @@ const ResetPassword: React.FC = () => {
           disabled={isLoading}
           minLength={8}
         />
-        
+
         <button type="submit" disabled={isLoading}>
-          {isLoading ? "Traitement en cours..." : "Réinitialiser le mot de passe"}
+          {isLoading
+            ? "Traitement en cours..."
+            : "Réinitialiser le mot de passe"}
         </button>
       </form>
-      
+
       <p>
         <a href="/login">Retour à la connexion</a>
       </p>

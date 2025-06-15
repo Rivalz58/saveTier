@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // Interface pour les données de classement
 export interface RankingAuthor {
@@ -51,10 +51,10 @@ export interface RankingsResponse {
 // Fonction pour récupérer tous les classements
 export const getAllRankings = async (): Promise<Ranking[]> => {
   try {
-    const response = await api.get<RankingsResponse>('/ranking');
+    const response = await api.get<RankingsResponse>("/ranking");
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching rankings:', error);
+    console.error("Error fetching rankings:", error);
     return [];
   }
 };
@@ -63,9 +63,9 @@ export const getAllRankings = async (): Promise<Ranking[]> => {
 export const getPublicRankings = async (): Promise<Ranking[]> => {
   try {
     const rankings = await getAllRankings();
-    return rankings.filter(ranking => !ranking.private);
+    return rankings.filter((ranking) => !ranking.private);
   } catch (error) {
-    console.error('Error fetching public rankings:', error);
+    console.error("Error fetching public rankings:", error);
     return [];
   }
 };
@@ -73,7 +73,11 @@ export const getPublicRankings = async (): Promise<Ranking[]> => {
 // Fonction pour récupérer un classement spécifique par ID
 export const getRankingById = async (id: number): Promise<Ranking | null> => {
   try {
-    const response = await api.get<{ status: string; message: string; data: Ranking }>(`/ranking/${id}`);
+    const response = await api.get<{
+      status: string;
+      message: string;
+      data: Ranking;
+    }>(`/ranking/${id}`);
     return response.data.data;
   } catch (error) {
     console.error(`Error fetching ranking ${id}:`, error);

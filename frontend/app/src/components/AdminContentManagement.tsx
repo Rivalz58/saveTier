@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
-import '../styles/Admin.css';
-import { getAlbumInfoForContent } from '../services/album-api-extended';
+import React, { useState, useEffect } from "react";
+import api from "../services/api";
+import "../styles/Admin.css";
+import { getAlbumInfoForContent } from "../services/album-api-extended";
 
 interface ContentItem {
   id: number;
@@ -29,7 +29,7 @@ interface ContentItemFormatted {
   albumName: string;
   image: string;
   categories: string[];
-  status: 'public' | 'private';
+  status: "public" | "private";
   created: string;
   description: string;
 }
@@ -41,11 +41,14 @@ interface ContentResponse {
 }
 
 interface ContentProps {
-  contentType: 'tierlist' | 'ranking' | 'tournament';
+  contentType: "tierlist" | "ranking" | "tournament";
   contentTypeName: string;
 }
 
-const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTypeName }) => {
+const AdminContentManagement: React.FC<ContentProps> = ({
+  contentType,
+  contentTypeName,
+}) => {
   const [contentItems, setContentItems] = useState<ContentItemFormatted[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,24 +57,30 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  
+
   // États pour la modal
   const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState<'privacy' | 'delete'>('privacy');
-  const [selectedItem, setSelectedItem] = useState<ContentItemFormatted | null>(null);
+  const [modalAction, setModalAction] = useState<"privacy" | "delete">(
+    "privacy",
+  );
+  const [selectedItem, setSelectedItem] = useState<ContentItemFormatted | null>(
+    null,
+  );
 
   // Formatter les données du contenu
-  const formatContentData = async (items: ContentItem[]): Promise<ContentItemFormatted[]> => {
+  const formatContentData = async (
+    items: ContentItem[],
+  ): Promise<ContentItemFormatted[]> => {
     const formattedItems: ContentItemFormatted[] = [];
     const allCategories = new Set<string>();
-    
+
     for (const item of items) {
       // Récupérer les informations de l'album associé
       const albumInfo = await getAlbumInfoForContent(item.album.id);
-      
+
       // Ajouter les catégories au set global
-      albumInfo.categories.forEach(category => allCategories.add(category));
-      
+      albumInfo.categories.forEach((category) => allCategories.add(category));
+
       // Créer l'objet formaté
       formattedItems.push({
         id: item.id.toString(),
@@ -82,15 +91,15 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
         albumName: item.album.name,
         image: albumInfo.imagePath,
         categories: albumInfo.categories,
-        status: item.private ? 'private' : 'public',
+        status: item.private ? "private" : "public",
         created: item.createdAt,
-        description: item.description
+        description: item.description,
       });
     }
-    
+
     // Mettre à jour les catégories disponibles
     setAvailableCategories(Array.from(allCategories));
-    
+
     return formattedItems;
   };
 
@@ -100,53 +109,61 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
       try {
         setLoading(true);
         setError(null);
-        
+
         // Déterminer l'endpoint API en fonction du type de contenu
         const endpoint = `/${contentType}`;
-        
+
         const response = await api.get<ContentResponse>(endpoint);
         const formattedData = await formatContentData(response.data.data);
         setContentItems(formattedData);
       } catch (err) {
         console.error(`Erreur lors du chargement des ${contentTypeName}:`, err);
-        setError(`Impossible de charger les ${contentTypeName}. Veuillez réessayer plus tard.`);
+        setError(
+          `Impossible de charger les ${contentTypeName}. Veuillez réessayer plus tard.`,
+        );
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchContent();
   }, [contentType, contentTypeName]);
 
   // Filtrer et trier le contenu
   const getFilteredContent = () => {
     return contentItems
-      .filter(item => {
+      .filter((item) => {
         // Filtre de recherche
         const searchLower = searchQuery.toLowerCase();
-        const matchesSearch = item.name.toLowerCase().includes(searchLower) || 
-                          item.creator.toLowerCase().includes(searchLower) ||
-                          item.albumName.toLowerCase().includes(searchLower) ||
-                          item.id.includes(searchLower) ||
-                          item.albumId.includes(searchLower);
-        
+        const matchesSearch =
+          item.name.toLowerCase().includes(searchLower) ||
+          item.creator.toLowerCase().includes(searchLower) ||
+          item.albumName.toLowerCase().includes(searchLower) ||
+          item.id.includes(searchLower) ||
+          item.albumId.includes(searchLower);
+
         // Filtre de statut
-        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-        
+        const matchesStatus =
+          statusFilter === "all" || item.status === statusFilter;
+
         // Filtre de catégorie
-        const matchesCategory = categoryFilter === 'all' || 
-                              item.categories.includes(categoryFilter);
-        
+        const matchesCategory =
+          categoryFilter === "all" || item.categories.includes(categoryFilter);
+
         return matchesSearch && matchesStatus && matchesCategory;
       })
       .sort((a, b) => {
         // Tri
         switch (sortBy) {
-          case 'newest':
-            return new Date(b.created).getTime() - new Date(a.created).getTime();
-          case 'oldest':
-            return new Date(a.created).getTime() - new Date(b.created).getTime();
-          case 'alphabetical':
+          case "newest":
+            return (
+              new Date(b.created).getTime() - new Date(a.created).getTime()
+            );
+          case "oldest":
+            return (
+              new Date(a.created).getTime() - new Date(b.created).getTime()
+            );
+          case "alphabetical":
             return a.name.localeCompare(b.name);
           default:
             return 0;
@@ -157,21 +174,27 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
   // Modifier la visibilité d'un élément (public/privé)
   const handleTogglePrivacy = async (item: ContentItemFormatted) => {
     try {
-      const newPrivacy = item.status === 'public';
-      
+      const newPrivacy = item.status === "public";
+
       await api.put(`/${contentType}/${item.id}`, {
-        private: newPrivacy
+        private: newPrivacy,
       });
-      
+
       // Mettre à jour l'état local
-      setContentItems(contentItems.map(content => 
-        content.id === item.id ? { ...content, status: newPrivacy ? 'private' : 'public' } : content
-      ));
-      
+      setContentItems(
+        contentItems.map((content) =>
+          content.id === item.id
+            ? { ...content, status: newPrivacy ? "private" : "public" }
+            : content,
+        ),
+      );
+
       alert(`La visibilité de "${item.name}" a été modifiée avec succès.`);
     } catch (err) {
-      console.error('Erreur lors de la modification de la visibilité:', err);
-      alert('Une erreur est survenue lors de la modification de la visibilité.');
+      console.error("Erreur lors de la modification de la visibilité:", err);
+      alert(
+        "Une erreur est survenue lors de la modification de la visibilité.",
+      );
     } finally {
       setShowModal(false);
       setSelectedItem(null);
@@ -182,14 +205,14 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
   const handleDeleteContent = async (item: ContentItemFormatted) => {
     try {
       await api.delete(`/${contentType}/${item.id}`);
-      
+
       // Mettre à jour l'état local
-      setContentItems(contentItems.filter(content => content.id !== item.id));
-      
+      setContentItems(contentItems.filter((content) => content.id !== item.id));
+
       alert(`"${item.name}" a été supprimé avec succès.`);
     } catch (err) {
-      console.error('Erreur lors de la suppression:', err);
-      alert('Une erreur est survenue lors de la suppression.');
+      console.error("Erreur lors de la suppression:", err);
+      alert("Une erreur est survenue lors de la suppression.");
     } finally {
       setShowModal(false);
       setSelectedItem(null);
@@ -197,7 +220,10 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
   };
 
   // Ouvrir la modal de confirmation
-  const openConfirmationModal = (action: 'privacy' | 'delete', item: ContentItemFormatted) => {
+  const openConfirmationModal = (
+    action: "privacy" | "delete",
+    item: ContentItemFormatted,
+  ) => {
     setSelectedItem(item);
     setModalAction(action);
     setShowModal(true);
@@ -206,12 +232,12 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
   // Traiter l'action confirmée dans la modal
   const handleConfirmAction = () => {
     if (!selectedItem) return;
-    
+
     switch (modalAction) {
-      case 'privacy':
+      case "privacy":
         handleTogglePrivacy(selectedItem);
         break;
-      case 'delete':
+      case "delete":
         handleDeleteContent(selectedItem);
         break;
     }
@@ -221,7 +247,9 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
   const renderCategoryTags = (categories: string[]) => (
     <div className="category-tags">
       {categories.map((category, index) => (
-        <span key={index} className="category-tag">{category}</span>
+        <span key={index} className="category-tag">
+          {category}
+        </span>
       ))}
     </div>
   );
@@ -230,7 +258,11 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
   const filteredContent = getFilteredContent();
 
   if (loading) {
-    return <div className="loading-container"><div className="loading-spinner"></div></div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -250,30 +282,32 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
           />
         </div>
         <div className="admin-filters">
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)} 
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="admin-filter-select"
           >
             <option value="all">Tous les statuts</option>
             <option value="public">Public</option>
             <option value="private">Privé</option>
           </select>
-          
-          <select 
-            value={categoryFilter} 
-            onChange={(e) => setCategoryFilter(e.target.value)} 
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
             className="admin-filter-select"
           >
             <option value="all">Toutes les catégories</option>
             {availableCategories.map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </select>
-          
-          <select 
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)} 
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
             className="admin-filter-select"
           >
             <option value="newest">Plus récents</option>
@@ -282,10 +316,13 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
           </select>
         </div>
       </div>
-      
+
       {filteredContent.length === 0 ? (
         <div className="no-results">
-          <p>Aucun {contentTypeName.toLowerCase()} ne correspond à votre recherche</p>
+          <p>
+            Aucun {contentTypeName.toLowerCase()} ne correspond à votre
+            recherche
+          </p>
         </div>
       ) : (
         <table className="admin-table">
@@ -308,7 +345,7 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
                 <td title={item.description}>{item.name}</td>
                 <td>{item.creator}</td>
                 <td>
-                  {item.albumName} 
+                  {item.albumName}
                   <span className="album-id">#{item.albumId}</span>
                 </td>
                 <td>{renderCategoryTags(item.categories)}</td>
@@ -321,13 +358,15 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
                 <td className="actions-cell">
                   <button
                     className="admin-action-btn privacy"
-                    onClick={() => openConfirmationModal('privacy', item)}
+                    onClick={() => openConfirmationModal("privacy", item)}
                   >
-                    {item.status === "private" ? "Rendre Public" : "Rendre Privé"}
+                    {item.status === "private"
+                      ? "Rendre Public"
+                      : "Rendre Privé"}
                   </button>
                   <button
                     className="admin-action-btn delete"
-                    onClick={() => openConfirmationModal('delete', item)}
+                    onClick={() => openConfirmationModal("delete", item)}
                   >
                     Supprimer
                   </button>
@@ -337,25 +376,29 @@ const AdminContentManagement: React.FC<ContentProps> = ({ contentType, contentTy
           </tbody>
         </table>
       )}
-      
+
       {/* Modal de confirmation */}
       {showModal && selectedItem && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>Confirmation</h2>
-            {modalAction === 'privacy' ? (
+            {modalAction === "privacy" ? (
               <p>
-                Êtes-vous sûr de vouloir rendre <strong>{selectedItem.name}</strong> {selectedItem.status === 'public' ? 'privé' : 'public'} ?
+                Êtes-vous sûr de vouloir rendre{" "}
+                <strong>{selectedItem.name}</strong>{" "}
+                {selectedItem.status === "public" ? "privé" : "public"} ?
               </p>
             ) : (
               <p>
-                Êtes-vous sûr de vouloir supprimer <strong>{selectedItem.name}</strong> ? Cette action est irréversible.
+                Êtes-vous sûr de vouloir supprimer{" "}
+                <strong>{selectedItem.name}</strong> ? Cette action est
+                irréversible.
               </p>
             )}
             <div className="modal-actions">
               <button onClick={() => setShowModal(false)}>Annuler</button>
-              <button 
-                className={`confirm-${modalAction}`} 
+              <button
+                className={`confirm-${modalAction}`}
                 onClick={handleConfirmAction}
               >
                 Confirmer

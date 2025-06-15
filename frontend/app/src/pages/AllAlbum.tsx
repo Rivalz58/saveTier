@@ -3,7 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
 import AlbumModal from "../components/AlbumModal";
 import "../styles/AllAlbum.css";
-import { getPaginatedAlbums, getCategoriesWithCount, Album, AlbumQueryParams } from "../services/album-api-pagination.js";
+import {
+  getPaginatedAlbums,
+  getCategoriesWithCount,
+  Album,
+  AlbumQueryParams,
+} from "../services/album-api-pagination.js";
 
 // Type pour les items formatés pour l'affichage
 type CategoryItem = {
@@ -24,45 +29,50 @@ interface AllAlbumProps {
 const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // États pour la recherche et le filtrage
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  
+
   // La valeur par défaut est toujours 'popular' et ne change pas
-  const sortBy = 'popular' as const;
+  const sortBy = "popular" as const;
 
   // États pour les données
   const [albums, setAlbums] = useState<CategoryItem[]>([]);
-  const [categories, setCategories] = useState<{name: string, count: number}[]>([]);
-  
+  const [categories, setCategories] = useState<
+    { name: string; count: number }[]
+  >([]);
+
   // États pour la pagination
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  
+
   // États pour le chargement et les erreurs
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // État pour la modal
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<CategoryItem | null>(null);
 
   // Fonction pour convertir un album de l'API en CategoryItem
-  const albumToCategoryItem = (album: Album): CategoryItem => {
-    return {
-      id: album.id.toString(),
-      name: album.name,
-      image: album.image && album.image.length > 0 ? album.image[0].path_image : '/default-image.jpg',
-      categories: album.categories.map((cat: { name: string }) => cat.name),
-      authorName: album.author.username,
-      // Pour les futures statistiques
-      views: album.stats?.views,
-      uses: album.stats?.uses
-    };
+const albumToCategoryItem = (album: Album): CategoryItem => {
+  return {
+    id: album.id.toString(),
+    name: album.name,
+    image:
+      album.images && album.images.length > 0  // CHANGÉ: images au lieu de image
+        ? album.images[0].path_image           // CHANGÉ: images au lieu de image
+        : "/default-image.jpg",
+    categories: album.categories.map((cat: { name: string }) => cat.name),
+    authorName: album.author.username,
+    // Pour les futures statistiques
+    views: album.stats?.views,
+    uses: album.stats?.uses,
   };
+};
 
   // Effet pour le debounce de la recherche
   useEffect(() => {
@@ -80,56 +90,61 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
   // Effet pour détecter le paramètre de catégorie dans l'URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const category = params.get('category');
+    const category = params.get("category");
     if (category) {
       setSelectedCategory(category);
     }
   }, [location]);
 
   // Fonction pour charger les albums avec pagination
-  const loadAlbums = useCallback(async (pageToLoad: number, resetCurrentAlbums: boolean = false) => {
-    try {
-      setIsLoadingMore(pageToLoad > 1);
-      if (pageToLoad === 1) setIsLoading(true);
+  const loadAlbums = useCallback(
+    async (pageToLoad: number, resetCurrentAlbums: boolean = false) => {
+      try {
+        setIsLoadingMore(pageToLoad > 1);
+        if (pageToLoad === 1) setIsLoading(true);
 
-      // Préparer les paramètres de requête
-      const queryParams: AlbumQueryParams = {
-        page: pageToLoad,
-        limit: 21,
-        sortBy: sortBy
-      };
+        // Préparer les paramètres de requête
+        const queryParams: AlbumQueryParams = {
+          page: pageToLoad,
+          limit: 21,
+          sortBy: sortBy,
+        };
 
-      if (selectedCategory) {
-        queryParams.category = selectedCategory;
+        if (selectedCategory) {
+          queryParams.category = selectedCategory;
+        }
+
+        if (debouncedSearchQuery) {
+          queryParams.search = debouncedSearchQuery;
+        }
+
+        // Récupérer les albums paginés
+        const result = await getPaginatedAlbums(queryParams);
+
+        // Convertir les albums pour l'affichage
+        const formattedAlbums = result.albums.map(albumToCategoryItem);
+
+        // Mettre à jour les albums (soit ajouter à la liste existante, soit réinitialiser)
+        if (resetCurrentAlbums) {
+          setAlbums(formattedAlbums);
+        } else {
+          setAlbums((prev) => [...prev, ...formattedAlbums]);
+        }
+
+        // Mettre à jour les informations de pagination
+        setHasMore(result.hasMore);
+      } catch (err) {
+        console.error("Erreur lors du chargement des albums:", err);
+        setError(
+          "Impossible de charger les albums. Veuillez réessayer plus tard.",
+        );
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
       }
-
-      if (debouncedSearchQuery) {
-        queryParams.search = debouncedSearchQuery;
-      }
-
-      // Récupérer les albums paginés
-      const result = await getPaginatedAlbums(queryParams);
-      
-      // Convertir les albums pour l'affichage
-      const formattedAlbums = result.albums.map(albumToCategoryItem);
-
-      // Mettre à jour les albums (soit ajouter à la liste existante, soit réinitialiser)
-      if (resetCurrentAlbums) {
-        setAlbums(formattedAlbums);
-      } else {
-        setAlbums(prev => [...prev, ...formattedAlbums]);
-      }
-
-      // Mettre à jour les informations de pagination
-      setHasMore(result.hasMore);
-    } catch (err) {
-      console.error("Erreur lors du chargement des albums:", err);
-      setError("Impossible de charger les albums. Veuillez réessayer plus tard.");
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, [selectedCategory, debouncedSearchQuery, sortBy]);
+    },
+    [selectedCategory, debouncedSearchQuery, sortBy],
+  );
 
   // Effet pour charger les catégories disponibles
   useEffect(() => {
@@ -155,9 +170,9 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
     // Fonction de gestion du défilement
     const handleScroll = () => {
       if (
-        window.innerHeight + document.documentElement.scrollTop >= 
-        document.documentElement.offsetHeight - 100 && 
-        hasMore && 
+        window.innerHeight + document.documentElement.scrollTop >=
+          document.documentElement.offsetHeight - 100 &&
+        hasMore &&
         !isLoadingMore
       ) {
         const nextPage = page + 1;
@@ -167,10 +182,10 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
     };
 
     // Ajouter l'écouteur d'événement
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     // Nettoyer l'écouteur d'événement
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [hasMore, isLoadingMore, page, loadAlbums]);
 
   // Gestionnaire de changement de catégorie
@@ -201,7 +216,7 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
   return (
     <div className="all-album-container">
       <h1 className="all-album-title">Tous les Albums</h1>
-      
+
       {/* Barre de recherche et filtres */}
       <div className="album-filters">
         <div className="search-container">
@@ -213,28 +228,29 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
             className="album-search"
           />
         </div>
-        
+
         {/* Filtres de catégories */}
         <div className="category-filters">
-          <button 
-            className={`category-filter ${selectedCategory === null ? 'active' : ''}`}
+          <button
+            className={`category-filter ${selectedCategory === null ? "active" : ""}`}
             onClick={() => handleCategoryChange(null)}
           >
             Par popularité
           </button>
-          
+
           {categories.map((category, index) => (
             <button
               key={index}
-              className={`category-filter ${selectedCategory === category.name ? 'active' : ''}`}
+              className={`category-filter ${selectedCategory === category.name ? "active" : ""}`}
               onClick={() => handleCategoryChange(category.name)}
             >
-              {category.name} <span className="category-count">({category.count})</span>
+              {category.name}{" "}
+              <span className="category-count">({category.count})</span>
             </button>
           ))}
         </div>
       </div>
-      
+
       {/* Message si aucun résultat */}
       {albums.length === 0 && !isLoading ? (
         <div className="no-results">
@@ -244,35 +260,35 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
         <div className="all-albums-section">
           <div className="all-albums-grid">
             {albums.map((album, index) => (
-              <div 
-                key={album.id + "-" + index} 
+              <div
+                key={album.id + "-" + index}
                 className="album-card-container"
                 onClick={() => handleAlbumClick(album)}
               >
                 <div className="album-usage-count">
-                  {selectedCategory ? `Par ${album.authorName}` : album.categories.slice(0, 1).join(", ")}
+                  {selectedCategory
+                    ? `Par ${album.authorName}`
+                    : album.categories.slice(0, 1).join(", ")}
                 </div>
-                <CategoryCard 
-                  name={album.name} 
-                  image={album.image} 
+                <CategoryCard
+                  name={album.name}
+                  image={album.image}
                   categories={album.categories}
                 />
               </div>
             ))}
           </div>
-          
+
           {/* Indicateur de chargement */}
-          {isLoadingMore && (
-            <div className="loading-spinner"></div>
-          )}
+          {isLoadingMore && <div className="loading-spinner"></div>}
         </div>
       )}
-      
+
       {/* Prompt pour créer un album si connecté */}
       {user && (
         <div className="create-album-prompt">
           <p>Vous ne trouvez pas ce que vous cherchez ?</p>
-          <button 
+          <button
             className="create-album-btn"
             onClick={() => navigate("/add-album")}
           >
@@ -292,7 +308,7 @@ const AllAlbum: React.FC<AllAlbumProps> = ({ user }) => {
           categories={selectedAlbum.categories}
         />
       )}
-      
+
       {/* Message d'erreur */}
       {error && (
         <div className="error-message">

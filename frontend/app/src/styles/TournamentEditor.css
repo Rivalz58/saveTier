@@ -1,982 +1,1149 @@
 /* Tournament Editor Styles (matching TierHub theme) */
 .tournament-editor {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-    padding-top: 110px !important; /* Reduced top padding to focus on content */
-    color: var(--text-color);
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-    position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 110px !important; /* Reduced top padding to focus on content */
+  color: var(--text-color);
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+  position: relative;
+}
+
+/* Compact Header styles */
+.tournament-compact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-tertiary);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  top: 85px;
+  z-index: 100;
+}
+
+.tournament-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tournament-title h1 {
+  font-size: 1.4rem;
+  margin: 0;
+  color: var(--text-color);
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.edit-info-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.edit-info-button:hover {
+  background-color: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+/* Tournament actions */
+.tournament-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.restart-button,
+.save-button,
+.cancel-button,
+.next-button,
+.next-round-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+  white-space: nowrap;
+}
+
+.restart-button {
+  background-color: var(--bg-input);
+  color: var(--text-color);
+}
+
+.restart-button:hover {
+  background-color: var(--error-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.save-button {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.save-button:hover {
+  background-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.cancel-button {
+  background-color: var(--bg-input);
+  color: var(--text-color);
+}
+
+.cancel-button:hover {
+  background-color: var(--error-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.next-button,
+.next-round-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.next-button:hover,
+.next-round-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.next-button:disabled,
+.next-round-button:disabled,
+.save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Sidebar for detailed information */
+.tournament-sidebar {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  height: 100vh;
+  background-color: var(--bg-tertiary);
+  box-shadow: -4px 0 10px var(--shadow-color);
+  transition: right 0.3s ease;
+  z-index: 999;
+  padding-top: 80px; /* Space for navbar */
+  overflow-y: auto;
+}
+
+.tournament-sidebar.active {
+  right: 0;
+}
+
+.sidebar-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--text-color);
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.close-sidebar {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-content {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-color);
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  background-color: var(--bg-input);
+  color: var(--text-color);
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+/* Privacy toggle */
+.privacy-setting {
+  display: flex;
+  flex-direction: column;
+}
+
+.privacy-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.privacy-toggle span {
+  color: var(--text-secondary);
+}
+
+.privacy-toggle span.active {
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-input);
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Sidebar help section */
+.sidebar-help {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.sidebar-help h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: var(--text-color);
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.sidebar-help ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.sidebar-help li {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.sidebar-save-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  width: 100%;
+  margin-top: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.sidebar-save-button:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.sidebar-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Main content area */
+.tournament-main-content {
+  transition: all 0.3s ease;
+}
+
+.tournament-main-content.with-sidebar {
+  margin-right: 320px; /* Make room for sidebar */
+}
+
+/* Active tournament area */
+.tournament-active {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.tournament-stats-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-tertiary);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  margin-bottom: 20px;
+}
+
+.tournament-stats {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.round-indicator {
+  text-align: center;
+  padding: 8px 20px;
+  background-color: var(--bg-secondary);
+  border-radius: 30px;
+  box-shadow: 0 2px 6px var(--shadow-color);
+}
+
+.round-label {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--text-secondary);
+  margin-right: 10px;
+  letter-spacing: 1px;
+}
+
+.round-value {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.final-round {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #ffd700;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* Duel area */
+.duel-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.duel-instructions {
+  background-color: var(--bg-tertiary);
+  padding: 12px 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.duel-instructions p {
+  margin: 0;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+/* Duel container for images and next button */
+.duel-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+}
+
+/* Images group for duels */
+.images-group {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+/* Large next button container */
+.large-next-button-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 0 20px;
+}
+
+.large-next-button,
+.large-next-round-button {
+  padding: 20px 30px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  white-space: nowrap;
+  font-family:
+    "Palanquin Dark",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+.large-next-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.large-next-round-button {
+  background-color: #ffd700;
+  color: #333;
+}
+
+.large-next-button:hover,
+.large-next-round-button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 15px var(--shadow-color);
+}
+
+.large-next-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.image-item {
+  position: relative;
+  width: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--bg-tertiary);
+  box-shadow: 0 4px 10px var(--shadow-color);
+  cursor: pointer;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  border: 3px solid transparent;
+}
+
+.image-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px var(--shadow-color);
+}
+
+.image-item.selected {
+  border-color: var(--primary-color);
+  box-shadow:
+    0 0 0 3px var(--primary-color),
+    0 8px 20px var(--shadow-color);
+}
+
+.image-item img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-info {
+  padding: 10px;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.image-name {
+  margin: 0 0 5px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.image-score {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Winners section */
+.winners-section {
+  background-color: var(--bg-tertiary);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px var(--shadow-color);
+}
+
+.winners-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.winners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+}
+
+.winner-item {
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.winner-item img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+}
+
+.winner-name {
+  padding: 8px;
+  margin: 0;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-color);
+}
+
+/* Tournament results */
+/* Styles des résultats du tournoi - optimisé avec démarquation des finalistes */
+.tournament-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 20px 0;
+}
+
+.tournament-results h2 {
+  color: var(--text-color);
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+}
+
+.tournament-results h3 {
+  color: var(--text-color);
+  margin: 30px 0 20px;
+  text-align: center;
+  font-size: 1.5rem;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.tournament-results h3::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+/* Carte du champion */
+.winner-card {
+  background: linear-gradient(
+    135deg,
+    rgba(25, 28, 36, 0.8) 0%,
+    rgba(37, 41, 52, 0.9) 100%
+  );
+  border: 4px solid #ffd700; /* Bordure or */
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(255, 215, 0, 0.5);
+  margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.winner-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 215, 0, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.winner-card h3 {
+  text-align: center;
+  margin: 0 0 15px;
+  color: #ffd700;
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.winner-card h3::after {
+  display: none;
+}
+
+.winner-image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.winner-image img {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid #ffd700;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+  object-fit: cover;
+}
+
+.winner-name {
+  margin: 15px 0 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Container des classements */
+.rankings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Groupe de rounds avec distinction de niveaux */
+.round-group {
+  background-color: var(--bg-tertiary);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px var(--shadow-color);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.round-group:hover {
+  transform: translateY(-5px);
+}
+
+/* Style spécial pour le champion (round 0) */
+.round-group.champion-group {
+  background: linear-gradient(
+    135deg,
+    rgba(25, 28, 36, 0.8) 0%,
+    rgba(37, 41, 52, 0.9) 100%
+  );
+  border: 4px solid #ffd700;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.4),
+    0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Style pour les finalistes (round 1) */
+.round-group.finalist-group {
+  background: linear-gradient(
+    135deg,
+    rgba(25, 28, 36, 0.8) 0%,
+    rgba(37, 41, 52, 0.9) 100%
+  );
+  border: 3px solid #c0c0c0; /* Argent */
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(192, 192, 192, 0.3);
+}
+
+/* Style pour les demi-finalistes (round 2) */
+.round-group.semifinalist-group {
+  background: linear-gradient(
+    135deg,
+    rgba(25, 28, 36, 0.8) 0%,
+    rgba(37, 41, 52, 0.9) 100%
+  );
+  border: 3px solid #cd7f32; /* Bronze */
+  box-shadow:
+    0 8px 15px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(205, 127, 50, 0.3);
+}
+
+.round-group h4 {
+  background-color: var(--bg-secondary);
+  color: var(--text-color);
+  margin: 0;
+  padding: 15px 20px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Styles d'en-tête spéciaux pour chaque niveau */
+.champion-group h4 {
+  background: linear-gradient(
+    90deg,
+    rgba(25, 28, 36, 0.9),
+    rgba(255, 215, 0, 0.2),
+    rgba(25, 28, 36, 0.9)
+  );
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.finalist-group h4 {
+  background: linear-gradient(
+    90deg,
+    rgba(25, 28, 36, 0.9),
+    rgba(192, 192, 192, 0.2),
+    rgba(25, 28, 36, 0.9)
+  );
+  color: #e0e0e0;
+  font-weight: bold;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(192, 192, 192, 0.3);
+}
+
+.semifinalist-group h4 {
+  background: linear-gradient(
+    90deg,
+    rgba(25, 28, 36, 0.9),
+    rgba(205, 127, 50, 0.2),
+    rgba(25, 28, 36, 0.9)
+  );
+  color: #e0a370;
+  font-weight: bold;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(205, 127, 50, 0.3);
+}
+
+.round-group h4::after {
+  content: attr(data-count);
+  font-size: 0.9rem;
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+  padding: 3px 10px;
+  border-radius: 15px;
+}
+
+.champion-group h4::after {
+  background-color: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+}
+
+.finalist-group h4::after {
+  background-color: rgba(192, 192, 192, 0.2);
+  color: #e0e0e0;
+}
+
+.semifinalist-group h4::after {
+  background-color: rgba(205, 127, 50, 0.2);
+  color: #e0a370;
+}
+
+/* Groupe d'images */
+.images-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Image de résultat avec variations par niveau */
+.result-image {
+  background-color: var(--bg-secondary);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 8px var(--shadow-color);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  position: relative;
+}
+
+.result-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+/* Styles spéciaux pour les images par niveau */
+.champion-group .result-image {
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(255, 215, 0, 0.3);
+  border: 2px solid #ffd700;
+}
+
+.finalist-group .result-image {
+  box-shadow:
+    0 5px 12px rgba(0, 0, 0, 0.25),
+    0 0 8px rgba(192, 192, 192, 0.25);
+  border: 2px solid #c0c0c0;
+}
+
+.semifinalist-group .result-image {
+  box-shadow:
+    0 5px 10px rgba(0, 0, 0, 0.2),
+    0 0 8px rgba(205, 127, 50, 0.25);
+  border: 2px solid #cd7f32;
+}
+
+.result-image img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.result-image:hover img {
+  filter: brightness(1.1);
+}
+
+/* Badge de position pour le champion */
+.champion-group .result-image::before {
+  content: "🏆";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* Badge de position pour les finalistes */
+.finalist-group .result-image::before {
+  content: "🥈";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* Badge de position pour les demi-finalistes */
+.semifinalist-group .result-image::before {
+  content: "🥉";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+
+.result-image p {
+  padding: 10px;
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Styles spéciaux pour les noms par niveau */
+.champion-group .result-image p {
+  background-color: rgba(25, 28, 36, 0.9);
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.finalist-group .result-image p {
+  background-color: rgba(25, 28, 36, 0.9);
+  color: #e0e0e0;
+  font-weight: bold;
+}
+
+.semifinalist-group .result-image p {
+  background-color: rgba(25, 28, 36, 0.9);
+  color: #e0a370;
+  font-weight: bold;
+}
+
+/* Actions */
+.tournament-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+  justify-content: center;
+  width: 100%;
+  max-width: 450px;
+}
+
+.restart-button,
+.save-button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Palanquin Dark", sans-serif;
+  min-width: 140px;
+}
+
+.restart-button {
+  background-color: var(--bg-input);
+  color: var(--text-color);
+}
+
+.restart-button:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 10px var(--shadow-color);
+}
+
+.save-button {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 10px var(--shadow-color);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Media queries */
+@media (max-width: 768px) {
+  .winner-card {
+    max-width: 90%;
   }
-  
-  /* Compact Header styles */
-  .tournament-compact-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--bg-tertiary);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 10px var(--shadow-color);
-    top: 85px;
-    z-index: 100;
-  }
-  
-  .tournament-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .tournament-title h1 {
-    font-size: 1.4rem;
-    margin: 0;
-    color: var(--text-color);
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .edit-info-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s ease;
-  }
-  
-  .edit-info-button:hover {
-    background-color: var(--primary-hover);
-    transform: scale(1.05);
-  }
-  
-  /* Tournament actions */
-  .tournament-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  
-  .restart-button,
-  .save-button,
-  .cancel-button,
-  .next-button,
-  .next-round-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-    white-space: nowrap;
-  }
-  
-  .restart-button {
-    background-color: var(--bg-input);
-    color: var(--text-color);
-  }
-  
-  .restart-button:hover {
-    background-color: var(--error-color);
-    color: white;
-    transform: translateY(-2px);
-  }
-  
-  .save-button {
-    background-color: var(--success-color);
-    color: white;
-  }
-  
-  .save-button:hover {
-    background-color: var(--primary-color);
-    transform: translateY(-2px);
-  }
-  
-  .cancel-button {
-    background-color: var(--bg-input);
-    color: var(--text-color);
-  }
-  
-  .cancel-button:hover {
-    background-color: var(--error-color);
-    color: white;
-    transform: translateY(-2px);
-  }
-  
-  .next-button,
-  .next-round-button {
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .next-button:hover,
-  .next-round-button:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-  }
-  
-  .next-button:disabled,
-  .next-round-button:disabled,
-  .save-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-  
-  /* Sidebar for detailed information */
-  .tournament-sidebar {
-    position: fixed;
-    top: 0;
-    right: -320px;
-    width: 320px;
-    height: 100vh;
-    background-color: var(--bg-tertiary);
-    box-shadow: -4px 0 10px var(--shadow-color);
-    transition: right 0.3s ease;
-    z-index: 999;
-    padding-top: 80px; /* Space for navbar */
-    overflow-y: auto;
-  }
-  
-  .tournament-sidebar.active {
-    right: 0;
-  }
-  
-  .sidebar-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .sidebar-header h2 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: var(--text-color);
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .close-sidebar {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .sidebar-content {
-    padding: 20px;
-  }
-  
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--text-color);
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .form-group input,
-  .form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-    background-color: var(--bg-input);
-    color: var(--text-color);
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .form-group input:focus,
-  .form-group textarea:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--primary-color);
-  }
-  
-  /* Privacy toggle */
-  .privacy-setting {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .privacy-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .privacy-toggle span {
-    color: var(--text-secondary);
-  }
-  
-  .privacy-toggle span.active {
-    color: var(--text-color);
-    font-weight: bold;
-  }
-  
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-  }
-  
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--bg-input);
-    transition: .4s;
-    border-radius: 24px;
-  }
-  
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-  }
-  
-  input:checked + .slider {
-    background-color: var(--primary-color);
-  }
-  
-  input:checked + .slider:before {
-    transform: translateX(26px);
-  }
-  
-  /* Sidebar help section */
-  .sidebar-help {
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-  }
-  
-  .sidebar-help h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-    color: var(--text-color);
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .sidebar-help ul {
-    padding-left: 20px;
-    margin: 0;
-  }
-  
-  .sidebar-help li {
-    margin-bottom: 8px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .sidebar-save-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    width: 100%;
-    margin-top: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .sidebar-save-button:hover:not(:disabled) {
-    background-color: var(--primary-hover);
-  }
-  
-  .sidebar-save-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  /* Main content area */
-  .tournament-main-content {
-    transition: all 0.3s ease;
-  }
-  
-  .tournament-main-content.with-sidebar {
-    margin-right: 320px; /* Make room for sidebar */
-  }
-  
-  /* Active tournament area */
-  .tournament-active {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-  }
-  
-  .tournament-stats-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--bg-tertiary);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px var(--shadow-color);
-    margin-bottom: 20px;
-  }
-  
-  .tournament-stats {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-  
-  .round-indicator {
-    text-align: center;
-    padding: 8px 20px;
-    background-color: var(--bg-secondary);
-    border-radius: 30px;
-    box-shadow: 0 2px 6px var(--shadow-color);
-  }
-  
-  .round-label {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--text-secondary);
-    margin-right: 10px;
-    letter-spacing: 1px;
-  }
-  
-  .round-value {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--primary-color);
-  }
-  
-  .final-round {
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: #FFD700;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-  }
-  
-  /* Duel area */
-  .duel-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-  
-  .duel-instructions {
-    background-color: var(--bg-tertiary);
-    padding: 12px 20px;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 4px 10px var(--shadow-color);
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
-  }
-  
-  .duel-instructions p {
-    margin: 0;
-    font-weight: bold;
-    color: var(--text-color);
-  }
-  
-  /* Duel container for images and next button */
-  .duel-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    width: 100%;
-  }
-  
-  /* Images group for duels */
+
   .images-group {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
-  }
-  
-  /* Large next button container */
-  .large-next-button-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    padding: 0 20px;
-  }
-  
-  .large-next-button,
-  .large-next-round-button {
-    padding: 20px 30px;
-    border: none;
-    border-radius: 10px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px var(--shadow-color);
-    white-space: nowrap;
-    font-family: 'Palanquin Dark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-  }
-  
-  .large-next-button {
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .large-next-round-button {
-    background-color: #FFD700;
-    color: #333;
-  }
-  
-  .large-next-button:hover,
-  .large-next-round-button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 15px var(--shadow-color);
-  }
-  
-  .large-next-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-  
-  .image-item {
-    position: relative;
-    width: 220px;
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: var(--bg-tertiary);
-    box-shadow: 0 4px 10px var(--shadow-color);
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 3px solid transparent;
-  }
-  
-  .image-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px var(--shadow-color);
-  }
-  
-  .image-item.selected {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px var(--primary-color), 0 8px 20px var(--shadow-color);
-  }
-  
-  .image-item img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    display: block;
-  }
-  
-  .image-info {
-    padding: 10px;
-    background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
-  }
-  
-  .image-name {
-    margin: 0 0 5px;
-    font-weight: bold;
-    font-size: 0.95rem;
-    color: var(--text-color);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .image-score {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-  }
-  
-  /* Winners section */
-  .winners-section {
-    background-color: var(--bg-tertiary);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px var(--shadow-color);
-  }
-  
-  .winners-section h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-    color: var(--text-color);
-    text-align: center;
-  }
-  
-  .winners-grid {
-    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 15px;
+    padding: 15px;
   }
-  
-  .winner-item {
-    background-color: var(--bg-secondary);
-    border-radius: 8px;
-    overflow: hidden;
-    text-align: center;
-  }
-  
-  .winner-item img {
-    width: 100%;
-    height: 100px;
-    object-fit: cover;
-  }
-  
-  .winner-name {
-    padding: 8px;
-    margin: 0;
-    font-size: 0.85rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--text-color);
-  }
-  
-  /* Tournament results */
- /* Styles des résultats du tournoi - optimisé avec démarquation des finalistes */
-.tournament-results {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    padding: 20px 0;
-  }
-  
-  .tournament-results h2 {
-    color: var(--text-color);
-    text-align: center;
-    margin-bottom: 25px;
-    font-size: 1.8rem;
-  }
-  
-  .tournament-results h3 {
-    color: var(--text-color);
-    margin: 30px 0 20px;
-    text-align: center;
-    font-size: 1.5rem;
-    position: relative;
-    padding-bottom: 10px;
-  }
-  
-  .tournament-results h3::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 3px;
-    background: var(--primary-color);
-    border-radius: 3px;
-  }
-  
-  /* Carte du champion */
-  .winner-card {
-    background: linear-gradient(135deg, rgba(25, 28, 36, 0.8) 0%, rgba(37, 41, 52, 0.9) 100%);
-    border: 4px solid #FFD700; /* Bordure or */
-    border-radius: 12px;
-    padding: 20px;
-    width: 100%;
-    max-width: 320px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 215, 0, 0.5);
-    margin-bottom: 30px;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .winner-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at center, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  
-  .winner-card h3 {
-    text-align: center;
-    margin: 0 0 15px;
-    color: #FFD700;
-    font-size: 1.4rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-  
-  .winner-card h3::after {
-    display: none;
-  }
-  
-  .winner-image {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
-  
-  .winner-image img {
-    width: 100%;
-    max-width: 280px;
-    height: auto;
-    border-radius: 8px;
-    border: 2px solid #FFD700;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-    object-fit: cover;
-  }
-  
-  .winner-name {
-    margin: 15px 0 0;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-    color: var(--text-color);
-  }
-  
-  /* Container des classements */
-  .rankings-container {
-    display: flex;
-    flex-direction: column;
-    gap: 35px;
-    width: 100%;
-    max-width: 1200px;
-  }
-  
-  /* Groupe de rounds avec distinction de niveaux */
-  .round-group {
-    background-color: var(--bg-tertiary);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px var(--shadow-color);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 10px;
-  }
-  
-  .round-group:hover {
-    transform: translateY(-5px);
-  }
-  
-  /* Style spécial pour le champion (round 0) */
-  .round-group.champion-group {
-    background: linear-gradient(135deg, rgba(25, 28, 36, 0.8) 0%, rgba(37, 41, 52, 0.9) 100%);
-    border: 4px solid #FFD700;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3);
-  }
-  
-  /* Style pour les finalistes (round 1) */
-  .round-group.finalist-group {
-    background: linear-gradient(135deg, rgba(25, 28, 36, 0.8) 0%, rgba(37, 41, 52, 0.9) 100%);
-    border: 3px solid #C0C0C0; /* Argent */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 10px rgba(192, 192, 192, 0.3);
-  }
-  
-  /* Style pour les demi-finalistes (round 2) */
-  .round-group.semifinalist-group {
-    background: linear-gradient(135deg, rgba(25, 28, 36, 0.8) 0%, rgba(37, 41, 52, 0.9) 100%);
-    border: 3px solid #CD7F32; /* Bronze */
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(205, 127, 50, 0.3);
-  }
-  
-  .round-group h4 {
-    background-color: var(--bg-secondary);
-    color: var(--text-color);
-    margin: 0;
-    padding: 15px 20px;
-    font-size: 1.2rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  /* Styles d'en-tête spéciaux pour chaque niveau */
-  .champion-group h4 {
-    background: linear-gradient(90deg, rgba(25, 28, 36, 0.9), rgba(255, 215, 0, 0.2), rgba(25, 28, 36, 0.9));
-    color: #FFD700;
-    font-weight: bold;
-    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-  }
-  
-  .finalist-group h4 {
-    background: linear-gradient(90deg, rgba(25, 28, 36, 0.9), rgba(192, 192, 192, 0.2), rgba(25, 28, 36, 0.9));
-    color: #E0E0E0;
-    font-weight: bold;
-    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-    border-bottom: 1px solid rgba(192, 192, 192, 0.3);
-  }
-  
-  .semifinalist-group h4 {
-    background: linear-gradient(90deg, rgba(25, 28, 36, 0.9), rgba(205, 127, 50, 0.2), rgba(25, 28, 36, 0.9));
-    color: #E0A370;
-    font-weight: bold;
-    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
-    border-bottom: 1px solid rgba(205, 127, 50, 0.3);
-  }
-  
-  .round-group h4::after {
-    content: attr(data-count);
-    font-size: 0.9rem;
-    background-color: var(--bg-input);
-    color: var(--text-secondary);
-    padding: 3px 10px;
-    border-radius: 15px;
-  }
-  
-  .champion-group h4::after {
-    background-color: rgba(255, 215, 0, 0.2);
-    color: #FFD700;
-  }
-  
-  .finalist-group h4::after {
-    background-color: rgba(192, 192, 192, 0.2);
-    color: #E0E0E0;
-  }
-  
-  .semifinalist-group h4::after {
-    background-color: rgba(205, 127, 50, 0.2);
-    color: #E0A370;
-  }
-  
-  /* Groupe d'images */
-  .images-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-  
-  /* Image de résultat avec variations par niveau */
-  .result-image {
-    background-color: var(--bg-secondary);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 3px 8px var(--shadow-color);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-  }
-  
-  .result-image:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px var(--shadow-color);
-  }
-  
-  /* Styles spéciaux pour les images par niveau */
-  .champion-group .result-image {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 215, 0, 0.3);
-    border: 2px solid #FFD700;
-  }
-  
-  .finalist-group .result-image {
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25), 0 0 8px rgba(192, 192, 192, 0.25);
-    border: 2px solid #C0C0C0;
-  }
-  
-  .semifinalist-group .result-image {
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2), 0 0 8px rgba(205, 127, 50, 0.25);
-    border: 2px solid #CD7F32;
-  }
-  
+
   .result-image img {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    display: block;
-    transition: all 0.3s ease;
+    height: 120px;
   }
-  
-  .result-image:hover img {
-    filter: brightness(1.1);
-  }
-  
-  /* Badge de position pour le champion */
-  .champion-group .result-image::before {
-    content: '🏆';
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 10;
-    font-size: 20px;
-    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
-  }
-  
-  /* Badge de position pour les finalistes */
-  .finalist-group .result-image::before {
-    content: '🥈';
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 10;
-    font-size: 20px;
-    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
-  }
-  
-  /* Badge de position pour les demi-finalistes */
-  .semifinalist-group .result-image::before {
-    content: '🥉';
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 10;
-    font-size: 20px;
-    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
-  }
-  
-  .result-image p {
-    padding: 10px;
-    margin: 0;
-    font-size: 0.9rem;
-    text-align: center;
-    color: var(--text-color);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  /* Styles spéciaux pour les noms par niveau */
-  .champion-group .result-image p {
-    background-color: rgba(25, 28, 36, 0.9);
-    color: #FFD700;
-    font-weight: bold;
-  }
-  
-  .finalist-group .result-image p {
-    background-color: rgba(25, 28, 36, 0.9);
-    color: #E0E0E0;
-    font-weight: bold;
-  }
-  
-  .semifinalist-group .result-image p {
-    background-color: rgba(25, 28, 36, 0.9);
-    color: #E0A370;
-    font-weight: bold;
-  }
-  
-  /* Actions */
+
   .tournament-actions {
-    display: flex;
-    gap: 15px;
-    margin-top: 30px;
-    justify-content: center;
-    width: 100%;
-    max-width: 450px;
+    flex-direction: column;
+    max-width: 300px;
   }
-  
-  .restart-button,
-  .save-button {
-    flex: 1;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'Palanquin Dark', sans-serif;
-    min-width: 140px;
+}
+
+@media (max-width: 480px) {
+  .images-group {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    padding: 10px;
   }
-  
-  .restart-button {
-    background-color: var(--bg-input);
-    color: var(--text-color);
+
+  .result-image img {
+    height: 100px;
   }
-  
-  .restart-button:hover {
-    background-color: var(--primary-color);
-    color: white;
-    transform: translateY(-3px);
-    box-shadow: 0 5px 10px var(--shadow-color);
-  }
-  
-  .save-button {
-    background-color: var(--success-color);
-    color: white;
-  }
-  
-  .save-button:hover:not(:disabled) {
-    background-color: var(--primary-color);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 10px var(--shadow-color);
-  }
-  
-  .save-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  
-  /* Media queries */
-  @media (max-width: 768px) {
-    .winner-card {
-      max-width: 90%;
-    }
-    
-    .images-group {
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 15px;
-      padding: 15px;
-    }
-    
-    .result-image img {
-      height: 120px;
-    }
-    
-    .tournament-actions {
-      flex-direction: column;
-      max-width: 300px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .images-group {
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 10px;
-      padding: 10px;
-    }
-    
-    .result-image img {
-      height: 100px;
-    }
-  }
+}

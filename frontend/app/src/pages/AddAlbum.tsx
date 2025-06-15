@@ -18,7 +18,7 @@ interface UploadedImage {
   description: string;
   url: string;
   isEditingName: boolean;
-  status?: 'pending' | 'processing' | 'success' | 'error';
+  status?: "pending" | "processing" | "success" | "error";
   errorMessage?: string;
 }
 
@@ -27,14 +27,14 @@ const IMAGE_NAME_MAX_LENGTH = 25;
 
 const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const navigate = useNavigate();
-  
+
   // États principaux du formulaire
   const [name, setName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [isPublic, setIsPublic] = useState(true);
-  
+
   // États pour l'interface utilisateur
   const [isDragging, setIsDragging] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -44,24 +44,29 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const [uploadResults, setUploadResults] = useState<{
     successful: number;
     failed: number;
-    failedImages: {name: string, reason: string}[];
+    failedImages: { name: string; reason: string }[];
   }>({
     successful: 0,
     failed: 0,
-    failedImages: []
+    failedImages: [],
   });
-  
+
   // États pour le modal d'édition d'image
-  const [selectedImage, setSelectedImage] = useState<UploadedImage | null>(null);
+  const [selectedImage, setSelectedImage] = useState<UploadedImage | null>(
+    null,
+  );
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  
+
   // Données des catégories disponibles
   const [availableCategories, setAvailableCategories] = useState<string[]>([
-    "Films", "Animation", "Manga", "Jeux Vidéo", "Musique", "Sport", "Autres"
+    "Films",
+    "Animation",
+    "Manga",
+    "Jeux Vidéo",
+    "Musique",
+    "Sport",
+    "Autres",
   ]);
-
-  // État pour le chargement du modèle NSFW
-  const [isNSFWModelLoaded, setIsNSFWModelLoaded] = useState(false);
 
   // Redirection si non connecté
   useEffect(() => {
@@ -69,54 +74,43 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
       navigate("/login");
       return;
     }
-    
+
     // Charger les catégories disponibles depuis l'API
     const loadCategories = async () => {
       try {
         const categories = await albumService.getCategories();
-        setAvailableCategories(categories.map(cat => cat.name));
+        setAvailableCategories(categories.map((cat) => cat.name));
       } catch (error) {
         console.warn("Impossible de charger les catégories:", error);
         // Garder les catégories par défaut en cas d'erreur
       }
     };
 
-    // Charger le modèle NSFW
-    const loadNSFWModel = async () => {
-      try {
-        await imageService.loadNSFWModel();
-        setIsNSFWModelLoaded(true);
-        console.log("Modèle NSFW chargé avec succès");
-      } catch (error) {
-        console.warn("Impossible de charger le modèle NSFW:", error);
-      }
-    };
-    
     loadCategories();
-    loadNSFWModel();
+    // Note: Nous avons supprimé le chargement du modèle NSFW
   }, [user, navigate]);
 
   // Fonction utilitaire : extraire le nom du fichier sans l'extension
   const getFileNameWithoutExtension = (fileName: string): string => {
     return fileName.replace(/\.[^/.]+$/, "");
   };
-  
+
   // Fonction utilitaire : formater le nom de fichier pour qu'il soit présentable
   const formatFileName = (fileName: string): string => {
     // Supprimer l'extension
     let formatted = getFileNameWithoutExtension(fileName);
-    
+
     // Remplacer les underscores et tirets par des espaces
     formatted = formatted.replace(/[_-]/g, " ");
-    
+
     // Mettre en majuscule la première lettre de chaque mot
-    formatted = formatted.replace(/\b\w/g, char => char.toUpperCase());
-    
+    formatted = formatted.replace(/\b\w/g, (char) => char.toUpperCase());
+
     // Limiter la longueur du nom
     if (formatted.length > IMAGE_NAME_MAX_LENGTH) {
       formatted = formatted.substring(0, IMAGE_NAME_MAX_LENGTH);
     }
-    
+
     return formatted;
   };
 
@@ -124,19 +118,19 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const fileArray = Array.from(e.target.files);
-      
+
       // Créer des objets UploadedImage pour chaque fichier
-      const newImages: UploadedImage[] = fileArray.map(file => ({
+      const newImages: UploadedImage[] = fileArray.map((file) => ({
         file,
         previewUrl: URL.createObjectURL(file),
         name: formatFileName(file.name),
         description: "",
         url: "",
         isEditingName: false,
-        status: 'pending'
+        status: "pending",
       }));
-      
-      setImages(prev => [...prev, ...newImages]);
+
+      setImages((prev) => [...prev, ...newImages]);
     }
   };
 
@@ -155,30 +149,32 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     if (e.dataTransfer.files) {
       const fileArray = Array.from(e.dataTransfer.files);
-      
+
       // Filtrer pour ne garder que les fichiers image
-      const imageFiles = fileArray.filter(file => file.type.startsWith('image/'));
-      
+      const imageFiles = fileArray.filter((file) =>
+        file.type.startsWith("image/"),
+      );
+
       if (imageFiles.length === 0) {
         alert("Veuillez déposer uniquement des images.");
         return;
       }
-      
+
       // Créer des objets UploadedImage pour chaque fichier
-      const newImages: UploadedImage[] = imageFiles.map(file => ({
+      const newImages: UploadedImage[] = imageFiles.map((file) => ({
         file,
         previewUrl: URL.createObjectURL(file),
         name: formatFileName(file.name),
         description: "",
         url: "",
         isEditingName: false,
-        status: 'pending'
+        status: "pending",
       }));
-      
-      setImages(prev => [...prev, ...newImages]);
+
+      setImages((prev) => [...prev, ...newImages]);
     }
   };
 
@@ -186,9 +182,9 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const removeImage = (index: number) => {
     // Release object URL to avoid memory leaks
     URL.revokeObjectURL(images[index].previewUrl);
-    
+
     // Remove image
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Ouvrir le modal d'édition d'image
@@ -199,12 +195,12 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
 
   // Éditer le nom d'une image directement dans la carte
   const startEditingImageName = (index: number) => {
-    setImages(prev => 
-      prev.map((img, i) => 
-        i === index 
-          ? { ...img, isEditingName: true } 
-          : { ...img, isEditingName: false }
-      )
+    setImages((prev) =>
+      prev.map((img, i) =>
+        i === index
+          ? { ...img, isEditingName: true }
+          : { ...img, isEditingName: false },
+      ),
     );
   };
 
@@ -212,48 +208,40 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   const updateImageName = (index: number, newName: string) => {
     // Limiter la longueur du nom lors de la saisie
     if (newName.length <= IMAGE_NAME_MAX_LENGTH) {
-      setImages(prev => 
-        prev.map((img, i) => 
-          i === index 
-            ? { ...img, name: newName } 
-            : img
-        )
+      setImages((prev) =>
+        prev.map((img, i) => (i === index ? { ...img, name: newName } : img)),
       );
     }
   };
 
   // Terminer l'édition du nom d'une image
   const finishEditingImageName = (index: number) => {
-    setImages(prev => 
-      prev.map((img, i) => 
-        i === index 
-          ? { ...img, isEditingName: false } 
-          : img
-      )
+    setImages((prev) =>
+      prev.map((img, i) =>
+        i === index ? { ...img, isEditingName: false } : img,
+      ),
     );
   };
 
   // Sauvegarder les modifications d'une image depuis le modal
   const saveImageChanges = (updatedImage: any) => {
-    setImages(prev => 
-      prev.map(img => 
-        img.previewUrl === updatedImage.previewUrl 
-          ? updatedImage 
-          : img
-      )
+    setImages((prev) =>
+      prev.map((img) =>
+        img.previewUrl === updatedImage.previewUrl ? updatedImage : img,
+      ),
     );
   };
 
   // Gérer la sélection/désélection d'une catégorie
-  const handleCategoryClick = (category: string) => {
+  const handleCategoryClick = (categories: string) => {
     // Check if category is already selected
-    if (selectedCategories.includes(category)) {
+    if (selectedCategories.includes(categories)) {
       // Remove category
-      setSelectedCategories(prev => prev.filter(cat => cat !== category));
+      setSelectedCategories((prev) => prev.filter((cat) => cat !== categories));
     } else {
       // Add category if less than 3 are selected
       if (selectedCategories.length < 3) {
-        setSelectedCategories(prev => [...prev, category]);
+        setSelectedCategories((prev) => [...prev, categories]);
       } else {
         // Si plus de 3 catégories, afficher un message d'information
         alert("Vous ne pouvez sélectionner que 3 catégories maximum.");
@@ -264,61 +252,74 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   // Valider le formulaire avant soumission
   const validateForm = (): boolean => {
     const errors: string[] = [];
-    
+
     if (!name.trim()) {
       errors.push("Le nom de l'album est requis");
     }
-    
+
     if (selectedCategories.length === 0) {
       errors.push("Veuillez sélectionner au moins une catégorie");
     }
-    
+
     if (images.length === 0) {
       errors.push("Veuillez ajouter au moins une image");
     }
-    
+
     // Vérifiez que toutes les images ont un nom
-    const emptyNameIndex = images.findIndex(img => !img.name.trim());
+    const emptyNameIndex = images.findIndex((img) => !img.name.trim());
     if (emptyNameIndex !== -1) {
       errors.push(`L'image ${emptyNameIndex + 1} n'a pas de nom`);
     }
-    
+
     setValidationErrors(errors);
     return errors.length === 0;
   };
 
   // Traiter une image pour l'upload
   const processAndUploadImage = async (
-    image: UploadedImage, 
-    index: number, 
-    albumId: number
-  ): Promise<{success: boolean, errorMessage?: string}> => {
+    image: UploadedImage,
+    index: number,
+    albumId: number,
+  ): Promise<{ success: boolean; errorMessage?: string }> => {
     try {
+      console.log(`[${index}] Début du traitement et upload de l'image: ${image.name}`);
+      
       // Mettre à jour le statut de l'image
-      setImages(prev => 
-        prev.map((img, i) => 
-          i === index 
-            ? { ...img, status: 'processing' } 
-            : img
-        )
+      setImages((prev) =>
+        prev.map((img, i) =>
+          i === index ? { ...img, status: "processing" } : img,
+        ),
       );
 
-      // Traiter l'image (vérification NSFW, compression, etc.)
-      const processResult = await albumService.processImageBeforeUpload(image.file, index);
+      // Traiter l'image (compression, etc.)
+      console.log(`[${index}] Appel à processImageBeforeUpload pour ${image.file.name}`);
+      const processResult = await albumService.processImageBeforeUpload(
+        image.file,
+        index,
+      );
+      console.log(`[${index}] Résultat du traitement:`, processResult);
 
       if (!processResult.success || !processResult.file) {
+        console.error(`[${index}] Échec du traitement de l'image:`, processResult.errorMessage);
+        
         // Mettre à jour le statut de l'image avec l'erreur
-        setImages(prev => 
-          prev.map((img, i) => 
-            i === index 
-              ? { ...img, status: 'error', errorMessage: processResult.errorMessage } 
-              : img
-          )
+        setImages((prev) =>
+          prev.map((img, i) =>
+            i === index
+              ? {
+                  ...img,
+                  status: "error",
+                  errorMessage: processResult.errorMessage,
+                }
+              : img,
+          ),
         );
 
-        return { 
-          success: false, 
-          errorMessage: processResult.errorMessage || "Erreur lors du traitement de l'image" 
+        return {
+          success: false,
+          errorMessage:
+            processResult.errorMessage ||
+            "Erreur lors du traitement de l'image",
         };
       }
 
@@ -328,52 +329,93 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         name: image.name,
         description: image.description,
         url: image.url,
-        id_album: albumId
+        id_album: albumId,
       };
+      
+      console.log(`[${index}] Données préparées pour l'upload:`, {
+        fileName: imageData.file.name,
+        fileSize: `${(imageData.file.size / 1024 / 1024).toFixed(2)} Mo`,
+        fileType: imageData.file.type,
+        name: imageData.name,
+        description: imageData.description,
+        url: imageData.url,
+        id_album: imageData.id_album
+      });
 
       // Uploader l'image
-      await albumService.addImageToAlbum(imageData);
+      console.log(`[${index}] Début de l'upload vers le serveur`);
+      try {
+        await albumService.addImageToAlbum(imageData);
+        console.log(`[${index}] Upload réussi pour ${image.name}`);
+      } catch (uploadError: any) {
+        console.error(`[${index}] Erreur d'upload détaillée:`, uploadError);
+        
+        // Vérifier si l'erreur provient de la vérification NSFW du backend
+        if (uploadError.response && uploadError.response.data && 
+            uploadError.response.data.message && 
+            uploadError.response.data.message.includes("inappropriate content")) {
+          throw new Error("Contenu inapproprié détecté dans l'image.");
+        }
+        
+        throw uploadError;
+      }
 
       // Mettre à jour le statut de l'image
-      setImages(prev => 
-        prev.map((img, i) => 
-          i === index 
-            ? { ...img, status: 'success' } 
-            : img
-        )
+      setImages((prev) =>
+        prev.map((img, i) =>
+          i === index ? { ...img, status: "success" } : img,
+        ),
       );
+      
+      console.log(`[${index}] Processus terminé avec succès pour ${image.name}`);
 
       return { success: true };
     } catch (error: any) {
-      const errorMessage = error.message || "Erreur lors de l'upload de l'image";
+      const errorMessage =
+        error.message || "Erreur lors de l'upload de l'image";
       
+      console.error(`[${index}] Erreur dans processAndUploadImage:`, error);
+      console.error(`[${index}] Message d'erreur: ${errorMessage}`);
+
       // Mettre à jour le statut de l'image avec l'erreur
-      setImages(prev => 
-        prev.map((img, i) => 
-          i === index 
-            ? { ...img, status: 'error', errorMessage } 
-            : img
-        )
+      setImages((prev) =>
+        prev.map((img, i) =>
+          i === index ? { ...img, status: "error", errorMessage } : img,
+        ),
       );
 
       return { success: false, errorMessage };
     } finally {
       // Incrémenter le compteur de progression
-      setCurrentProgress(prev => prev + 1);
+      setCurrentProgress((prev) => prev + 1);
+      console.log(`[${index}] Progression mise à jour: ${currentProgress + 1}/${totalImages}`);
+    }
+  };
+
+  // Fonction pour supprimer un album
+  const deleteAlbum = async (albumId: number) => {
+    try {
+      console.log(`Suppression de l'album vide: ${albumId}`);
+      await albumService.deleteAlbum(albumId);
+      console.log(`Album ${albumId} supprimé avec succès`);
+      return true;
+    } catch (error) {
+      console.error(`Erreur lors de la suppression de l'album ${albumId}:`, error);
+      return false;
     }
   };
 
   // Soumettre le formulaire pour créer l'album et ajouter les images
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Valider le formulaire
     if (!validateForm()) {
       // Faire défiler jusqu'aux erreurs
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
       setCurrentProgress(0);
@@ -381,40 +423,40 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
       setUploadResults({
         successful: 0,
         failed: 0,
-        failedImages: []
+        failedImages: [],
       });
-      
+
       // 1. Créer l'album via le service
-      const albumData = {
-        name,
-        status: (isPublic ? "public" : "private") as "public" | "private",
-        description
-      };
-      
+const albumData = {
+  name,
+  status: (isPublic ? "public" : "private") as "public" | "private",
+
+};
+
       const albumResponse = await albumService.createAlbum(albumData);
-      
+
       if (!albumResponse || !albumResponse.data) {
         throw new Error("La création de l'album a échoué");
       }
-      
+
       const albumId = albumResponse.data.id;
-      
+
       // 2. Ajouter les images par lots pour limiter la charge
       const batchSize = 3; // Traiter 3 images simultanément
       let successful = 0;
       let failed = 0;
-      const failedImages: {name: string, reason: string}[] = [];
-      
+      const failedImages: { name: string; reason: string }[] = [];
+
       // Traiter les images par lots
       for (let i = 0; i < images.length; i += batchSize) {
         const batch = images.slice(i, i + batchSize);
-        const batchPromises = batch.map((image, batchIndex) => 
-          processAndUploadImage(image, i + batchIndex, albumId)
+        const batchPromises = batch.map((image, batchIndex) =>
+          processAndUploadImage(image, i + batchIndex, albumId),
         );
-        
+
         // Attendre que le lot soit traité
         const batchResults = await Promise.all(batchPromises);
-        
+
         // Comptabiliser les résultats
         batchResults.forEach((result, index) => {
           if (result.success) {
@@ -423,19 +465,19 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
             failed++;
             failedImages.push({
               name: batch[index].name,
-              reason: result.errorMessage || "Erreur inconnue"
+              reason: result.errorMessage || "Erreur inconnue",
             });
           }
         });
-        
+
         // Mettre à jour les résultats en temps réel
         setUploadResults({
           successful,
           failed,
-          failedImages
+          failedImages,
         });
       }
-      
+
       // 3. Essayer d'ajouter les catégories à l'album
       try {
         if (selectedCategories.length > 0) {
@@ -445,28 +487,40 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         console.warn("Erreur lors de l'ajout des catégories:", categoryError);
         // On continue même si l'ajout des catégories échoue
       }
-      
-      // 4. Déterminer le message de fin basé sur les résultats
+
+      // 4. Si aucune image n'a été ajoutée avec succès, supprimer l'album
+      if (successful === 0) {
+        const albumDeleted = await deleteAlbum(albumId);
+        
+        if (albumDeleted) {
+          alert("Aucune image n'a pu être ajoutée. L'album n'a pas été créé.");
+        } else {
+          alert("Aucune image n'a pu être ajoutée. L'album vide devra être supprimé manuellement.");
+        }
+        
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 5. Déterminer le message de fin basé sur les résultats
       let finalMessage = "";
       if (successful > 0 && failed === 0) {
-        finalMessage = `Album créé avec succès ! ${successful} image${successful > 1 ? 's' : ''} ajoutée${successful > 1 ? 's' : ''}.`;
+        finalMessage = `Album créé avec succès ! ${successful} image${successful > 1 ? "s" : ""} ajoutée${successful > 1 ? "s" : ""}.`;
       } else if (successful > 0 && failed > 0) {
-        finalMessage = `Album créé avec ${successful} image${successful > 1 ? 's' : ''} mais ${failed} image${failed > 1 ? 's ont' : ' a'} échoué.`;
-      } else if (successful === 0 && failed > 0) {
-        finalMessage = `L'album a été créé mais aucune image n'a pu être ajoutée.`;
+        finalMessage = `Album créé avec ${successful} image${successful > 1 ? "s" : ""} mais ${failed} image${failed > 1 ? "s ont" : " a"} échoué.`;
       }
-      
+
       // Afficher le message de fin
       alert(finalMessage);
-      
-      // Redirection vers la page d'accueil seulement si des images ont été ajoutées
-      if (successful > 0) {
-        navigate("/");
-      }
+
+      // Redirection vers la page d'accueil
+      navigate("/");
       
     } catch (error) {
       console.error("Erreur lors de la création de l'album:", error);
-      alert("Une erreur est survenue lors de la création de l'album. Veuillez réessayer.");
+      alert(
+        "Une erreur est survenue lors de la création de l'album. Veuillez réessayer.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -485,28 +539,28 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   // Obtenir la couleur du statut de l'image
   const getStatusColor = (status?: string): string => {
     switch (status) {
-      case 'processing':
-        return '#e6a700'; // Orange
-      case 'success':
-        return '#00a65a'; // Vert
-      case 'error':
-        return '#dd4b39'; // Rouge
+      case "processing":
+        return "#e6a700"; // Orange
+      case "success":
+        return "#00a65a"; // Vert
+      case "error":
+        return "#dd4b39"; // Rouge
       default:
-        return 'transparent';
+        return "transparent";
     }
   };
 
   // Obtenir l'icône du statut de l'image
   const getStatusIcon = (status?: string): string => {
     switch (status) {
-      case 'processing':
-        return '⏳'; // Sablier
-      case 'success':
-        return '✓'; // Coche
-      case 'error':
-        return '✗'; // Croix
+      case "processing":
+        return "⏳"; // Sablier
+      case "success":
+        return "✓"; // Coche
+      case "error":
+        return "✗"; // Croix
       default:
-        return '';
+        return "";
     }
   };
 
@@ -517,7 +571,7 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
   return (
     <div className="add-album-container">
       <h1 className="add-album-title">Ajouter un Album</h1>
-      
+
       {/* Affichage des erreurs de validation */}
       {validationErrors.length > 0 && (
         <div className="validation-errors">
@@ -529,7 +583,7 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
           </ul>
         </div>
       )}
-      
+
       {/* Barre de progression pendant la soumission */}
       {isSubmitting && (
         <div className="submission-progress">
@@ -543,17 +597,24 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
               style={{ width: `${(currentProgress / totalImages) * 100}%` }}
             ></div>
           </div>
-          
+
           {/* Affichage des résultats en temps réel */}
           {(uploadResults.successful > 0 || uploadResults.failed > 0) && (
             <div className="upload-results">
               <p>
-                <span className="success-count">{uploadResults.successful} réussie{uploadResults.successful > 1 ? 's' : ''}</span>
+                <span className="success-count">
+                  {uploadResults.successful} réussie
+                  {uploadResults.successful > 1 ? "s" : ""}
+                </span>
                 {uploadResults.failed > 0 && (
-                  <span className="failed-count"> • {uploadResults.failed} échouée{uploadResults.failed > 1 ? 's' : ''}</span>
+                  <span className="failed-count">
+                    {" "}
+                    • {uploadResults.failed} échouée
+                    {uploadResults.failed > 1 ? "s" : ""}
+                  </span>
                 )}
               </p>
-              
+
               {/* Liste des images échouées */}
               {uploadResults.failedImages.length > 0 && (
                 <div className="failed-images">
@@ -573,7 +634,7 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
           )}
         </div>
       )}
-      
+
       <form className="add-album-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Nom de l'album</label>
@@ -587,11 +648,11 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
             disabled={isSubmitting}
           />
         </div>
-        
+
         <div className="form-group privacy-setting">
           <label>Visibilité</label>
           <div className="privacy-toggle">
-            <span className={!isPublic ? 'active' : ''}>Privé</span>
+            <span className={!isPublic ? "active" : ""}>Privé</span>
             <label className="switch">
               <input
                 type="checkbox"
@@ -601,10 +662,10 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
               />
               <span className="slider"></span>
             </label>
-            <span className={isPublic ? 'active' : ''}>Public</span>
+            <span className={isPublic ? "active" : ""}>Public</span>
           </div>
         </div>
-        
+
         <div className="form-group">
           <label>Catégories (maximum 3)</label>
           <div className="category-selection-area">
@@ -612,14 +673,14 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
               {availableCategories.map((category, index) => (
                 <div
                   key={index}
-                  className={`category-option ${selectedCategories.includes(category) ? 'selected' : ''}`}
+                  className={`category-option ${selectedCategories.includes(category) ? "selected" : ""}`}
                   onClick={() => !isSubmitting && handleCategoryClick(category)}
                 >
                   {category}
                 </div>
               ))}
             </div>
-            
+
             <div className="selected-categories">
               {selectedCategories.length > 0 ? (
                 selectedCategories.map((category, index) => (
@@ -628,28 +689,18 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
                   </div>
                 ))
               ) : (
-                <div className="no-categories">Aucune catégorie sélectionnée</div>
+                <div className="no-categories">
+                  Aucune catégorie sélectionnée
+                </div>
               )}
             </div>
           </div>
         </div>
-        
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Décrivez votre album..."
-            rows={4}
-            disabled={isSubmitting}
-          />
-        </div>
-        
+
         <div className="form-group">
           <label>Images</label>
-          <div 
-            className={`drop-zone ${isDragging ? 'active' : ''}`}
+          <div
+            className={`drop-zone ${isDragging ? "active" : ""}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -664,29 +715,32 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
               onChange={handleImageChange}
               accept="image/*"
               multiple
-              style={{ display: 'none' }}
+              style={{ display: "none" }}
               disabled={isSubmitting}
             />
           </div>
-          
+
           {/* Boutons d'action (uniquement au-dessus de la galerie d'images) */}
           {images.length > 0 && (
             <div className="form-actions-top">
               <div className="images-count">
-                <span>{images.length} image{images.length > 1 ? 's' : ''} sélectionnée{images.length > 1 ? 's' : ''}</span>
+                <span>
+                  {images.length} image{images.length > 1 ? "s" : ""}{" "}
+                  sélectionnée{images.length > 1 ? "s" : ""}
+                </span>
               </div>
-              
+
               <div className="action-buttons">
-                <button 
-                  type="button" 
-                  className="cancel-btn" 
+                <button
+                  type="button"
+                  className="cancel-btn"
                   onClick={handleCancel}
                   disabled={isSubmitting}
                 >
                   Annuler
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="submit-btn"
                   disabled={isSubmitting}
                 >
@@ -695,7 +749,7 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
               </div>
             </div>
           )}
-          
+
           {/* Galerie d'images avec noms modifiables */}
           {images.length > 0 && (
             <div className="image-previews">
@@ -703,18 +757,18 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
                 <div key={index} className="preview-container">
                   {/* Indicateur de statut */}
                   {image.status && (
-                    <div 
-                      className="image-status" 
+                    <div
+                      className="image-status"
                       style={{
                         backgroundColor: getStatusColor(image.status),
-                        display: image.status !== 'pending' ? 'flex' : 'none'
+                        display: image.status !== "pending" ? "flex" : "none",
                       }}
-                      title={image.errorMessage || ''}
+                      title={image.errorMessage || ""}
                     >
                       {getStatusIcon(image.status)}
                     </div>
                   )}
-                  
+
                   <img
                     src={image.previewUrl}
                     alt={`Preview ${index + 1}`}
@@ -748,9 +802,9 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
                         {image.name || "Cliquez pour nommer cette image"}
                       </div>
                     )}
-                    
+
                     {/* Message d'erreur éventuel */}
-                    {image.status === 'error' && image.errorMessage && (
+                    {image.status === "error" && image.errorMessage && (
                       <div className="image-error-message">
                         {image.errorMessage}
                       </div>
@@ -781,7 +835,7 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
           )}
         </div>
       </form>
-      
+
       {/* Modal d'édition d'image */}
       {selectedImage && (
         <ImageEditModal

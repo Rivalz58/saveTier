@@ -26,7 +26,9 @@ const Register: React.FC<RegisterProps> = ({ setUser, updateUserStatus }) => {
 
     // Validation simple
     if (username.length < 3 || nametag.length < 3 || password.length < 8) {
-      setMessage("Le nom d'utilisateur et nametag doivent contenir au moins 3 caractères, et le mot de passe au moins 8 caractères.");
+      setMessage(
+        "Le nom d'utilisateur et nametag doivent contenir au moins 3 caractères, et le mot de passe au moins 8 caractères.",
+      );
       setIsError(true);
       setIsLoading(false);
       return;
@@ -34,24 +36,29 @@ const Register: React.FC<RegisterProps> = ({ setUser, updateUserStatus }) => {
 
     try {
       // Appel à l'API d'inscription
-      const registerResponse = await register(username, nametag, email, password);
-      
+      const registerResponse = await register(
+        username,
+        nametag,
+        email,
+        password,
+      );
+
       // Vérifier si l'inscription est réussie
       if (registerResponse && registerResponse.status === "success") {
         setMessage("Inscription réussie! Connexion en cours...");
         setIsError(false);
-        
+
         try {
           // Connexion automatique après inscription réussie
           const loginResponse = await login(nametag, password);
-          
+
           if (loginResponse && loginResponse.status === "success") {
             // Stocker le token dans localStorage
-            localStorage.setItem('token', loginResponse.token);
-            
+            localStorage.setItem("token", loginResponse.token);
+
             // Définir l'utilisateur
             setUser(username);
-            
+
             // Mettre à jour le statut admin si la fonction est disponible
             if (updateUserStatus) {
               await updateUserStatus();
@@ -59,7 +66,7 @@ const Register: React.FC<RegisterProps> = ({ setUser, updateUserStatus }) => {
               // Fallback si updateUserStatus n'est pas fourni
               await checkIsAdmin();
             }
-            
+
             // Rediriger vers la page d'accueil
             setTimeout(() => {
               navigate("/");
@@ -67,9 +74,11 @@ const Register: React.FC<RegisterProps> = ({ setUser, updateUserStatus }) => {
           }
         } catch (loginError) {
           console.error("Erreur de connexion après inscription:", loginError);
-          setMessage("Inscription réussie, mais erreur lors de la connexion automatique. Veuillez vous connecter manuellement.");
+          setMessage(
+            "Inscription réussie, mais erreur lors de la connexion automatique. Veuillez vous connecter manuellement.",
+          );
           setIsError(true);
-          
+
           // Rediriger vers la page de connexion après 2 secondes
           setTimeout(() => {
             navigate("/login");
@@ -79,10 +88,13 @@ const Register: React.FC<RegisterProps> = ({ setUser, updateUserStatus }) => {
         setMessage("Une erreur est survenue lors de l'inscription.");
         setIsError(true);
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Erreur d'inscription:", error);
-      setMessage(error.response?.data?.message || "Erreur lors de l'inscription. Veuillez réessayer.");
+      setMessage(
+        error.response?.data?.message ||
+          "Erreur lors de l'inscription. Veuillez réessayer.",
+      );
       setIsError(true);
     } finally {
       setIsLoading(false);
@@ -92,7 +104,11 @@ const Register: React.FC<RegisterProps> = ({ setUser, updateUserStatus }) => {
   return (
     <div className="auth-container">
       <h2>Inscription</h2>
-      {message && <p className={isError ? "error-message" : "success-message"}>{message}</p>}
+      {message && (
+        <p className={isError ? "error-message" : "success-message"}>
+          {message}
+        </p>
+      )}
       <form onSubmit={handleRegister}>
         <input
           type="text"
