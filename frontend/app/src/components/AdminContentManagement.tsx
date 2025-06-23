@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import "../styles/Admin.css";
-import { getAlbumInfoForContent } from "../services/album-api-extended";
+import { getAlbumInfoForContent } from "../services/albumApiExtended";
 
 interface ContentItem {
   id: number;

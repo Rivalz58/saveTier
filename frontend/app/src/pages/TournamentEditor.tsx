@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Modal from "react-modal";
 import "../styles/TournamentEditor.css";
-import tournamentService from "../services/tournament-service.ts";
+import tournamentService from "../services/tournamentService";
 import ImageDetailsModal from "../components/ImageDetailsModal";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */

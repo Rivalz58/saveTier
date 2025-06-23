@@ -342,9 +342,9 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
 
   // Handle image deletion
   const handleDeleteImageClick = (image: Image) => {
-    if (album && album.image.length <= 1) {
+    if (album && album.image.length <= 3) {
       alert(
-        "Impossible de supprimer cette image. Un album doit contenir au moins une image.",
+        "Impossible de supprimer cette image. Un album doit contenir au minimum 3 images.",
       );
       return;
     }
@@ -714,8 +714,9 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
       </div>
 
       <div className="album-editor-content">
-        <div className="upload-section">
-          <h2>Ajouter de nouvelles images</h2>
+        {!isFromAdmin && (
+          <div className="upload-section">
+            <h2>Ajouter de nouvelles images</h2>
           <div className="file-upload">
             <label htmlFor="image-upload" className="file-upload-label">
               Sélectionner des images
@@ -829,6 +830,7 @@ const AlbumEditor: React.FC<AlbumEditorProps> = ({ user, isAdmin }) => {
             </div>
           )}
         </div>
+        )}
 
         {/* Images existantes */}
         <div className="existing-images-section">

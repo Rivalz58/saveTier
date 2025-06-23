@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "../styles/RankingViewer.css";
 import api from "../services/api";
-import { getAlbumInfoForContent } from "../services/album-api-extended";
+import { getAlbumInfoForContent } from "../services/albumApiExtended";
 import ImageDetailsModal from "../components/ImageDetailsModal";
 
 interface RankingViewerProps {
@@ -48,8 +48,8 @@ interface RankingData {
   };
   rankingImage: Array<{
     id: number;
-    rank: number;
-    score: number;
+    points: number;
+    viewed: number;
     createdAt: string;
     updatedAt: string;
     image: RankingImage;
@@ -90,6 +90,7 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
     imagePath: "/default-image.jpg",
   });
   const [rankedImages, setRankedImages] = useState<RankingImage[]>([]);
+  const [unrankedImages, setUnrankedImages] = useState<RankingImage[]>([]);
 
   // Charger les données du classement
   useEffect(() => {
@@ -125,17 +126,28 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
         const albumInfoData = await getAlbumInfoForContent(data.album.id);
         setAlbumInfo(albumInfoData);
 
-        // Traiter et trier les images du classement
+        // Traiter et séparer les images du classement
         if (data.rankingImage && data.rankingImage.length > 0) {
-          const sortedImages = data.rankingImage
-            .map((rankingImg) => ({
-              ...rankingImg.image,
-              rank: rankingImg.rank,
-              score: rankingImg.score,
-            }))
-            .sort((a, b) => a.rank - b.rank); // Trier par rang croissant
+          const allImages = data.rankingImage.map((rankingImg) => ({
+            ...rankingImg.image,
+            score: rankingImg.points, // Utiliser points comme score
+            viewed: rankingImg.viewed,
+          }));
 
-          setRankedImages(sortedImages);
+          // Séparer images classées (score négatif) et non-classées (score positif)
+          const classedImages = allImages
+            .filter(img => img.score! < 0)
+            .sort((a, b) => b.score! - a.score!); // Trier par score décroissant (-1, -2, -3...)
+
+          const unclassedImages = allImages
+            .filter(img => img.score! > 0)
+            .sort((a, b) => b.score! - a.score!); // Trier par score décroissant (4, 3, 2, 1)
+
+          console.log("Images classées:", classedImages);
+          console.log("Images non classées:", unclassedImages);
+
+          setRankedImages(classedImages);
+          setUnrankedImages(unclassedImages);
         }
 
         console.log("Données du classement chargées:", data);
@@ -261,13 +273,12 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
       {/* Info section */}
       <div className="ranking-info-section">
         <div className="ranking-meta">
-          <div className="ranking-author">
-            <h3>Créateur</h3>
-            <p>@{rankingData.author.nametag}</p>
-          </div>
           <div className="ranking-album">
             <h3>Album</h3>
-            <p>{rankingData.album.name}</p>
+            <div className="album-info">
+              <span className="album-name">{rankingData.album.name}</span>
+              <span className="album-author">par {rankingData.album.author.username}</span>
+            </div>
           </div>
           <div className="ranking-date">
             <h3>Créé le</h3>
@@ -277,6 +288,12 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
             <h3>Images classées</h3>
             <p>{rankedImages.length}</p>
           </div>
+          {unrankedImages.length > 0 && (
+            <div className="ranking-stats">
+              <h3>Images en progression</h3>
+              <p>{unrankedImages.length}</p>
+            </div>
+          )}
         </div>
 
         {albumInfo.categories.length > 0 && (
@@ -312,7 +329,6 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
                 />
                 <div className="podium-info">
                   <h3>{podiumImages[1].name}</h3>
-                  <p>Score: {podiumImages[1].score}</p>
                 </div>
               </div>
             )}
@@ -331,7 +347,6 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
                 />
                 <div className="podium-info">
                   <h3>{podiumImages[0].name}</h3>
-                  <p>Score: {podiumImages[0].score}</p>
                 </div>
               </div>
             )}
@@ -350,7 +365,6 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
                 />
                 <div className="podium-info">
                   <h3>{podiumImages[2].name}</h3>
-                  <p>Score: {podiumImages[2].score}</p>
                 </div>
               </div>
             )}
@@ -358,46 +372,89 @@ const RankingViewer: React.FC<RankingViewerProps> = ({ user }) => {
         </div>
       )}
 
-      {/* Classement complet */}
-      <div className="ranking-full-section">
-        <h2>Classement Complet</h2>
-        <div className="ranking-table">
-          <div className="ranking-table-header">
-            <span>Rang</span>
-            <span>Image</span>
-            <span>Nom</span>
-            <span>Score</span>
-          </div>
-          {rankedImages.map((image, index) => (
-            <div 
-              key={image.id} 
-              className={`ranking-table-row ${index < 3 ? 'podium-row' : ''}`}
-              onClick={() => openImageDetailsModal(image)}
-            >
-              <span className="rank-number">
-                {index + 1}
-                {index === 0 && <span className="trophy">🏆</span>}
-                {index === 1 && <span className="trophy">🥈</span>}
-                {index === 2 && <span className="trophy">🥉</span>}
-              </span>
-              <div className="image-cell">
-                <img 
-                  src={image.path_image} 
-                  alt={image.name}
-                  className="table-image"
-                />
-              </div>
-              <span className="name-cell">{image.name}</span>
-              <span className="score-cell">{image.score}</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {rankedImages.length === 0 && (
+      {/* Reste du classement (à partir de la 4ème place) */}
+      {remainingImages.length > 0 && (
+        <div className="ranking-full-section">
+          <h2>📋 Reste du Classement</h2>
+          <div className="ranking-table">
+            <div className="ranking-table-header">
+              <span>Rang</span>
+              <span>Image</span>
+              <span>Nom</span>
+            </div>
+            {remainingImages.map((image, index) => (
+              <div 
+                key={image.id} 
+                className="ranking-table-row"
+                onClick={() => openImageDetailsModal(image)}
+              >
+                <span className="rank-number">
+                  {index + 4}
+                </span>
+                <div className="image-cell">
+                  <img 
+                    src={image.path_image} 
+                    alt={image.name}
+                    className="table-image"
+                  />
+                </div>
+                <span className="name-cell">{image.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Images en progression */}
+      {unrankedImages.length > 0 && (
+        <div className="ranking-full-section">
+          <h2>📊 Images en Progression</h2>
+          <p className="section-description">Ces images ont été sélectionnées mais n'ont pas encore atteint le score de 5 nécessaire pour être classées.</p>
+          <div className="ranking-table">
+            <div className="ranking-table-header">
+              <span>Position</span>
+              <span>Image</span>
+              <span>Nom</span>
+              <span>Score</span>
+              <span>Statut</span>
+            </div>
+            {unrankedImages.map((image, index) => (
+              <div 
+                key={image.id} 
+                className="ranking-table-row unranked-row"
+                onClick={() => openImageDetailsModal(image)}
+              >
+                <span className="rank-number">
+                  {index + 1}
+                </span>
+                <div className="image-cell">
+                  <img 
+                    src={image.path_image} 
+                    alt={image.name}
+                    className="table-image"
+                  />
+                </div>
+                <span className="name-cell">{image.name}</span>
+                <span className="score-cell">{image.score}/5</span>
+                <span className="status-cell">En progression</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {rankedImages.length === 0 && unrankedImages.length === 0 && (
         <div className="ranking-no-results">
-          <h2>Aucune image classée</h2>
-          <p>Ce classement ne contient aucune image classée pour le moment.</p>
+          <h2>Aucune image dans ce classement</h2>
+          <p>Ce classement ne contient aucune image pour le moment.</p>
+        </div>
+      )}
+
+      {rankedImages.length === 0 && unrankedImages.length > 0 && (
+        <div className="ranking-no-results">
+          <h2>Classement en cours</h2>
+          <p>Ce classement est en cours de création. Seules les images ayant atteint un score de 5 apparaîtront dans le classement final.</p>
         </div>
       )}
 

@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
-import "../styles/AllAlbum.css";
-import { getPublicTierlists } from "../services/tierlist-api";
-import { getAlbumInfoForContent } from "../services/album-api-extended";
+import "../styles/AllAlbums.css";
+import { getPublicTierlists } from "../services/tierlistApi";
+import { getAlbumInfoForContent } from "../services/albumApiExtended";
 
 interface TierlistsProps {
   user: string | null;

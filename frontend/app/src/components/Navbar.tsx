@@ -43,7 +43,6 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, isAdmin }) => {
   // Si le token est expiré, déconnecter l'utilisateur
   useEffect(() => {
     if (isTokenExpired && user) {
-      console.log("Token expiré détecté dans Navbar, déconnexion...");
       handleLogout();
     }
   }, [isTokenExpired, user]);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
-import api from "../services/api";
+import { requestPasswordReset } from "../services/passwordApi";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -15,29 +15,42 @@ const ForgotPassword: React.FC = () => {
     e.preventDefault();
     setMessage("");
     setIsError(false);
+
+    // Validation de l'email avant envoi
+    if (!email || !email.includes("@")) {
+      setIsError(true);
+      setMessage("Veuillez entrer une adresse email valide.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // This would be a real API call in production
-      // Here we simulate a successful response
-      await api.post("/forgot-password", { email });
+      // Utilise la vraie fonction API pour demander la réinitialisation
+      await requestPasswordReset(email);
 
       setIsSubmitted(true);
       setMessage(
         "Un email de réinitialisation a été envoyé si l'adresse existe dans notre système.",
       );
       setIsError(false);
-
-      // In a real application, the API would handle sending the reset email
-      // For demo/development, we just show a success message
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error in password reset request:", error);
-      setMessage(
-        error.response?.data?.message ||
-          "Une erreur est survenue. Veuillez réessayer plus tard.",
-      );
       setIsError(true);
+      
+      // Gestion spécifique des erreurs
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message;
+        if (errorMessage?.includes("domain")) {
+          setMessage("L'adresse email est invalide ou le domaine ne peut pas recevoir d'emails.");
+        } else if (errorMessage?.includes("not found")) {
+          setMessage("Aucun compte n'est associé à cette adresse email.");
+        } else {
+          setMessage("Veuillez vérifier l'adresse email saisie.");
+        }
+      } else {
+        setMessage("Une erreur est survenue. Veuillez réessayer plus tard.");
+      }
     } finally {
       setIsLoading(false);
     }

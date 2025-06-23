@@ -6,7 +6,7 @@ import "../styles/TierListEditor.css";
 import tierlistService, {
   TierlistImage,
   TierlistLine,
-} from "../services/tierlist-service";
+} from "../services/tierlistService";
 import { useParams } from "react-router-dom";
 import ImageDetailsModal from "../components/ImageDetailsModal";
 
@@ -590,6 +590,56 @@ setUnclassifiedImages(imagesWithDbId);
     });
   };
 
+  // Fonction pour formater le nom de tier avec retour à la ligne
+  const formatTierName = (name: string): string => {
+    const maxLength = 37;
+    const chunkSize = 12;
+    
+    // Limiter à 37 caractères
+    const trimmedName = name.slice(0, maxLength);
+    
+    // Diviser en mots
+    const words = trimmedName.split(' ');
+    let formattedName = '';
+    let currentLine = '';
+    
+    for (const word of words) {
+      // Si le mot seul dépasse 12 caractères, le forcer sur une nouvelle ligne
+      if (word.length > chunkSize) {
+        if (currentLine) {
+          formattedName += currentLine + '\n';
+          currentLine = '';
+        }
+        // Couper le mot long par chunks de 12
+        for (let i = 0; i < word.length; i += chunkSize) {
+          const chunk = word.slice(i, i + chunkSize);
+          formattedName += chunk + '\n';
+        }
+        continue;
+      }
+      
+      // Vérifier si ajouter ce mot dépasserait 12 caractères
+      const potentialLine = currentLine ? `${currentLine} ${word}` : word;
+      
+      if (potentialLine.length <= chunkSize) {
+        currentLine = potentialLine;
+      } else {
+        // Ajouter la ligne actuelle et commencer une nouvelle ligne
+        if (currentLine) {
+          formattedName += currentLine + '\n';
+        }
+        currentLine = word;
+      }
+    }
+    
+    // Ajouter la dernière ligne
+    if (currentLine) {
+      formattedName += currentLine;
+    }
+    
+    return formattedName.trim();
+  };
+
   // Fonction pour sauvegarder les modifications d'un tier
   const handleSaveTier = () => {
     if (!editingTierId) return;
@@ -605,7 +655,7 @@ setUnclassifiedImages(imagesWithDbId);
         tier.id === editingTierId
           ? {
               ...tier,
-              name: editFormData.name.trim(),
+              name: editFormData.name.trim().slice(0, 37), // Limiter à 37 caractères
               color: editFormData.color,
             }
           : tier,
@@ -1400,7 +1450,7 @@ setUnclassifiedImages(imagesWithDbId);
                     value={editFormData.name}
                     onChange={handleEditFormChange}
                     className="edit-name-input"
-                    maxLength={15}
+                    maxLength={37}
                     autoFocus
                   />
                   <input
@@ -1440,7 +1490,9 @@ setUnclassifiedImages(imagesWithDbId);
                   style={{ backgroundColor: tier.color }}
                   onClick={() => handleEditTier(tier)}
                 >
-                  {tier.name}
+                  {formatTierName(tier.name).split('\n').map((line, index) => (
+                    <div key={index} className="tier-name-line">{line}</div>
+                  ))}
                 </div>
               )}
 

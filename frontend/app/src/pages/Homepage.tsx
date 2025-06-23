@@ -7,7 +7,7 @@ import {
   getPopularAlbumsByCategory,
   getAlbumsByPopularity,
   AlbumUsageStats,
-} from "../services/album-api-popularity";
+} from "../services/albumApiPopularity";
 
 interface HomepageProps {
   user: string | null;
@@ -191,8 +191,8 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
               className="category-container"
             >
               <div className="album-usage-count">
-                {album.totalUsageCount}{" "}
-                {album.totalUsageCount === 1 ? "utilisation" : "utilisations"}
+                {album.imageCount}{" "}
+                {album.imageCount === 1 ? "image" : "images"}
               </div>
               <CategoryCard
                 name={album.name}
@@ -227,8 +227,8 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
                 className="category-container"
               >
                 <div className="album-usage-count">
-                  {album.totalUsageCount}{" "}
-                  {album.totalUsageCount === 1 ? "utilisation" : "utilisations"}
+                  {album.imageCount}{" "}
+                  {album.imageCount === 1 ? "image" : "images"}
                 </div>
                 <CategoryCard
                   name={album.name}

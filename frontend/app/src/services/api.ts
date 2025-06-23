@@ -71,8 +71,11 @@ api.interceptors.response.use(
       const event = new CustomEvent("tokenExpired");
       window.dispatchEvent(event);
       
-      // Si nous ne sommes pas déjà sur la page de connexion, rediriger
-      if (!window.location.pathname.includes("/login")) {
+      // Si nous ne sommes pas sur une page d'authentification, rediriger
+      const authPages = ["/login", "/register", "/forgot-password", "/reset-password"];
+      const isOnAuthPage = authPages.some(page => window.location.pathname.includes(page));
+      
+      if (!isOnAuthPage) {
         alert("Votre session a expiré. Veuillez vous reconnecter.");
         window.location.href = "/login";
       }

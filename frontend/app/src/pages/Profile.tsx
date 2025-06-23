@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "react-modal";
 import "../styles/Profile.css";
-import profil from "../assets/ProfileUser.jpg";
+import profil from "../assets/profile.png";
 import CategoryCard from "../components/CategoryCard";
 import ViewerEditorModal from "../components/ViewerEditorModal";
 import AlbumModal from "../components/AlbumModal";
@@ -11,6 +11,8 @@ import api, {
   isTokenValid,
   getCurrentUser,
 } from "../services/api";
+import { getUserContent, getUserInfo } from "../services/userContentApi";
+import { changePassword as changePasswordApi } from "../services/passwordApi";
 
 Modal.setAppElement("#root");
 
@@ -64,182 +66,58 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
     type: 'tierlist' | 'tournoi' | 'classement';
   } | null>(null);
 
-  // Fonction utilitaire pour récupérer l'image de façon sécurisée
-  const getImagePath = (item: any) => {
-    // Vérifier d'abord si l'album existe
-    if (!item.album) return "/default-image.jpg";
-    
-    // Vérifier si l'album a des images
-    if (!item.album.image || !Array.isArray(item.album.image) || item.album.image.length === 0) {
-      return "/default-image.jpg";
-    }
-    
-    // Vérifier si la première image a un path_image valide
-    const firstImage = item.album.image[0];
-    if (!firstImage || !firstImage.path_image) {
-      return "/default-image.jpg";
-    }
-    
-    return firstImage.path_image;
-  };
+  
 
   // Rediriger si non connecté
   useEffect(() => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
-  // Récupérer les informations de l'utilisateur
+  // Récupérer les informations de l'utilisateur via /me
   useEffect(() => {
     const fetchUserInfo = async () => {
       if (!user) return;
 
       try {
-        const response = await getCurrentUser();
-        if (response && response.data) {
-          setUsername(response.data.username || user);
-          setUserID(response.data.id.toString());
+        const userInfo = await getUserInfo();
+        setUsername(userInfo.username || user);
+        setUserID(userInfo.id.toString());
 
-          // Formater la date d'inscription
-          const registerDate = new Date(response.data.createdAt);
-          setMemberSince(
-            registerDate.toLocaleDateString("fr-FR", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }),
-          );
-        }
-      } catch (err) {
-        console.warn(
-          "Impossible de récupérer les informations utilisateur:",
-          err,
+        // Formater la date d'inscription
+        const registerDate = new Date(userInfo.createdAt);
+        setMemberSince(
+          registerDate.toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }),
         );
+      } catch (err) {
+        console.warn("Impossible de récupérer les informations utilisateur:", err);
       }
     };
 
     fetchUserInfo();
   }, [user]);
 
-  // Charger les données de contenu de l'utilisateur
+  // Charger les données de contenu de l'utilisateur via /me
   useEffect(() => {
     const fetchUserContent = async () => {
-      if (!user || !userID) return;
+      if (!user) return;
 
       setLoading(true);
       setError(false);
 
       try {
-        // 1. Récupérer les albums (tous, puis filtrer ceux de l'utilisateur)
-        try {
-          const albumsResponse = await api.get("/album");
-          if (albumsResponse.data && albumsResponse.data.data) {
-            // Filtrer seulement les albums de l'utilisateur actuel
-            const userAlbums = albumsResponse.data.data
-              .filter(
-                (album: any) =>
-                  album.author && album.author.id.toString() === userID,
-              )
-              .map((album: any) => ({
-                id: album.id.toString(),
-                name: album.name,
-                image:
-                  album.images && album.images.length > 0
-                    ? album.images[0].path_image
-                    : "/default-image.jpg",
-                isPublic: album.status === "public",
-                usageCount: Math.floor(Math.random() * 100) + 10,
-                categories: album.categories?.map((cat: any) => cat.name) || [],
-              }));
-
-            setAlbums(userAlbums);
-          }
-        } catch (err) {
-          console.warn("Erreur lors de la récupération des albums:", err);
-        }
-
-        // 2. Récupérer les tierlists (tous, puis filtrer ceux de l'utilisateur)
-        try {
-          const tierlistsResponse = await api.get("/tierlist");
-          if (tierlistsResponse.data && tierlistsResponse.data.data) {
-            const userTierlists = tierlistsResponse.data.data
-              .filter(
-                (tierlist: any) =>
-                  tierlist.author && tierlist.author.id.toString() === userID,
-              )
-              .map((tierlist: any) => ({
-                id: tierlist.id.toString(),
-                name: tierlist.name,
-                image: getImagePath(tierlist),
-                isPublic: !tierlist.private,
-                categories:
-                  tierlist.album && tierlist.album.categories
-                    ? tierlist.album.categories.map((cat: any) => cat.name)
-                    : [],
-              }));
-
-            setTierlists(userTierlists);
-          }
-        } catch (err) {
-          console.warn("Erreur lors de la récupération des tierlists:", err);
-        }
-
-        // 3. Récupérer les tournois (tous, puis filtrer ceux de l'utilisateur)
-        try {
-          const tournoisResponse = await api.get("/tournament");
-          if (tournoisResponse.data && tournoisResponse.data.data) {
-            const userTournois = tournoisResponse.data.data
-              .filter(
-                (tournoi: any) =>
-                  tournoi.author && tournoi.author.id.toString() === userID,
-              )
-              .map((tournoi: any) => ({
-                id: tournoi.id.toString(),
-                name: tournoi.name,
-                image: getImagePath(tournoi),
-                isPublic: !tournoi.private,
-                categories:
-                  tournoi.album && tournoi.album.categories
-                    ? tournoi.album.categories.map((cat: any) => cat.name)
-                    : [],
-              }));
-
-            setTournois(userTournois);
-          }
-        } catch (err) {
-          console.warn("Erreur lors de la récupération des tournois:", err);
-        }
-
-        // 4. Récupérer les classements (tous, puis filtrer ceux de l'utilisateur)
-        try {
-          const classementsResponse = await api.get("/ranking");
-          if (classementsResponse.data && classementsResponse.data.data) {
-            const userClassements = classementsResponse.data.data
-              .filter(
-                (classement: any) =>
-                  classement.author &&
-                  classement.author.id.toString() === userID,
-              )
-              .map((classement: any) => ({
-                id: classement.id.toString(),
-                name: classement.name,
-                image: getImagePath(classement),
-                isPublic: !classement.private,
-                categories:
-                  classement.album && classement.album.categories
-                    ? classement.album.categories.map((cat: any) => cat.name)
-                    : [],
-              }));
-
-            setClassements(userClassements);
-          }
-        } catch (err) {
-          console.warn("Erreur lors de la récupération des classements:", err);
-        }
+        const content = await getUserContent();
+        
+        setAlbums(content.albums);
+        setTierlists(content.tierlists);
+        setTournois(content.tournaments);
+        setClassements(content.rankings);
+        
       } catch (globalErr) {
-        console.error(
-          "Erreur globale lors de la récupération des données:",
-          globalErr,
-        );
+        console.error("Erreur lors de la récupération des données:", globalErr);
         setError(true);
       } finally {
         setLoading(false);
@@ -247,12 +125,30 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
     };
 
     fetchUserContent();
-  }, [userID]);
+  }, [user]);
+
+  // Fonction pour recharger le contenu utilisateur (appelée après suppression)
+  const refreshUserContent = async () => {
+    if (!user) return;
+
+    try {
+      const content = await getUserContent();
+      
+      setAlbums(content.albums);
+      setTierlists(content.tierlists);
+      setTournois(content.tournaments);
+      setClassements(content.rankings);
+      
+    } catch (err) {
+      console.error("Erreur lors du rechargement du contenu:", err);
+      setError(true);
+    }
+  };
 
   // Fonction pour sauvegarder le nom d'utilisateur
   const saveUsername = async () => {
     try {
-      await api.put("/user/update-username", { username: newUsername });
+      await api.put("/me", { username: newUsername });
       setUsername(newUsername);
       setUser(newUsername);
       setNameModalOpen(false);
@@ -278,10 +174,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
     }
 
     try {
-      await api.put("/user/update-password", {
-        currentPassword,
-        newPassword,
-      });
+      await changePasswordApi(currentPassword, newPassword);
       setPasswordModalOpen(false);
       setCurrentPassword("");
       setNewPassword("");
@@ -303,25 +196,16 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
 
   // Fonction pour changer la visibilité d'un élément
   const toggleVisibility = async (id: string, type: string) => {
-    const endpoints = {
-      album: "/album/",
-      tierlist: "/tierlist/",
-      tournoi: "/tournament/",
-      classement: "/ranking/",
-    };
-
-    const endpoint = endpoints[type as keyof typeof endpoints];
-    if (!endpoint) return;
-
+    console.log(`Tentative de modification de visibilité pour ${type} ID: ${id}`);
+    
     try {
-      let currentItem;
-
       switch (type) {
-        case "album":
-          currentItem = albums.find((item) => item.id === id);
-          if (currentItem) {
-            const newStatus = currentItem.isPublic ? "private" : "public";
-            await api.put(`${endpoint}${id}`, { status: newStatus });
+        case "album": {
+          const albumItem = albums.find((item) => item.id === id);
+          if (albumItem) {
+            const newStatus = albumItem.isPublic ? "private" : "public";
+            console.log(`Envoi requête album: PUT /album/${id}`, { status: newStatus });
+            await api.put(`/album/${id}`, { status: newStatus });
             setAlbums(
               albums.map((album) =>
                 album.id === id
@@ -331,51 +215,101 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
             );
           }
           break;
-        case "tierlist":
-          currentItem = tierlists.find((item) => item.id === id);
-          if (currentItem) {
-            await api.put(`${endpoint}${id}`, {
-              private: !currentItem.isPublic,
+        }
+        case "tierlist": {
+          const tierlistItem = tierlists.find((item) => item.id === id);
+          if (tierlistItem) {
+            // Si isPublic=true, on veut le rendre privé (private=true)
+            // Si isPublic=false, on veut le rendre public (private=false)
+            const privateValue = tierlistItem.isPublic;
+            console.log(`État actuel: isPublic=${tierlistItem.isPublic}, envoi private=${privateValue}`);
+            console.log(`Envoi requête tierlist: PUT /tierlist/${id}`, { private: privateValue });
+            const response = await api.put(`/tierlist/${id}`, {
+              private: privateValue,
             });
-            setTierlists(
-              tierlists.map((item) =>
-                item.id === id ? { ...item, isPublic: !item.isPublic } : item,
-              ),
-            );
+            console.log('Réponse tierlist:', response.status, response.data);
+            
+            // Utiliser la réponse du serveur pour mettre à jour l'état
+            if (response.data && response.data.data) {
+              const updatedTierlist = response.data.data;
+              setTierlists(
+                tierlists.map((item) =>
+                  item.id === id 
+                    ? { ...item, isPublic: !updatedTierlist.private }
+                    : item,
+                ),
+              );
+              console.log(`Nouvel état: isPublic=${!updatedTierlist.private}`);
+            }
           }
           break;
-        case "tournoi":
-          currentItem = tournois.find((item) => item.id === id);
-          if (currentItem) {
-            await api.put(`${endpoint}${id}`, {
-              private: !currentItem.isPublic,
+        }
+        case "tournoi": {
+          const tournoiItem = tournois.find((item) => item.id === id);
+          if (tournoiItem) {
+            // Si isPublic=true, on veut le rendre privé (private=true)
+            // Si isPublic=false, on veut le rendre public (private=false)
+            const privateValue = tournoiItem.isPublic;
+            console.log(`État actuel tournoi: isPublic=${tournoiItem.isPublic}, envoi private=${privateValue}`);
+            const response = await api.put(`/tournament/${id}`, {
+              private: privateValue,
             });
-            setTournois(
-              tournois.map((item) =>
-                item.id === id ? { ...item, isPublic: !item.isPublic } : item,
-              ),
-            );
+            console.log('Réponse tournament:', response.status, response.data);
+            
+            // Utiliser la réponse du serveur pour mettre à jour l'état
+            if (response.data && response.data.data) {
+              const updatedTournament = response.data.data;
+              console.log('Données du tournoi dans la réponse:', updatedTournament);
+              console.log('updatedTournament.private =', updatedTournament.private);
+              setTournois(
+                tournois.map((item) =>
+                  item.id === id 
+                    ? { ...item, isPublic: !updatedTournament.private }
+                    : item,
+                ),
+              );
+              console.log(`Nouvel état tournoi: isPublic=${!updatedTournament.private}`);
+            }
           }
           break;
-        case "classement":
-          currentItem = classements.find((item) => item.id === id);
-          if (currentItem) {
-            await api.put(`${endpoint}${id}`, {
-              private: !currentItem.isPublic,
+        }
+        case "classement": {
+          const classementItem = classements.find((item) => item.id === id);
+          if (classementItem) {
+            // Si isPublic=true, on veut le rendre privé (private=true)
+            // Si isPublic=false, on veut le rendre public (private=false)
+            const privateValue = classementItem.isPublic;
+            console.log(`État actuel classement: isPublic=${classementItem.isPublic}, envoi private=${privateValue}`);
+            const response = await api.put(`/ranking/${id}`, {
+              private: privateValue,
             });
-            setClassements(
-              classements.map((item) =>
-                item.id === id ? { ...item, isPublic: !item.isPublic } : item,
-              ),
-            );
+            console.log('Réponse ranking:', response.status, response.data);
+            
+            // Utiliser la réponse du serveur pour mettre à jour l'état
+            if (response.data && response.data.data) {
+              const updatedRanking = response.data.data;
+              setClassements(
+                classements.map((item) =>
+                  item.id === id 
+                    ? { ...item, isPublic: !updatedRanking.private }
+                    : item,
+                ),
+              );
+              console.log(`Nouvel état classement: isPublic=${!updatedRanking.private}`);
+            }
           }
           break;
+        }
       }
     } catch (err) {
       console.error(
         `Erreur lors de la modification de la visibilité pour ${type}:`,
         err,
       );
+      
+      // Recharger le contenu en cas d'erreur pour remettre l'état correct
+      await refreshUserContent();
+      
       alert(
         "Une erreur est survenue lors de la modification de la visibilité.",
       );
@@ -784,6 +718,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
           itemName={selectedItem.name}
           itemType={selectedItem.type}
           canEdit={true}
+          onItemDeleted={refreshUserContent}
         />
       )}
     </div>

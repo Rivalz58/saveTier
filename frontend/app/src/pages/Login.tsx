@@ -38,7 +38,6 @@ const Login: React.FC<LoginProps> = ({ setUser, updateUserStatus }) => {
         } else {
           // Fallback si updateUserStatus n'est pas fourni
           const isAdmin = await checkIsAdmin();
-          console.log("User logged in, admin status:", isAdmin);
         }
 
         // Rediriger vers la page d'accueil
@@ -65,7 +64,7 @@ const Login: React.FC<LoginProps> = ({ setUser, updateUserStatus }) => {
       <form onSubmit={handleLogin}>
         <input
           type="text"
-          placeholder="Nom d'utilisateur ou Email"
+          placeholder="Nametag ou Email"
           value={nametag}
           onChange={(e) => setNametag(e.target.value)}
           required

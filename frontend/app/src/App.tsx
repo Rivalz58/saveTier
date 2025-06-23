@@ -7,9 +7,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import AddAlbum from "./pages/AddAlbum";
-import AllAlbum from "./pages/AllAlbum";
+import AllAlbums from "./pages/AllAlbums";
 import Admin from "./pages/Admin";
-import Tierlists from "./pages/Tierlists";
+import TierLists from "./pages/TierLists";
 import Tournois from "./pages/Tournois";
 import Classements from "./pages/Classements";
 import SetupItemSelection from "./pages/SetupItemSelection";
@@ -20,7 +20,10 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NewPassword from "./pages/NewPassword";
 import AlbumEditor from "./pages/AlbumEditor";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import TokenExpirationHandler from "./components/TokenExpirationHandler";
+import ScrollToTop from "./components/ScrollToTop";
 import { getCurrentUser, checkIsAdmin, isTokenValid } from "./services/api";
 import "./styles/theme.css";
 import TierlistViewer from "./components/TierlistViewer";
@@ -159,6 +162,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <TokenExpirationHandler setUser={setUser} setIsAdmin={setIsAdmin} />
       <Navbar user={user} onLogout={handleLogout} isAdmin={isAdmin} />
       <div className="page-content">
@@ -273,10 +277,14 @@ function App() {
           />
 
           {/* Routes accessibles à tous */}
-          <Route path="/allalbum" element={<AllAlbum user={user} />} />
-          <Route path="/tierlists" element={<Tierlists user={user} />} />
+          <Route path="/allalbum" element={<AllAlbums user={user} />} />
+          <Route path="/tierlists" element={<TierLists user={user} />} />
           <Route path="/tournois" element={<Tournois user={user} />} />
           <Route path="/classements" element={<Classements user={user} />} />
+          
+          {/* Pages légales */}
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </div>
       <Footer />

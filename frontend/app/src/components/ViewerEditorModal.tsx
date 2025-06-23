@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/ViewerEditorModal.css';
-import rankingService from '../services/ranking-service';
-import tournamentService from '../services/tournament-service';
-import tierlistService from '../services/tierlist-service';
+import rankingService from '../services/rankingService';
+import tournamentService from '../services/tournamentService';
+import tierlistService from '../services/tierlistService';
 
 interface ViewerEditorModalProps {
   isOpen: boolean;
@@ -46,7 +46,13 @@ const ViewerEditorModal: React.FC<ViewerEditorModalProps> = ({
       'tournoi': 'tournois',
       'classement': 'classements'
     };
-    navigate(`/${typeMap[itemType]}/edit/${itemId}?continue=true`);
+    
+    // Pour les classements, utiliser l'URL d'édition directe
+    if (itemType === 'classement') {
+      navigate(`/classements/edit/${itemId}`);
+    } else {
+      navigate(`/${typeMap[itemType]}/edit/${itemId}?continue=true`);
+    }
     onClose();
   };
 

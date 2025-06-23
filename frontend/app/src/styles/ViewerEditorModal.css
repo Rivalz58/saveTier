@@ -38,29 +38,20 @@
 }
 
 .viewer-editor-modal .modal-button.primary {
-  border-color: #007bff;
+  border-color: var(--primary-color);
 }
 
 .viewer-editor-modal .modal-button.primary:hover {
-  background: #007bff;
+  background: var(--primary-color);
   color: white;
 }
 
 .viewer-editor-modal .modal-button.secondary {
-  border-color: #6c757d;
+  border-color: var(--text-secondary);
 }
 
 .viewer-editor-modal .modal-button.secondary:hover {
-  background: #6c757d;
-  color: white;
-}
-
-.viewer-editor-modal .modal-button.accent {
-  border-color: #28a745;
-}
-
-.viewer-editor-modal .modal-button.accent:hover {
-  background: #28a745;
+  background: var(--text-secondary);
   color: white;
 }
 

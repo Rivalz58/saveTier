@@ -477,17 +477,19 @@ input:checked + .slider:before {
 
 .tier-label {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 70px; /* Largeur fixe */
-  min-width: 70px; /* Empêche le rétrécissement */
+  min-width: 120px; /* Zone plus large pour 12 caractères */
+  max-width: 220px; /* Permet d'adapter la largeur au contenu */
+  width: auto; /* Largeur adaptative */
   font-weight: bold;
-  font-size: 24px; /* Augmenter la taille pour plus d'impact */
+  font-size: 20px; /* Police plus grande et plus lisible */
   color: white;
   cursor: pointer;
   transition: all 0.2s;
-  height: auto; /* Permet de s'étendre sur toute la hauteur disponible */
-  padding: 0;
+  height: auto;
+  padding: 12px; /* Plus d'espace autour du texte */
   font-family:
     "Palanquin Dark",
     -apple-system,
@@ -502,14 +504,13 @@ input:checked + .slider:before {
     sans-serif !important;
 }
 
-/* Supports longer tier names */
-.tier-label {
-  width: 100px;
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-  padding: 0 10px;
+/* Supports longer tier names with line breaks */
+.tier-name-line {
+  text-align: center;
+  line-height: 1.2; /* Espacement légèrement plus grand */
+  font-size: 18px; /* Police plus grande pour meilleure lisibilité */
+  word-break: break-word;
+  margin: 1px 0; /* Petit espacement entre les lignes */
 }
 
 .tier-label:hover {
@@ -520,14 +521,16 @@ input:checked + .slider:before {
 .tier-label-edit {
   display: flex;
   flex-direction: column;
-  width: 100px;
-  min-width: 70px;
-  padding: 10px;
+  min-width: 160px; /* Zone plus large pour l'édition */
+  max-width: 250px;
+  width: auto;
+  padding: 15px; /* Plus d'espace en mode édition */
   justify-content: center;
   align-items: center;
   background-color: var(--bg-secondary);
   transition: all 0.2s;
   height: auto;
+  min-height: 140px; /* Hauteur minimale plus grande */
 }
 
 .edit-name-input {
@@ -564,17 +567,25 @@ input:checked + .slider:before {
 .edit-buttons {
   display: flex;
   justify-content: space-between;
-  gap: 5px;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
 }
 
-.save-button,
-.cancel-button,
-.delete-button {
-  padding: 5px 8px;
+.edit-buttons .save-button,
+.edit-buttons .cancel-button,
+.edit-buttons .delete-button {
+  padding: 8px 10px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 12px;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family:
     "Palanquin Dark",
     -apple-system,
@@ -967,5 +978,55 @@ input:checked + .slider:before {
     background-color: rgba(50, 138, 241, 0.2);
     box-shadow: 0 0 10px rgba(50, 138, 241, 0.5);
     transition: all 0.3s ease;
+  }
+}
+
+/* Styles pour l'affichage des auteurs d'albums */
+.album-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.album-label {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.album-name {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.album-author {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+/* Styles pour le panel d'infos */
+.tierlist-info-panel {
+  background-color: var(--bg-secondary);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.tierlist-metadata .album-info {
+  margin-bottom: 10px;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .album-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .album-author {
+    margin-left: 0;
   }
 }

@@ -223,12 +223,7 @@ h6 {
   color: var(--text-color);
 }
 
-/* Maintenir le fond sombre pour certains éléments spécifiques en thème clair */
-[data-theme="light"] .admin {
-  background-color: #e63946 !important;
-}
-
-/* Assurer que les boutons d'action gardent leurs couleurs distinctes */
+/* Assurer que les boutons d'action gardent leurs couleurs distinctives */
 [data-theme="light"] .admin-action-btn,
 [data-theme="light"] .profile-btn {
   color: white;
@@ -356,21 +351,6 @@ h6 {
   color: #404761;
 }
 
-/* Assurer que les éléments cliquables sont clairement visibles */
-[data-theme="light"] .admin-action-btn {
-  border: 1px solid rgba(0, 0, 0, 0.2);
-}
-
-/* Améliorer les badges de statut */
-[data-theme="light"] .status-badge {
-  font-weight: bold;
-}
-
-/* Améliorer les en-têtes de table pour meilleur contraste */
-[data-theme="light"] .admin-table th {
-  border-bottom: 2px solid rgba(26, 31, 48, 0.3);
-}
-
 /* Champs de recherche */
 [data-theme="light"] .admin-search {
   background-color: #ffffff;
@@ -427,12 +407,6 @@ h6 {
 
 [data-theme="light"] .admin-table tr:nth-child(odd) {
   background-color: #e5e9f2;
-}
-
-/* Bordures de tableau plus visibles */
-[data-theme="light"] .admin-table td,
-[data-theme="light"] .admin-table th {
-  border-bottom: 1px solid #8a93b1;
 }
 
 /* Correction spécifique pour les titres et sections */

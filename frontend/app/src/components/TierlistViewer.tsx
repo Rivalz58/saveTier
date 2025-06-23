@@ -2,10 +2,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "../styles/TierListEditor.css"; // Réutilisation du CSS existant
-import tierlistService from "../services/tierlist-service";
+import tierlistService from "../services/tierlistService";
+import { getAlbumById } from "../services/albumApiExtended";
 import ImageDetailsModal from "../components/ImageDetailsModal";
 interface TierlistViewerProps {
   user: string | null;
+}
+
+interface AlbumImage {
+  id: string;
+  name: string;
+  src: string;
+  description?: string | null;
+  url?: string | null;
 }
 
 const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
@@ -36,7 +45,8 @@ const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
   const [unclassifiedImages, setUnclassifiedImages] = useState<any[]>([]);
   const [, /*albumId*/ setAlbumId] = useState<number | null>(null);
   const [albumName, setAlbumName] = useState<string>("");
-  const [authorName, setAuthorName] = useState<string>("");
+  const [albumAuthorName, setAlbumAuthorName] = useState<string>("");
+  const [tierlistAuthorName, setTierlistAuthorName] = useState<string>("");
   const [, /*isPrivate*/ setIsPrivate] = useState<boolean>(false);
   const [isAuthor, setIsAuthor] = useState<boolean>(false);
 
@@ -68,6 +78,13 @@ const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
         setTierlistDescription(response.tierlist.description || "");
         setIsPrivate(response.tierlist.private);
         setAlbumId(response.tierlist.id_album);
+
+        // Récupérer l'auteur de la tierlist si disponible
+        if (response.tierlist.author) {
+          setTierlistAuthorName(response.tierlist.author.username);
+          // Vérifier si l'utilisateur actuel est l'auteur de la tierlist
+          setIsAuthor(user === response.tierlist.author.id.toString());
+        }
 
         // Afficher les données reçues pour le débogage
         console.log("Tierlist détails:", response);
@@ -112,25 +129,18 @@ const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
 
         // Récupérer les détails de l'album
         try {
-          const albumResponse = await tierlistService.getAlbumImages(
-            response.tierlist.id_album.toString(),
-          );
-          if (albumResponse && albumResponse.length > 0) {
-            // L'API ne donne pas directement le nom de l'album, essayons de l'obtenir différemment
-            const albumInfo = await fetch(
-              `/api/album/${response.tierlist.id_album}`,
-            ).then((res) => res.json());
-            if (albumInfo && albumInfo.data) {
-              setAlbumName(albumInfo.data.name);
-              setAuthorName(albumInfo.data.author.username);
-
-              // Vérifier si l'utilisateur actuel est l'auteur
-              setIsAuthor(user === albumInfo.data.author.username);
-            }
+          // Utiliser getAlbumById pour récupérer toutes les infos de l'album
+          const album = await getAlbumById(response.tierlist.id_album);
+          if (album) {
+            setAlbumName(album.name);
+            setAlbumAuthorName(album.author.username);
+            // Note: isAuthor est déjà défini par l'auteur de la tierlist plus haut
           }
         } catch (albumError) {
           console.error("Error fetching album details:", albumError);
           // Non bloquant, continuer sans ces détails
+          setAlbumName("Album inconnu");
+          setAlbumAuthorName("Auteur inconnu");
         }
       } catch (err) {
         console.error("Error loading tierlist:", err);
@@ -206,12 +216,11 @@ const TierlistViewer: React.FC<TierlistViewerProps> = ({ user }) => {
       {/* Informations de la tierlist */}
       <div className="tierlist-info-panel">
         <div className="tierlist-metadata">
-          <p>
-            <strong>Album:</strong> {albumName}
-          </p>
-          <p>
-            <strong>Créateur:</strong> {authorName}
-          </p>
+          <div className="album-info">
+            <span className="album-label">Album:</span>
+            <span className="album-name">{albumName}</span>
+            <span className="album-author">par {albumAuthorName}</span>
+          </div>
           {tierlistDescription && (
             <div className="tierlist-description">
               <p>

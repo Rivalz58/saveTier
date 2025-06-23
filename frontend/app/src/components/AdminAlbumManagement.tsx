@@ -47,14 +47,6 @@ interface AlbumsResponse {
   data: Album[];
 }
 
-interface StatsCache {
-  [albumId: string]: {
-    tierlists: number;
-    tournaments: number;
-    rankings: number;
-    total: number;
-  };
-}
 
 const AdminAlbumManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -66,7 +58,6 @@ const AdminAlbumManagement: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [usageStats, setUsageStats] = useState<StatsCache>({});
 
   // États pour la modal
   const [showModal, setShowModal] = useState(false);
@@ -115,94 +106,6 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
   return formattedAlbums;
 };
 
-  // Fonction pour récupérer les statistiques d'utilisation d'un album de manière sécurisée
-  const fetchAlbumStats = async (
-    albumId: string,
-  ): Promise<{
-    tierlists: number;
-    tournaments: number;
-    rankings: number;
-    total: number;
-  }> => {
-    const defaultStats = {
-      tierlists: 0,
-      tournaments: 0,
-      rankings: 0,
-      total: 0,
-    };
-
-    try {
-      // Récupérer le nombre de tierlists
-      try {
-        const tierlistsResponse = await api.get(`/album/${albumId}/tierlist`);
-        defaultStats.tierlists = (tierlistsResponse.data.data || []).length;
-      } catch (err) {
-        console.log(
-          `Impossible de charger les tierlists pour l'album ${albumId}`,
-        );
-        // La valeur reste à 0
-      }
-
-      // Récupérer le nombre de tournois
-      try {
-        const tournamentsResponse = await api.get(
-          `/album/${albumId}/tournament`,
-        );
-        defaultStats.tournaments = (tournamentsResponse.data.data || []).length;
-      } catch (err) {
-        console.log(
-          `Impossible de charger les tournois pour l'album ${albumId}`,
-        );
-        // La valeur reste à 0
-      }
-
-      // Récupérer le nombre de classements
-      try {
-        const rankingsResponse = await api.get(`/album/${albumId}/ranking`);
-        defaultStats.rankings = (rankingsResponse.data.data || []).length;
-      } catch (err) {
-        console.log(
-          `Impossible de charger les classements pour l'album ${albumId}`,
-        );
-        // La valeur reste à 0
-      }
-
-      // Calculer le nombre total d'utilisations
-      defaultStats.total =
-        defaultStats.tierlists +
-        defaultStats.tournaments +
-        defaultStats.rankings;
-
-      // Si aucune utilisation trouvée, simuler une valeur pour l'affichage
-      if (defaultStats.total === 0) {
-        // Générer un nombre aléatoire entre 1 et 50 pour simuler des statistiques
-        const simulatedTotal = Math.floor(Math.random() * 50) + 1;
-
-        // Répartir ce total entre les différents types
-        defaultStats.tierlists = Math.floor(simulatedTotal * 0.5); // 50% tierlists
-        defaultStats.tournaments = Math.floor(simulatedTotal * 0.3); // 30% tournois
-        defaultStats.rankings =
-          simulatedTotal - defaultStats.tierlists - defaultStats.tournaments; // reste pour les classements
-        defaultStats.total = simulatedTotal;
-      }
-
-      return defaultStats;
-    } catch (error) {
-      console.error(
-        `Erreur lors de la récupération des statistiques pour l'album ${albumId}:`,
-        error,
-      );
-
-      // Générer des valeurs factices pour ne pas bloquer l'interface
-      const simulatedTotal = Math.floor(Math.random() * 50) + 1;
-      return {
-        tierlists: Math.floor(simulatedTotal * 0.5),
-        tournaments: Math.floor(simulatedTotal * 0.3),
-        rankings: Math.floor(simulatedTotal * 0.2),
-        total: simulatedTotal,
-      };
-    }
-  };
 
   // Charger les albums et les statistiques d'utilisation
   useEffect(() => {
@@ -215,29 +118,6 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
         const formattedData = formatAlbumData(response.data.data);
         setAlbums(formattedData);
 
-        // Charger les statistiques d'utilisation pour chaque album
-        const stats: StatsCache = {};
-
-        for (const album of formattedData) {
-          try {
-            const albumStats = await fetchAlbumStats(album.id);
-            stats[album.id] = albumStats;
-          } catch (err) {
-            console.error(
-              `Erreur lors du chargement des statistiques pour l'album ${album.id}:`,
-              err,
-            );
-            // Utiliser des valeurs factices en cas d'erreur
-            stats[album.id] = {
-              tierlists: Math.floor(Math.random() * 20),
-              tournaments: Math.floor(Math.random() * 15),
-              rankings: Math.floor(Math.random() * 15),
-              total: Math.floor(Math.random() * 50),
-            };
-          }
-        }
-
-        setUsageStats(stats);
       } catch (err) {
         console.error("Erreur lors du chargement des albums:", err);
         setError(
@@ -285,11 +165,6 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
             );
           case "alphabetical":
             return a.name.localeCompare(b.name);
-          case "popular": {
-            const aUsage = usageStats[a.id]?.total || 0;
-            const bUsage = usageStats[b.id]?.total || 0;
-            return bUsage - aUsage;
-          }
           default:
             return 0;
         }
@@ -301,9 +176,13 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
     try {
       if (!selectedAlbum || !newStatus) return;
 
-      await api.put(`/album/${selectedAlbum.id}`, {
+      console.log(`Changement de statut pour l'album ${selectedAlbum.id}: ${selectedAlbum.status} -> ${newStatus}`);
+      
+      const response = await api.put(`/album/${selectedAlbum.id}`, {
         status: newStatus,
       });
+
+      console.log("Réponse du changement de statut:", response.data);
 
       // Mettre à jour l'état local
       setAlbums(
@@ -317,9 +196,12 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
       alert(
         `Le statut de l'album "${selectedAlbum.name}" a été modifié en "${newStatus}".`,
       );
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erreur lors de la modification du statut:", err);
-      alert("Une erreur est survenue lors de la modification du statut.");
+      console.error("Détails de l'erreur:", err.response?.data);
+      
+      const errorMessage = err.response?.data?.message || err.message || "Erreur inconnue";
+      alert(`Erreur lors de la modification du statut: ${errorMessage}`);
     } finally {
       setShowModal(false);
       setSelectedAlbum(null);
@@ -438,7 +320,6 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
             onChange={(e) => setSortBy(e.target.value)}
             className="admin-filter-select"
           >
-            <option value="popular">Plus utilisés</option>
             <option value="newest">Plus récents</option>
             <option value="oldest">Plus anciens</option>
             <option value="alphabetical">Alphabétique</option>
@@ -460,7 +341,6 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
               <th>Créateur</th>
               <th>Catégories</th>
               <th>Nb Images</th>
-              <th>Utilisations</th>
               <th>Date de création</th>
               <th>Statut</th>
               <th>Actions</th>
@@ -484,18 +364,6 @@ const formatAlbumData = (albums: Album[]): AlbumFormatted[] => {
                 <td>{album.creator}</td>
                 <td>{renderCategoryTags(album.categories)}</td>
                 <td>{album.itemCount}</td>
-                <td>
-                  <div className="usage-stats">
-                    <span className="usage-total">
-                      {usageStats[album.id]?.total || 0}
-                    </span>
-                    <span className="usage-details">
-                      (T: {usageStats[album.id]?.tierlists || 0}, To:{" "}
-                      {usageStats[album.id]?.tournaments || 0}, C:{" "}
-                      {usageStats[album.id]?.rankings || 0})
-                    </span>
-                  </div>
-                </td>
                 <td>{new Date(album.created).toLocaleDateString()}</td>
                 <td>
                   <span className={`status-badge ${album.status}`}>

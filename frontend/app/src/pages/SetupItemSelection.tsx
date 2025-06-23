@@ -40,8 +40,6 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
   // État pour stocker les images sélectionnées
   const [selectedImages, setSelectedImages] = useState<AlbumImage[]>([]);
 
-  // État pour l'image principale (couverture)
-  const [mainImage, setMainImage] = useState<string | null>(null);
 
   // État pour le type de contenu à créer (tierlists, tournois, classements)
   const [contentType, setContentType] = useState<string>("");
@@ -129,10 +127,6 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
         setAlbumData(formattedAlbum);
         setSelectedImages(formattedAlbum.images);
 
-        // Définir la première image comme principale par défaut si elle existe
-        if (formattedAlbum.images.length > 0) {
-          setMainImage(formattedAlbum.images[0].id);
-        }
 
         setLoading(false);
       } catch (err) {
@@ -160,39 +154,13 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
 
     setSelectedImages(updatedImages.filter((img) => img.selected));
 
-    // Si l'image principale est désélectionnée, mettre à jour mainImage
-    if (
-      mainImage === imageId &&
-      !updatedImages.find((img) => img.id === imageId)?.selected
-    ) {
-      const firstSelected = updatedImages.find((img) => img.selected);
-      setMainImage(firstSelected?.id || null);
-    }
   };
 
-  // Définir une image comme principale
-  const setAsMainImage = (imageId: string) => {
-    // Vérifier si l'image est sélectionnée
-    if (albumData?.images.find((img) => img.id === imageId)?.selected) {
-      setMainImage(imageId);
-    } else {
-      // Si l'image n'est pas sélectionnée, l'activer d'abord
-      toggleImageSelection(imageId);
-      setMainImage(imageId);
-    }
-  };
 
   // Commencer la création
   const startCreation = () => {
-    if (
-      !albumData ||
-      !contentType ||
-      !mainImage ||
-      selectedImages.length === 0
-    ) {
-      alert(
-        "Vous devez sélectionner au moins une image et définir une image principale!",
-      );
+    if (!albumData || !contentType || selectedImages.length === 0) {
+      alert("Vous devez sélectionner au moins une image !");
       return;
     }
   
@@ -202,7 +170,6 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
     console.log('Content Type:', contentType);
     console.log('Album ID:', albumData.id);
     console.log('Selected Image IDs:', selectedImageIds);
-    console.log('Main Image:', mainImage);
     console.log('Content Name:', contentName);
   
     const imageParamString = JSON.stringify(selectedImageIds);
@@ -211,14 +178,14 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
     // Rediriger vers la page de création correspondante avec les paramètres nécessaires
     if (contentType === "tierlists") {
       // Pour les tierlists, rediriger vers le nouvel éditeur spécifique
-      const navigationUrl = `/tierlists/create/editor?album=${albumData.id}&images=${encodeURIComponent(imageParamString)}&main=${mainImage}&name=${encodeURIComponent(contentName)}`;
+      const navigationUrl = `/tierlists/create/editor?album=${albumData.id}&images=${encodeURIComponent(imageParamString)}&name=${encodeURIComponent(contentName)}`;
       
       console.log('Navigation URL:', navigationUrl);
       
       navigate(navigationUrl);
     } else {
       // Pour les autres types, utiliser la route générique
-      const navigationUrl = `/${contentType}/create/editor?album=${albumData.id}&images=${encodeURIComponent(imageParamString)}&main=${mainImage}&name=${encodeURIComponent(contentName)}`;
+      const navigationUrl = `/${contentType}/create/editor?album=${albumData.id}&images=${encodeURIComponent(imageParamString)}&name=${encodeURIComponent(contentName)}`;
       
       console.log('Navigation URL:', navigationUrl);
       
@@ -285,8 +252,7 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
               : "Classement"}
         </h1>
         <p className="setup-description">
-          Sélectionnez les images que vous souhaitez utiliser et choisissez une
-          image principale pour votre{" "}
+          Sélectionnez les images que vous souhaitez utiliser pour votre{" "}
           {contentType === "tierlists"
             ? "tierlist"
             : contentType === "tournois"
@@ -307,14 +273,6 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
               </span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">Image principale:</span>
-              <span className="stat-value">
-                {mainImage
-                  ? albumData.images.find((img) => img.id === mainImage)?.title
-                  : "Non définie"}
-              </span>
-            </div>
-            <div className="stat-item">
               <span className="stat-label">Créateur:</span>
               <span className="stat-value">{albumData.authorName}</span>
             </div>
@@ -332,7 +290,7 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
             <button
               onClick={startCreation}
               className="setup-button start"
-              disabled={selectedImages.length === 0 || !mainImage}
+              disabled={selectedImages.length === 0}
             >
               Commencer la création
             </button>
@@ -350,7 +308,7 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
               {albumData.images.map((image) => (
                 <div
                   key={image.id}
-                  className={`setup-image-card ${image.selected ? "selected" : ""} ${mainImage === image.id ? "main-image" : ""}`}
+                  className={`setup-image-card ${image.selected ? "selected" : ""}`}
                 >
                   <div className="image-container">
                     <img
@@ -360,9 +318,6 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
                       style={{ cursor: "pointer" }}
                       title="Cliquez pour voir les détails"
                     />
-                    {mainImage === image.id && (
-                      <div className="main-image-badge">Image principale</div>
-                    )}
                   </div>
                   <div className="image-title" title={image.description || ""}>
                     {image.title}
@@ -373,13 +328,6 @@ const SetupItemSelection: React.FC<SetupItemSelectionProps> = ({ user }) => {
                       onClick={() => toggleImageSelection(image.id)}
                     >
                       {image.selected ? "Désélectionner" : "Sélectionner"}
-                    </button>
-                    <button
-                      className={`main-button ${mainImage === image.id ? "selected" : ""}`}
-                      onClick={() => setAsMainImage(image.id)}
-                      disabled={!image.selected && mainImage !== image.id}
-                    >
-                      Définir comme principale
                     </button>
                   </div>
                 </div>

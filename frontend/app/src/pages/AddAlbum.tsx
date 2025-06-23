@@ -81,7 +81,6 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         const categories = await albumService.getCategories();
         setAvailableCategories(categories.map((cat) => cat.name));
       } catch (error) {
-        console.warn("Impossible de charger les catégories:", error);
         // Garder les catégories par défaut en cas d'erreur
       }
     };
@@ -282,8 +281,6 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
     albumId: number,
   ): Promise<{ success: boolean; errorMessage?: string }> => {
     try {
-      console.log(`[${index}] Début du traitement et upload de l'image: ${image.name}`);
-      
       // Mettre à jour le statut de l'image
       setImages((prev) =>
         prev.map((img, i) =>
@@ -292,16 +289,12 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
       );
 
       // Traiter l'image (compression, etc.)
-      console.log(`[${index}] Appel à processImageBeforeUpload pour ${image.file.name}`);
       const processResult = await albumService.processImageBeforeUpload(
         image.file,
         index,
       );
-      console.log(`[${index}] Résultat du traitement:`, processResult);
 
       if (!processResult.success || !processResult.file) {
-        console.error(`[${index}] Échec du traitement de l'image:`, processResult.errorMessage);
-        
         // Mettre à jour le statut de l'image avec l'erreur
         setImages((prev) =>
           prev.map((img, i) =>
@@ -332,23 +325,9 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         id_album: albumId,
       };
       
-      console.log(`[${index}] Données préparées pour l'upload:`, {
-        fileName: imageData.file.name,
-        fileSize: `${(imageData.file.size / 1024 / 1024).toFixed(2)} Mo`,
-        fileType: imageData.file.type,
-        name: imageData.name,
-        description: imageData.description,
-        url: imageData.url,
-        id_album: imageData.id_album
-      });
-
-      // Uploader l'image
-      console.log(`[${index}] Début de l'upload vers le serveur`);
       try {
         await albumService.addImageToAlbum(imageData);
-        console.log(`[${index}] Upload réussi pour ${image.name}`);
       } catch (uploadError: any) {
-        console.error(`[${index}] Erreur d'upload détaillée:`, uploadError);
         
         // Vérifier si l'erreur provient de la vérification NSFW du backend
         if (uploadError.response && uploadError.response.data && 
@@ -367,16 +346,11 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
         ),
       );
       
-      console.log(`[${index}] Processus terminé avec succès pour ${image.name}`);
-
       return { success: true };
     } catch (error: any) {
       const errorMessage =
         error.message || "Erreur lors de l'upload de l'image";
       
-      console.error(`[${index}] Erreur dans processAndUploadImage:`, error);
-      console.error(`[${index}] Message d'erreur: ${errorMessage}`);
-
       // Mettre à jour le statut de l'image avec l'erreur
       setImages((prev) =>
         prev.map((img, i) =>
@@ -388,19 +362,15 @@ const AddAlbum: React.FC<AddAlbumProps> = ({ user }) => {
     } finally {
       // Incrémenter le compteur de progression
       setCurrentProgress((prev) => prev + 1);
-      console.log(`[${index}] Progression mise à jour: ${currentProgress + 1}/${totalImages}`);
     }
   };
 
   // Fonction pour supprimer un album
   const deleteAlbum = async (albumId: number) => {
     try {
-      console.log(`Suppression de l'album vide: ${albumId}`);
       await albumService.deleteAlbum(albumId);
-      console.log(`Album ${albumId} supprimé avec succès`);
       return true;
     } catch (error) {
-      console.error(`Erreur lors de la suppression de l'album ${albumId}:`, error);
       return false;
     }
   };
@@ -484,7 +454,6 @@ const albumData = {
           await albumService.addCategoriesToAlbum(albumId, selectedCategories);
         }
       } catch (categoryError) {
-        console.warn("Erreur lors de l'ajout des catégories:", categoryError);
         // On continue même si l'ajout des catégories échoue
       }
 
@@ -513,11 +482,10 @@ const albumData = {
       // Afficher le message de fin
       alert(finalMessage);
 
-      // Redirection vers la page d'accueil
-      navigate("/");
+      // Redirection vers le profil
+      navigate("/profile");
       
     } catch (error) {
-      console.error("Erreur lors de la création de l'album:", error);
       alert(
         "Une erreur est survenue lors de la création de l'album. Veuillez réessayer.",
       );
@@ -526,14 +494,14 @@ const albumData = {
     }
   };
 
-  // Annuler et retourner à la page d'accueil
+  // Annuler et retourner au profil
   const handleCancel = () => {
     // Nettoyer les URL des images avant de quitter
     images.forEach((image) => {
       URL.revokeObjectURL(image.previewUrl);
     });
 
-    navigate("/");
+    navigate("/profile");
   };
 
   // Obtenir la couleur du statut de l'image

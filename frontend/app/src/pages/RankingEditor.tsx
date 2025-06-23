@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Modal from "react-modal";
 import "../styles/RankingEditor.css";
-import rankingService from "../services/ranking-service";
+import rankingService from "../services/rankingService";
 import ImageDetailsModal from "../components/ImageDetailsModal";
-import { getUserInfo } from "../services/user-content-api";
+import { getUserInfo } from "../services/userContentApi";
 
 Modal.setAppElement("#root");
 
@@ -73,7 +73,10 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
 
   // UI state
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
-  const [showInfoModal, setShowInfoModal] = useState<boolean>(false);
+  const [showInfoModal, setShowInfoModal] = useState<boolean>(() => {
+    const hasSeenInfoModal = localStorage.getItem("rankingInfoModalShown");
+    return !hasSeenInfoModal;
+  });
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [imageDetailsModalOpen, setImageDetailsModalOpen] = useState<boolean>(false);
@@ -81,6 +84,92 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
 
   // Local Storage key
   const STORAGE_KEY = "ranking-editor-save";
+
+  // Helper function to merge album data with ranking data
+  const mergeAlbumDataWithRanking = async (allAlbumImages: any[], rankingData: any): Promise<Image[]> => {
+    console.log("Merging album data with ranking data...");
+    
+    // Extract ranking images from the main ranking data
+    const rankingImages: any[] = [];
+    if (rankingData.rankingImage && rankingData.rankingImage.length > 0) {
+      console.log("Raw rankingImage data:", rankingData.rankingImage);
+      
+      rankingData.rankingImage.forEach((rankingImg: any) => {
+        if (rankingImg.image) {
+          // Points = score direct (négatif pour classé, positif pour en progression)
+          const score = rankingImg.points;
+          
+          rankingImages.push({
+            id: rankingImg.image.id.toString(),
+            src: rankingImg.image.path_image,
+            name: rankingImg.image.name,
+            description: rankingImg.image.description,
+            url: rankingImg.image.url,
+            score: score, // Use score directly from DB
+            points: rankingImg.points, // Keep original points for reference
+            viewed: rankingImg.viewed || 0, // Use viewed count from DB
+          });
+          
+          console.log(`Image ${rankingImg.image.name}: points/score=${score}, viewed=${rankingImg.viewed}, status=${score < 0 ? 'CLASSÉE' : score > 0 ? 'EN PROGRESSION' : 'NON CLASSÉE'}`);
+        }
+      });
+    }
+    
+
+    // Convert ONLY images that have data in ranking (were originally selected)
+    const convertedAllImages: Image[] = [];
+    
+    // Process only images that have ranking data (originally selected)
+    rankingImages.forEach((rankedImage) => {
+      const albumImage = allAlbumImages.find(img => img.id === rankedImage.id);
+      if (albumImage) {
+        const status = rankedImage.score < 0 ? 'CLASSÉE' : rankedImage.score > 0 ? 'EN PROGRESSION' : 'SÉLECTIONNÉE';
+        console.log(`Adding ${status} image ${albumImage.name} with score ${rankedImage.score}`);
+        convertedAllImages.push({
+          id: albumImage.id,
+          src: albumImage.src,
+          name: albumImage.name,
+          score: rankedImage.score, // Score direct from DB (peut être 0)
+          viewed: rankedImage.viewed || 0, // Use viewed count from ranking
+          description: albumImage.description,
+          url: albumImage.url,
+        });
+      }
+    });
+    
+    console.log(`Loaded ${convertedAllImages.length} originally selected images (from ${allAlbumImages.length} total album images)`);
+
+    return convertedAllImages;
+  };
+
+  // Helper function to merge album data with cached session state
+  const mergeAlbumDataWithCache = async (allAlbumImages: any[], rankingData: any, cachedState: SaveData): Promise<Image[]> => {
+    console.log("Merging album data with cached session state...");
+    
+    // First get the base merge with ranking data
+    const baseImages = await mergeAlbumDataWithRanking(allAlbumImages, rankingData);
+    
+    // Then apply cached state modifications (viewed counts, scores from active session)
+    const finalImages = baseImages.map((baseImg) => {
+      const cachedImg = cachedState.allImages.find(cached => cached.id === baseImg.id);
+      
+      if (cachedImg) {
+        // Use the cached version's progress, but respect database ranking data for negative scores
+        const finalScore = baseImg.score < 0 ? baseImg.score : cachedImg.score; // Database ranking wins over cache for ranked images
+        console.log(`Merging cache for ${baseImg.name}: base score ${baseImg.score}, cached score ${cachedImg.score}, final score ${finalScore}`);
+        return {
+          ...baseImg,
+          score: finalScore, // Database ranking data takes precedence for ranked images
+          viewed: Math.max(baseImg.viewed, cachedImg.viewed), // Use the higher viewed count
+        };
+      }
+      
+      return baseImg;
+    });
+
+    console.log("Final merged images with cache applied:", finalImages.length);
+    return finalImages;
+  };
 
   // Load images and params from URL
   useEffect(() => {
@@ -268,27 +357,39 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
       setHasSaved(true);
       setSavedRankingId(Number(id));
 
-      // Try to restore from cache first (if page reload)
+      // Try to restore from cache first (if page reload during active session)
       if (cachedEditState) {
         try {
           const editState: SaveData = JSON.parse(cachedEditState);
-          console.log("Found cached edit state, restoring session...");
+          console.log("Found cached edit state for active session...");
           
-          // Restore the exact state where user left off
-          setAllImages(editState.allImages);
-          setCurrentImages(editState.currentImages || []);
-          setRankedImages(editState.rankedImages || []);
-          setRemainingImages(editState.remainingImages || []);
-          setRound(editState.round || 1);
-          setMaxSelectable(editState.maxSelectable || 3);
-          setInitialDisplayCount(editState.initialDisplayCount || 6);
-          setIsQualificationPhase(editState.isQualificationPhase || false);
-          setSelectedImages([]); // Always reset selected images
-          setInitialImages(editState.allImages.map(img => ({ ...img, score: 0, viewed: 0 })));
+          // Only restore if there was an active ranking session (currentImages exist)
+          if (editState.currentImages && editState.currentImages.length > 0) {
+            console.log("Restoring active ranking session from cache");
+            
+            // Get fresh album data first to merge with cached session
+            const allAlbumImages = await rankingService.getAlbumImages(albumIdFromRanking);
+            const mergedImages = await mergeAlbumDataWithCache(allAlbumImages, rankingData, editState);
+            
+            // Restore the active session state
+            setAllImages(mergedImages);
+            setCurrentImages(editState.currentImages);
+            setRankedImages(editState.rankedImages || []);
+            setRemainingImages(editState.remainingImages || []);
+            setRound(editState.round || 1);
+            setMaxSelectable(editState.maxSelectable || 3);
+            setInitialDisplayCount(editState.initialDisplayCount || 6);
+            setIsQualificationPhase(editState.isQualificationPhase || false);
+            setSelectedImages([]); // Always reset selected images
+            setInitialImages(allAlbumImages.map(img => ({ ...img, score: 0, viewed: 0 })));
 
-          setIsInitialized(true);
-          console.log("Edit session restored from cache");
-          return;
+            setIsInitialized(true);
+            console.log("Active ranking session restored from cache");
+            return;
+          } else {
+            console.log("Cache contains no active session, proceeding with fresh database load");
+            localStorage.removeItem(cacheKey);
+          }
         } catch (cacheError) {
           console.error("Error restoring cached edit state:", cacheError);
           localStorage.removeItem(cacheKey);
@@ -296,116 +397,55 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
       }
 
       // No cached state or error - load fresh from database
-      console.log("No valid cache found, loading fresh from database...");
+      console.log("Loading fresh data from database...");
 
       // Get ALL images from the album
       const allAlbumImages = await rankingService.getAlbumImages(albumIdFromRanking);
       console.log("All album images loaded:", allAlbumImages);
-
-      // Extract ranking images from the main ranking data (not a separate API call)
-      const rankingImages: any[] = [];
-      if (rankingData.rankingImage && rankingData.rankingImage.length > 0) {
-        console.log("Raw rankingImage data:", rankingData.rankingImage);
-        
-        rankingData.rankingImage.forEach((rankingImg: any) => {
-          if (rankingImg.image) {
-            // Use points directly - if points > 0, it means the image was ranked
-            // Convert points to negative score for internal logic (points 1 = score -1, etc.)
-            const convertedScore = rankingImg.points > 0 ? -(rankingImg.points) : 0;
-            
-            rankingImages.push({
-              id: rankingImg.image.id.toString(),
-              src: rankingImg.image.path_image,
-              name: rankingImg.image.name,
-              description: rankingImg.image.description,
-              url: rankingImg.image.url,
-              score: convertedScore, // Use converted points as negative score
-              points: rankingImg.points, // Keep original points for reference
-              viewed: rankingImg.viewed || 2, // Use viewed count from DB
-            });
-            
-            console.log(`Image ${rankingImg.image.name}: points=${rankingImg.points}, viewed=${rankingImg.viewed}, converted score=${convertedScore}`);
-          }
-        });
-      }
       
-      console.log("Ranking images extracted from main data:", rankingImages);
+      // Process the ranking data and merge with album images
+      const mergedImages = await mergeAlbumDataWithRanking(allAlbumImages, rankingData);
 
-      if (allAlbumImages.length > 0) {
-        // Convert all album images to editor format
-        const convertedAllImages: Image[] = allAlbumImages.map((img) => {
-          // Check if this image was ranked
-          const rankedImage = rankingImages.find(rankedImg => rankedImg.id === img.id);
-          
-          if (rankedImage) {
-            // Image was ranked - use the data from ranking
-            return {
-              id: img.id,
-              src: img.src,
-              name: img.name,
-              score: rankedImage.score, // Negative score for ranked images
-              viewed: rankedImage.viewed || 2, // Use viewed count from ranking
-              description: img.description,
-              url: img.url,
-            };
-          } else {
-            // Image was not ranked yet - use default values
-            return {
-              id: img.id,
-              src: img.src,
-              name: img.name,
-              score: 0, // Not ranked yet
-              viewed: 0, // Not seen yet
-              description: img.description,
-              url: img.url,
-            };
-          }
-        });
+      // Setup the editor with merged data
+      const rankedImgs = mergedImages.filter(img => img.score < 0);
+      rankedImgs.sort((a, b) => a.score - b.score);
+      const unrankedImages = mergedImages.filter(img => img.score >= 0);
 
-        // Separate ranked images (negative scores) from others
-        const rankedImgs = convertedAllImages.filter(img => img.score < 0);
+      setAllImages(mergedImages);
+      setRankedImages(rankedImgs);
+      setInitialImages(allAlbumImages.map(img => ({ ...img, score: 0, viewed: 0 })));
+      
+      console.log("Edit mode setup completed:", {
+        totalImages: mergedImages.length,
+        rankedImages: rankedImgs.length,
+        unrankedImages: unrankedImages.length,
+        rankedImagesList: rankedImgs.map(img => ({ id: img.id, name: img.name, score: img.score })),
+        unrankedImagesList: unrankedImages.map(img => ({ id: img.id, name: img.name, score: img.score }))
+      });
+
+      // Fresh load from database - show button to start ranking unranked images
+      if (unrankedImages.length > 0) {
+        console.log(`Fresh load: ${unrankedImages.length} unranked images - waiting for user to start`);
         
-        // Sort ranked images by score (most negative = best rank)
-        rankedImgs.sort((a, b) => a.score - b.score);
-
-        const unrankedImages = convertedAllImages.filter(img => img.score >= 0);
-
-        setAllImages(convertedAllImages);
-        setRankedImages(rankedImgs);
-        setInitialImages(convertedAllImages.map(img => ({ ...img, score: 0, viewed: 0 })));
+        // Configuration des paramètres sans démarrer le processus
+        const { display, selectable } = determineDisplayAndSelectionCounts(unrankedImages.length);
+        setMaxSelectable(selectable);
+        setInitialDisplayCount(display);
+        setRound(1);
+        setIsQualificationPhase(false);
         
-        console.log("Edit mode setup completed:", {
-          totalImages: convertedAllImages.length,
-          rankedImages: rankedImgs.length,
-          unrankedImages: unrankedImages.length,
-          rankedImagesList: rankedImgs.map(img => ({ id: img.id, name: img.name, score: img.score })),
-          unrankedImagesList: unrankedImages.map(img => ({ id: img.id, name: img.name, score: img.score }))
-        });
-
-        // Fresh load from database - show button to start ranking unranked images
-        if (unrankedImages.length > 0) {
-          console.log(`Fresh load: ${unrankedImages.length} unranked images - waiting for user to start`);
-          
-          // Configuration des paramètres sans démarrer le processus
-          const { display, selectable } = determineDisplayAndSelectionCounts(unrankedImages.length);
-          setMaxSelectable(selectable);
-          setInitialDisplayCount(display);
-          setRound(1);
-          setIsQualificationPhase(false);
-          
-          // Laisser ces états vides - ils seront remplis quand l'utilisateur démarre
-          setCurrentImages([]);
-          setRemainingImages([]);
-          setSelectedImages([]);
-        } else {
-          // All images are already ranked, just set the initial states
-          console.log("All images are already ranked - no need to start ranking process");
-          setCurrentImages([]);
-          setRemainingImages([]);
-          setSelectedImages([]);
-          setRound(1);
-          setIsQualificationPhase(false);
-        }
+        // Laisser ces états vides - ils seront remplis quand l'utilisateur démarre
+        setCurrentImages([]);
+        setRemainingImages([]);
+        setSelectedImages([]);
+      } else {
+        // All images are already ranked, just set the initial states
+        console.log("All images are already ranked - no need to start ranking process");
+        setCurrentImages([]);
+        setRemainingImages([]);
+        setSelectedImages([]);
+        setRound(1);
+        setIsQualificationPhase(false);
       }
 
       setIsInitialized(true);
@@ -719,13 +759,19 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
         })
       );
 
-      // Update all images with negative scores
+      console.log("Ranked images with negative scores:", rankedWithNegativeScores.map(img => ({ 
+        id: img.id, 
+        name: img.name, 
+        score: img.score 
+      })));
+
+      // Update all images with negative scores (use the already calculated scores)
       updatedAllImagesTemp = updatedAllImagesTemp.map((img: Image) => {
-        const rankedIndex = rankedWithNegativeScores.findIndex(
+        const rankedImg = rankedWithNegativeScores.find(
           (rankedImg) => rankedImg.id === img.id
         );
-        if (rankedIndex !== -1) {
-          return { ...img, score: -(rankedIndex + 1) };
+        if (rankedImg) {
+          return { ...img, score: rankedImg.score }; // Use the already calculated negative score
         }
         return img;
       });
@@ -1026,8 +1072,10 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
       return;
     }
 
-    if (rankedImages.length === 0) {
-      alert("Aucune image n'a été classée. Continuez le classement pour sauvegarder.");
+    // Vérifier qu'il y a au moins une progression (score !== 0)
+    const imagesWithProgress = allImages.filter(img => img.score !== 0);
+    if (imagesWithProgress.length === 0) {
+      alert("Aucune progression à sauvegarder. Sélectionnez au moins quelques images d'abord.");
       return;
     }
 
@@ -1092,13 +1140,23 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
     setSelectedImageDetails(null);
   };
 
-  // Show info modal on first visit
+  // Show info modal after first images are loaded (better timing)
   useEffect(() => {
-    const hasSeenInfoModal = localStorage.getItem("rankingInfoModalShown");
-    if (!hasSeenInfoModal) {
-      setShowInfoModal(true);
+    // Pour les nouveaux classements, montrer la modal APRÈS avoir chargé les premières images
+    if (!isEditMode && isInitialized && currentImages.length > 0 && round === 1) {
+      const hasSeenInfoModal = localStorage.getItem("rankingInfoModalShown");
+      if (!hasSeenInfoModal) {
+        setShowInfoModal(true);
+      }
     }
-  }, []);
+    // Pour les classements en édition, ne montrer que si jamais vue et qu'il y a du contenu
+    else if (isEditMode && isInitialized) {
+      const hasSeenInfoModal = localStorage.getItem("rankingInfoModalShown");
+      if (!hasSeenInfoModal && allImages.length > 0) {
+        setShowInfoModal(true);
+      }
+    }
+  }, [isEditMode, isInitialized, currentImages.length, round, allImages.length]);
 
   const closeInfoModal = () => {
     setShowInfoModal(false);
@@ -1141,7 +1199,7 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
                   className="ranking-editor-button primary"
                   onClick={startNewRankingInEditMode}
                 >
-                  Commencer le Classement
+                  {rankedImages.length > 0 ? "Continuer le Classement" : "Commencer le Classement"}
                 </button>
               )}
               {hasUnrankedImages && (
@@ -1177,13 +1235,15 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
           <button
             className="ranking-editor-button primary"
             onClick={saveRankingToBackend}
-            disabled={isSaving || !user || rankedImages.length === 0}
+            disabled={isSaving || !user || allImages.filter(img => img.score !== 0).length === 0}
           >
             {isSaving 
               ? "Sauvegarde..." 
               : isEditMode 
                 ? "Mettre à jour" 
-                : "Sauvegarder"}
+                : rankedImages.length > 0 
+                  ? "Sauvegarder Progression" 
+                  : "Sauvegarder Progression"}
           </button>
         </div>
       </div>
@@ -1241,7 +1301,7 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
         <div className="ranking-status-info">
           <p>
             📝 Mode édition: {unrankedImagesCount} image{unrankedImagesCount > 1 ? 's' : ''} non classée{unrankedImagesCount > 1 ? 's' : ''}. 
-            Cliquez sur "Commencer le Classement" pour continuer.
+            Cliquez sur "{rankedImages.length > 0 ? "Continuer le Classement" : "Commencer le Classement"}" pour {rankedImages.length > 0 ? "continuer" : "commencer"}.
           </p>
         </div>
       )}
@@ -1343,40 +1403,41 @@ const RankingEditor: React.FC<RankingEditorProps> = ({ user }) => {
       )}
 
       {/* Info Modal */}
-      <Modal
-        isOpen={showInfoModal}
-        onRequestClose={closeInfoModal}
-        className="ranking-info-modal"
-        overlayClassName="ranking-modal-overlay"
-      >
-        <div className="ranking-modal-header">
-          <h2>Comment fonctionne le Classement</h2>
-          <button className="close-button" onClick={closeInfoModal}>
-            ×
-          </button>
+      {showInfoModal && (
+        <div className="info-modal-overlay">
+          <div className="info-modal-content">
+            <h2>Comment fonctionne le Classement</h2>
+            <div className="info-content">
+              <h3>🎯 Comment fonctionne le classement ?</h3>
+              <p>
+                Vous voyez devant vous un lot d'images de votre album. 
+                Votre mission : <strong>sélectionner vos préférées !</strong>
+              </p>
+              
+              <h3>🎮 À chaque tour :</h3>
+              <ul>
+                <li>🖱️ <strong>Cliquez sur vos images favorites</strong> (vous pouvez en choisir plusieurs)</li>
+                <li>⭐ Chaque image sélectionnée gagne <strong>1 point</strong></li>
+                <li>🏆 Dès qu'une image atteint <strong>5 points</strong>, elle est automatiquement classée !</li>
+                <li>🔄 Un nouveau lot d'images apparaît, et ça continue...</li>
+              </ul>
+              
+              <h3>💡 Le truc en plus :</h3>
+              <div className="ranking-modal-tip">
+                <p>🔥 Plus vous avancez, plus le choix devient difficile car il ne reste que les meilleures images !</p>
+                <p>💾 <strong>Vous pouvez sauvegarder à tout moment</strong> et reprendre plus tard depuis votre profil.</p>
+              </div>
+              
+              <div className="ranking-modal-ready">
+                <strong>🚀 Prêt(e) ? C'est parti !</strong>
+              </div>
+            </div>
+            <button className="info-close-btn" onClick={closeInfoModal}>
+              Commencer le Classement
+            </button>
+          </div>
         </div>
-        <div className="ranking-modal-content">
-          <p>
-            Le système de classement vous permet de classer vos images par préférence
-            en utilisant un système de points:
-          </p>
-          <ul>
-            <li>Sélectionnez vos images préférées à chaque tour</li>
-            <li>Les images sélectionnées gagnent des points</li>
-            <li>Les images avec 5 points ou plus sont automatiquement classées</li>
-            <li>Le processus continue jusqu'à ce que toutes les images soient évaluées</li>
-          </ul>
-          <p>
-            Vous pouvez sauvegarder votre classement à tout moment pour le partager
-            ou le consulter plus tard.
-          </p>
-        </div>
-        <div className="ranking-modal-actions">
-          <button className="ranking-modal-button" onClick={closeInfoModal}>
-            Commencer le Classement
-          </button>
-        </div>
-      </Modal>
+      )}
 
       {/* Image Details Modal */}
       {selectedImageDetails && (

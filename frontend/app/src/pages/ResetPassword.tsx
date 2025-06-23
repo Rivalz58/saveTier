@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Login.css";
-import api from "../services/api";
+import { resetPassword, verifyResetToken } from "../services/passwordApi";
 
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState("");
@@ -34,24 +34,6 @@ const ResetPassword: React.FC = () => {
 
     setToken(resetToken);
 
-    // Optionally verify token validity with the server
-    const verifyToken = async () => {
-      try {
-        // This would be a real API call in production
-        // await api.get(`/verify-reset-token?token=${resetToken}`);
-
-        // For demo/development, we assume the token is valid
-        setIsTokenValid(true);
-      } catch (error) {
-        setIsTokenValid(false);
-        setIsError(true);
-        setMessage(
-          "Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.",
-        );
-      }
-    };
-
-    verifyToken();
   }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,11 +57,8 @@ const ResetPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // This would be a real API call in production
-      // await api.post("/reset-password", { token, password });
-
-      // For demo/development, simulate a successful password reset
-      console.log("Password would be reset with token:", token);
+      // Utilise la vraie fonction API pour réinitialiser le mot de passe
+      await resetPassword(token, password);
 
       setIsResetSuccessful(true);
       setMessage("Votre mot de passe a été réinitialisé avec succès !");
@@ -166,7 +145,7 @@ const ResetPassword: React.FC = () => {
 
         <button type="submit" disabled={isLoading}>
           {isLoading
-            ? "Traitement en cours..."
+            ? "Réinitialisation en cours..."
             : "Réinitialiser le mot de passe"}
         </button>
       </form>

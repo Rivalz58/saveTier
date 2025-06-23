@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-//import '../styles/TournamentViewer.css'; // Nous créerons ce fichier de style
+import '../styles/TournamentEditor.css'; // Import du CSS pour les styles
 import api from "../services/api";
-import { getAlbumInfoForContent } from "../services/album-api-extended";
+import { getAlbumInfoForContent } from "../services/albumApiExtended";
 import ImageDetailsModal from "../components/ImageDetailsModal";
 
 interface TournamentViewerProps {
@@ -271,12 +271,11 @@ const TournamentViewer: React.FC<TournamentViewerProps> = ({ user }) => {
       {/* Informations sur le tournoi */}
       <div className="tournament-info-panel">
         <div className="tournament-metadata">
-          <p>
-            <strong>Album:</strong> {tournamentData.album.name}
-          </p>
-          <p>
-            <strong>Created by:</strong> {tournamentData.author.username}
-          </p>
+          <div className="album-info">
+            <span className="album-label">Album:</span>
+            <span className="album-name">{tournamentData.album.name}</span>
+            <span className="album-author">par {tournamentData.album.author.username}</span>
+          </div>
           <p>
             <strong>Creation date:</strong>{" "}
             {new Date(tournamentData.createdAt).toLocaleDateString()}

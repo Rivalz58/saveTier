@@ -45,17 +45,17 @@
   z-index: 5; /* Assurez-vous qu'il est au-dessus des autres éléments */
 }
 
-/* Badges de catégories */
+/* Badges de catégories - repositionnés pour éviter le chevauchement */
 .card-categories {
   position: absolute;
-  top: 10px;
+  top: 45px; /* Décalé vers le bas pour éviter le badge d'images */
   left: 5px;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   padding: 5px;
   z-index: 2;
-  max-width: 90%;
+  max-width: 85%; /* Plus de place maintenant qu'il n'y a pas de conflit horizontal */
 }
 
 .card-category-badge {

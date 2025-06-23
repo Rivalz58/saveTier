@@ -291,9 +291,12 @@ const AdminUserManagement: React.FC = () => {
 
       try {
         const response = await api.delete(`/user/${user.id}/role`, {
-          id_role: roleId,
+          data: {
+            id_role: roleId,
+          }
         });
         console.log("Réponse API pour suppression de rôle:", response.data);
+        console.log("Statut de la réponse:", response.status);
 
         // Mettre à jour l'état local
         setUsers(

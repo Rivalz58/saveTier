@@ -54,6 +54,31 @@
   background: var(--bg-secondary);
 }
 
+/* Section description */
+.section-description {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Unranked rows styling */
+.ranking-table-row.unranked-row {
+  background: var(--bg-secondary);
+  border-left: 4px solid #ffa500;
+}
+
+.ranking-table-row.unranked-row:hover {
+  background: var(--bg-tertiary);
+  border-left-color: #ff8c00;
+}
+
+.status-cell {
+  color: #ffa500;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
 /* Header */
 .ranking-viewer-header {
   margin-bottom: 30px;
@@ -486,5 +511,37 @@
     width: 40px;
     height: 40px;
     font-size: 1.2rem;
+  }
+}
+
+/* Styles pour l'affichage des auteurs d'albums dans RankingViewer */
+.ranking-album .album-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ranking-album .album-name {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.ranking-album .album-author {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .ranking-album .album-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .ranking-album .album-author {
+    margin-left: 0;
   }
 }

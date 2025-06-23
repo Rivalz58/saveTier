@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
-import "../styles/AllAlbum.css";
-import { getPublicRankings } from "../services/ranking-api";
-import { getAlbumInfoForContent } from "../services/album-api-extended";
+import "../styles/AllAlbums.css";
+import { getPublicRankings } from "../services/rankingApi";
+import { getAlbumInfoForContent } from "../services/albumApiExtended";
 
 interface ClassementsProps {
   user: string | null;

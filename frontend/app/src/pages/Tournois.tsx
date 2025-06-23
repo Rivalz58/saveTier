@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import CategoryCard from "../components/CategoryCard";
-import "../styles/AllAlbum.css";
-import { getPublicTournaments } from "../services/tournament-api";
-import { getAlbumInfoForContent } from "../services/album-api-extended";
+import "../styles/AllAlbums.css";
+import { getPublicTournaments } from "../services/tournamentApi";
+import { getAlbumInfoForContent } from "../services/albumApiExtended";
 
 interface TournoisProps {
   user: string | null;
